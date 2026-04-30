@@ -1,3 +1,4 @@
+o código ai
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -138,6 +139,7 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
   </div>
   <div class="header-right">
     <div class="header-date" id="hDate"></div>
+    <div class="header-date" id="hClock" style="font-variant-numeric: tabular-nums; letter-spacing: 0.5px;"></div>
     <button class="theme-toggle" id="themeToggle" title="Alternar modo claro/escuro">🌙</button>
   </div>
 </header>
@@ -649,6 +651,16 @@ document.getElementById('themeToggle').addEventListener('click', () => {
 });
 
 document.getElementById('hDate').textContent = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+
+function atualizarRelogio() {
+  const agora = new Date();
+  const h = String(agora.getHours()).padStart(2, '0');
+  const m = String(agora.getMinutes()).padStart(2, '0');
+  const s = String(agora.getSeconds()).padStart(2, '0');
+  document.getElementById('hClock').textContent = `${h}:${m}:${s}`;
+}
+atualizarRelogio();
+setInterval(atualizarRelogio, 1000);
 
 const savedTheme = localStorage.getItem('theme');
 if (savedTheme === 'light') {

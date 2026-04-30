@@ -1,3 +1,4 @@
+o código ai
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -122,6 +123,25 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
 .fundo-ticker { display: inline-block; background: var(--gold); color: #000; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 700; margin-bottom: 12px; }
 
 .info-box { background: var(--blue-bg); border: 1px solid rgba(52,152,219,0.2); border-radius: 8px; padding: 10px 14px; font-size: 13px; color: var(--blue); margin-bottom: 0.75rem; line-height: 1.5; }
+
+/* TIPO BADGE */
+.tipo-badge { display: inline-flex; align-items: center; gap: 5px; border-radius: 20px; padding: 3px 12px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; }
+.tipo-tijolo { background: rgba(243,156,18,0.15); color: var(--amber); border: 1px solid rgba(243,156,18,0.3); }
+.tipo-papel { background: rgba(52,152,219,0.15); color: var(--blue); border: 1px solid rgba(52,152,219,0.3); }
+.tipo-hibrido { background: rgba(46,204,113,0.15); color: var(--green); border: 1px solid rgba(46,204,113,0.3); }
+
+/* SEÇÃO CARTEIRA CRI */
+.secao-titulo { grid-column: 1 / -1; font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 1.2px; padding: 0.75rem 0 0.5rem; border-top: 1px solid var(--border); margin-top: 0.5rem; display: flex; align-items: center; gap: 8px; }
+.carteira-box { grid-column: 1 / -1; background: var(--result-item-bg); border-radius: 10px; padding: 1.25rem; border-left: 3px solid var(--blue); margin-top: 0.25rem; }
+.carteira-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem; margin-top: 0.75rem; }
+.carteira-item { background: var(--bg3); border-radius: 8px; padding: 0.75rem 1rem; border: 1px solid var(--border); }
+.carteira-item-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text3); margin-bottom: 5px; }
+.carteira-item-val { font-size: 15px; font-weight: 700; font-family: 'Atkinson Hyperlegible', monospace; color: var(--text); }
+.carteira-item-val.ipca { color: var(--amber); }
+.carteira-item-val.cdi { color: var(--blue); }
+.carteira-item-val.ok { color: var(--green); }
+.setores-bar { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 0.75rem; }
+.setor-tag { background: var(--bg3); border: 1px solid var(--border2); border-radius: 20px; padding: 3px 10px; font-size: 12px; color: var(--text2); }
 </style>
 </head>
 <body>
@@ -171,7 +191,7 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
   <div class="card">
     <div class="card-title">
       📄 Importar relatório gerencial de FII (PDF)
-      <span>Análise inteligente com Gemini AI · Vacância · Inadimplência · LTV · Rendimentos</span>
+      <span>Análise inteligente com Gemini AI · Detecta automaticamente FII de Tijolo, Papel ou Híbrido</span>
     </div>
     <div class="upload-row">
       <label class="file-label" for="filePdf">
@@ -310,39 +330,70 @@ async function analisarComGemini(textoPDF, apiKey) {
 
   const prompt = `Você é um analista especialista em Fundos de Investimento Imobiliário (FIIs) do Brasil.
 
-Analise o relatório gerencial abaixo e retorne um JSON com EXATAMENTE esta estrutura (sem markdown, só o JSON puro):
+PASSO 1 — Identifique a categoria do fundo:
+- "tijolo": FIIs que possuem imóveis físicos (lajes corporativas, galpões logísticos, shoppings, hospitais, agências, etc.)
+- "papel": FIIs que investem em ativos financeiros imobiliários (CRI, LCI, LIG, CRA, debêntures imobiliárias — também chamados FIIs de recebíveis ou de crédito)
+- "hibrido": FIIs que combinam imóveis físicos e ativos financeiros
+
+PASSO 2 — Com base na categoria identificada, extraia os campos relevantes e retorne um JSON com EXATAMENTE esta estrutura (sem markdown, só o JSON puro):
 
 {
   "ticker": "código do fundo ex: ABCD11 ou null",
   "gestora": "nome da gestora ou null",
-  "tipo_fii": "tipo: Lajes Corporativas, Logístico, Shopping, CRI, Híbrido, etc ou null",
+  "categoria": "tijolo | papel | hibrido",
+  "tipo_fii": "subtipo detalhado: Lajes Corporativas, Logístico, Shopping, CRI, LCI, Híbrido, etc ou null",
   "periodo_referencia": "mês/ano do relatório ou null",
-  "vacancia_fisica": "valor em % ou null",
-  "vacancia_financeira": "valor em % ou null",
-  "inadimplencia": "valor em R$ ou % ou null",
-  "ltv": "valor em % ou null",
   "distribuicao": "valor em R$/cota ou null",
   "resultado_distribuivel": "valor em R$/cota ou null",
   "receita_total": "valor ou null",
   "despesas_totais": "valor ou null",
   "saldo_caixa": "valor ou null",
+  "patrimonio_liquido": "valor total do PL ou null",
+  "num_cotas": "número de cotas emitidas ou null",
+
+  "CAMPOS EXCLUSIVOS PARA TIJOLO (null se for papel puro)":
+  "vacancia_fisica": "valor em % ou null",
+  "vacancia_financeira": "valor em % ou null",
+  "inadimplencia": "valor em R$ ou % ou null",
+  "ltv": "valor em % ou null",
   "num_imoveis": "número de imóveis ou null",
   "num_inquilinos": "número de inquilinos ou null",
   "abl_total": "área bruta locável total ou null",
   "saida_inquilino": "nome/descrição ou null",
   "entrada_inquilino": "nome/descrição ou null",
-  "reajustes": "descrição dos reajustes ou null",
-  "parcelas_pagar": "valor ou null",
-  "principais_riscos": "lista dos 3 principais riscos identificados no relatório, separados por | ou null",
+  "reajustes": "descrição dos reajustes contratuais ou null",
+  "parcelas_pagar": "valor de parcelas/obrigações a pagar ou null",
+
+  "CAMPOS EXCLUSIVOS PARA PAPEL (null se for tijolo puro)":
+  "num_cri": "número total de CRIs na carteira ou null",
+  "perc_ativos_alvo": "% do PL alocado em ativos-alvo (CRI/LCI/etc) ou null",
+  "perc_caixa": "% do PL em instrumentos de caixa ou null",
+  "perc_cri_ipca": "% da carteira em CRI indexado ao IPCA ou null",
+  "perc_cri_cdi": "% da carteira em CRI indexado ao CDI ou null",
+  "perc_lci": "% da carteira em LCI ou null",
+  "remuneracao_ipca": "remuneração média dos CRIs IPCA ex: IPCA+10,31% ou null",
+  "remuneracao_cdi": "remuneração média dos CRIs CDI ex: CDI+3,14% ou null",
+  "prazo_medio_ipca": "prazo médio dos CRIs IPCA em anos ou null",
+  "prazo_medio_cdi": "prazo médio dos CRIs CDI em anos ou null",
+  "duration_media": "duration média geral da carteira ou null",
+  "ltv_medio_carteira": "LTV médio da carteira de CRIs ou null",
+  "inadimplencia_carteira": "inadimplência na carteira de crédito ou null",
+  "setores_carteira": "setores dos CRIs separados por | ex: Shoppings|Residencial|Logístico ou null",
+  "alocacao_setores_detalhe": "descrição detalhada da alocação por setor com percentuais ou null",
+  "novos_cri": "descrição de novos CRIs adquiridos no período ou null",
+  "cri_liquidados": "descrição de CRIs liquidados/amortizados no período ou null",
+
+  "principais_riscos": "lista dos 3 principais riscos identificados, separados por | ou null",
   "pontos_positivos": "lista dos 3 principais pontos positivos, separados por | ou null",
-  "resumo_analista": "resumo crítico de 4 a 6 frases do ponto de vista de um investidor cuidadoso, destacando o que mais importa saber sobre este fundo neste período",
+  "resumo_analista": "resumo crítico de 4 a 6 frases do ponto de vista de um investidor cuidadoso. Para tijolo: foque em vacância, inadimplência, qualidade dos inquilinos e perspectivas. Para papel: foque em qualidade da carteira de crédito, indexadores, duration, risco de crédito e spread.",
   "comentario_gestor": "trecho do comentário da gestão se houver, máximo 600 caracteres, ou null"
 }
 
 IMPORTANTE:
 - Retorne APENAS o JSON, sem texto antes ou depois, sem blocos de código markdown.
+- Remova as linhas de comentário (que começam com aspas e contêm "CAMPOS EXCLUSIVOS") do JSON retornado — elas são apenas instruções.
 - Se um dado não estiver no relatório, use null.
-- No resumo_analista, seja direto e crítico: mencione se a vacância está alta, se a distribuição caiu, se há riscos relevantes, se o fundo está bem gerido.
+- Seja preciso nos percentuais e valores numéricos — copie exatamente como aparecem no relatório.
 
 RELATÓRIO:
 ${textoLimitado}`;
@@ -424,11 +475,19 @@ ${textoLimitado}`;
       // Fallback: extrai campos via regex do JSON parcial
       const recuperado = {};
       const campos = [
-        'ticker','gestora','tipo_fii','periodo_referencia',
-        'vacancia_fisica','vacancia_financeira','inadimplencia','ltv',
+        'ticker','gestora','categoria','tipo_fii','periodo_referencia',
         'distribuicao','resultado_distribuivel','receita_total','despesas_totais',
-        'saldo_caixa','num_imoveis','num_inquilinos','abl_total',
+        'saldo_caixa','patrimonio_liquido','num_cotas',
+        // tijolo
+        'vacancia_fisica','vacancia_financeira','inadimplencia','ltv',
+        'num_imoveis','num_inquilinos','abl_total',
         'saida_inquilino','entrada_inquilino','reajustes','parcelas_pagar',
+        // papel
+        'num_cri','perc_ativos_alvo','perc_caixa','perc_cri_ipca','perc_cri_cdi','perc_lci',
+        'remuneracao_ipca','remuneracao_cdi','prazo_medio_ipca','prazo_medio_cdi',
+        'duration_media','ltv_medio_carteira','inadimplencia_carteira',
+        'setores_carteira','alocacao_setores_detalhe','novos_cri','cri_liquidados',
+        // comuns
         'principais_riscos','pontos_positivos','resumo_analista','comentario_gestor'
       ];
 
@@ -482,60 +541,133 @@ function colorVacancia(val) {
   return 'alerta';
 }
 
+function tipoBadge(categoria, tipo) {
+  if (!categoria) return '';
+  const cls = categoria === 'papel' ? 'tipo-papel' : categoria === 'hibrido' ? 'tipo-hibrido' : 'tipo-tijolo';
+  const emoji = categoria === 'papel' ? '📜' : categoria === 'hibrido' ? '🔀' : '🏢';
+  const label = tipo || (categoria === 'papel' ? 'FII de Papel' : categoria === 'hibrido' ? 'FII Híbrido' : 'FII de Tijolo');
+  return `<span class="tipo-badge ${cls}">${emoji} ${label}</span>`;
+}
+
+function cardIndicador(label, val, cor) {
+  if (!val) return '';
+  return `<div class="result-card"><div class="result-label">${label}</div><div class="result-value small ${cor}">${val}</div></div>`;
+}
+
 function renderResultados(d) {
   const container = document.getElementById('resultadosConteudo');
   const fundoLabel = document.getElementById('fundoIdentificado');
+  const categoria = (d.categoria || '').toLowerCase();
 
   fundoLabel.innerHTML = `
     ${d.ticker ? `<span class="fundo-ticker">${d.ticker}</span>` : ''}
-    <span style="font-size:12px">${d.gestora || ''}</span>
+    ${tipoBadge(categoria, d.tipo_fii)}
+    <span style="font-size:12px;margin-left:4px">${d.gestora || ''}</span>
     ${d.periodo_referencia ? `<span style="font-size:11px;color:var(--text3);margin-left:6px">${d.periodo_referencia}</span>` : ''}
   `;
 
   let html = '';
 
-  // Cards de indicadores — toStr() garante que números viram string antes de qualquer .replace()
-  const indicadores = [
-    { label: '📊 Vacância Física', val: toStr(d.vacancia_fisica), cor: colorVacancia(d.vacancia_fisica) },
-    { label: '💰 Vacância Financeira', val: toStr(d.vacancia_financeira), cor: colorVacancia(d.vacancia_financeira) },
-    { label: '⚠️ Inadimplência', val: toStr(d.inadimplencia), cor: d.inadimplencia && String(d.inadimplencia) !== '0%' && String(d.inadimplencia) !== 'R$ 0,00' && String(d.inadimplencia) !== '0' ? 'alerta' : 'ok' },
-    { label: '🏦 LTV (Loan to Value)', val: toStr(d.ltv), cor: '' },
-    { label: '💰 Distribuição (R$/cota)', val: toStr(d.distribuicao), cor: '' },
-    { label: '📈 Resultado Distribuível', val: toStr(d.resultado_distribuivel), cor: '' },
-    { label: '📊 Receita Total', val: toStr(d.receita_total), cor: '' },
-    { label: '📉 Despesas Totais', val: toStr(d.despesas_totais), cor: '' },
-    { label: '💰 Saldo em Caixa', val: toStr(d.saldo_caixa), cor: '' },
-    { label: '🏢 Nº de Imóveis', val: toStr(d.num_imoveis), cor: '' },
-    { label: '👥 Nº de Inquilinos', val: toStr(d.num_inquilinos), cor: '' },
-    { label: '📐 ABL Total', val: toStr(d.abl_total), cor: '' },
-    { label: '🏷️ Tipo de FII', val: toStr(d.tipo_fii), cor: '' },
-    { label: '📋 Parcelas a Pagar', val: toStr(d.parcelas_pagar), cor: d.parcelas_pagar ? 'alerta' : '' },
-    { label: '🚪 Saída de Inquilino', val: toStr(d.saida_inquilino), cor: d.saida_inquilino ? 'alerta' : '' },
-    { label: '🏠 Entrada de Inquilino', val: toStr(d.entrada_inquilino), cor: d.entrada_inquilino ? 'ok' : '' },
-    { label: '📅 Reajustes', val: toStr(d.reajustes), cor: '' },
-  ];
+  // ── INDICADORES COMUNS ──
+  html += cardIndicador('💰 Distribuição (R$/cota)', toStr(d.distribuicao), '');
+  html += cardIndicador('📈 Resultado Distribuível', toStr(d.resultado_distribuivel), '');
+  html += cardIndicador('📊 Receita Total', toStr(d.receita_total), '');
+  html += cardIndicador('📉 Despesas Totais', toStr(d.despesas_totais), '');
+  html += cardIndicador('💰 Saldo em Caixa', toStr(d.saldo_caixa), '');
+  html += cardIndicador('🏦 Patrimônio Líquido', toStr(d.patrimonio_liquido), '');
+  html += cardIndicador('🔢 Nº de Cotas', toStr(d.num_cotas), '');
 
-  indicadores.forEach(({ label, val, cor }) => {
-    if (!val) return;
-    html += `
-      <div class="result-card">
-        <div class="result-label">${label}</div>
-        <div class="result-value small ${cor}">${val}</div>
-      </div>
-    `;
-  });
+  // ── SEÇÃO TIJOLO ──
+  if (categoria === 'tijolo' || categoria === 'hibrido') {
+    html += `<div class="secao-titulo">🏢 Indicadores do Portfólio Físico</div>`;
+    html += cardIndicador('📊 Vacância Física', toStr(d.vacancia_fisica), colorVacancia(d.vacancia_fisica));
+    html += cardIndicador('💰 Vacância Financeira', toStr(d.vacancia_financeira), colorVacancia(d.vacancia_financeira));
+    html += cardIndicador('⚠️ Inadimplência', toStr(d.inadimplencia),
+      d.inadimplencia && !['0%','R$ 0,00','0'].includes(String(d.inadimplencia)) ? 'alerta' : 'ok');
+    html += cardIndicador('🏦 LTV (Loan to Value)', toStr(d.ltv), '');
+    html += cardIndicador('🏢 Nº de Imóveis', toStr(d.num_imoveis), '');
+    html += cardIndicador('👥 Nº de Inquilinos', toStr(d.num_inquilinos), '');
+    html += cardIndicador('📐 ABL Total', toStr(d.abl_total), '');
+    html += cardIndicador('📋 Parcelas a Pagar', toStr(d.parcelas_pagar), d.parcelas_pagar ? 'alerta' : '');
+    html += cardIndicador('🚪 Saída de Inquilino', toStr(d.saida_inquilino), d.saida_inquilino ? 'alerta' : '');
+    html += cardIndicador('🏠 Entrada de Inquilino', toStr(d.entrada_inquilino), d.entrada_inquilino ? 'ok' : '');
+    html += cardIndicador('📅 Reajustes Contratuais', toStr(d.reajustes), '');
+  }
 
-  // Resumo do analista
+  // ── SEÇÃO PAPEL ──
+  if (categoria === 'papel' || categoria === 'hibrido') {
+    html += `<div class="secao-titulo">📜 Carteira de Crédito Imobiliário</div>`;
+
+    // Cards rápidos de carteira
+    html += cardIndicador('📦 Nº de CRIs', toStr(d.num_cri), '');
+    html += cardIndicador('🎯 Ativos-Alvo (% PL)', toStr(d.perc_ativos_alvo), '');
+    html += cardIndicador('💵 Caixa (% PL)', toStr(d.perc_caixa), '');
+    html += cardIndicador('⚠️ Inadimplência Carteira', toStr(d.inadimplencia_carteira),
+      d.inadimplencia_carteira && !['0%','0'].includes(String(d.inadimplencia_carteira)) ? 'alerta' : 'ok');
+    html += cardIndicador('📏 LTV Médio Carteira', toStr(d.ltv_medio_carteira), '');
+    html += cardIndicador('⏱️ Duration Média', toStr(d.duration_media), '');
+
+    // Box de alocação IPCA vs CDI
+    const temIpca = d.perc_cri_ipca || d.remuneracao_ipca || d.prazo_medio_ipca;
+    const temCdi  = d.perc_cri_cdi  || d.remuneracao_cdi  || d.prazo_medio_cdi;
+    if (temIpca || temCdi || d.perc_lci) {
+      html += `
+        <div class="carteira-box" style="grid-column:1/-1">
+          <div class="result-label">📊 ALOCAÇÃO POR INDEXADOR</div>
+          <div class="carteira-grid">
+            ${temIpca ? `
+              <div class="carteira-item">
+                <div class="carteira-item-label">🟡 CRI IPCA</div>
+                ${d.perc_cri_ipca ? `<div class="carteira-item-val ipca">${toStr(d.perc_cri_ipca)} da carteira</div>` : ''}
+                ${d.remuneracao_ipca ? `<div style="font-size:12px;color:var(--text2);margin-top:4px">Spread: <strong>${toStr(d.remuneracao_ipca)}</strong></div>` : ''}
+                ${d.prazo_medio_ipca ? `<div style="font-size:12px;color:var(--text3);margin-top:2px">Prazo médio: ${toStr(d.prazo_medio_ipca)} anos</div>` : ''}
+              </div>` : ''}
+            ${temCdi ? `
+              <div class="carteira-item">
+                <div class="carteira-item-label">🔵 CRI CDI</div>
+                ${d.perc_cri_cdi ? `<div class="carteira-item-val cdi">${toStr(d.perc_cri_cdi)} da carteira</div>` : ''}
+                ${d.remuneracao_cdi ? `<div style="font-size:12px;color:var(--text2);margin-top:4px">Spread: <strong>${toStr(d.remuneracao_cdi)}</strong></div>` : ''}
+                ${d.prazo_medio_cdi ? `<div style="font-size:12px;color:var(--text3);margin-top:2px">Prazo médio: ${toStr(d.prazo_medio_cdi)} anos</div>` : ''}
+              </div>` : ''}
+            ${d.perc_lci ? `
+              <div class="carteira-item">
+                <div class="carteira-item-label">🟢 LCI</div>
+                <div class="carteira-item-val ok">${toStr(d.perc_lci)} da carteira</div>
+              </div>` : ''}
+          </div>
+        </div>`;
+    }
+
+    // Setores da carteira
+    if (d.setores_carteira) {
+      const setores = d.setores_carteira.split('|').map(s => s.trim()).filter(Boolean);
+      html += `
+        <div class="carteira-box" style="grid-column:1/-1">
+          <div class="result-label">🏗️ SETORES DA CARTEIRA</div>
+          ${d.alocacao_setores_detalhe ? `<div style="font-size:13px;color:var(--text2);margin:8px 0 10px;">${toStr(d.alocacao_setores_detalhe)}</div>` : ''}
+          <div class="setores-bar">
+            ${setores.map(s => `<span class="setor-tag">${s}</span>`).join('')}
+          </div>
+        </div>`;
+    }
+
+    // Movimentações da carteira
+    if (d.novos_cri || d.cri_liquidados) {
+      html += `<div class="secao-titulo">🔄 Movimentações do Período</div>`;
+      html += cardIndicador('🆕 Novos CRIs Adquiridos', toStr(d.novos_cri), 'ok');
+      html += cardIndicador('✅ CRIs Liquidados/Amortizados', toStr(d.cri_liquidados), '');
+    }
+  }
+
+  // ── ANÁLISE IA ──
   if (d.resumo_analista) {
     html += `
       <div class="resumo-box">
         <div class="result-label">🤖 ANÁLISE DO RELATÓRIO (Gemini AI)</div>
         <div class="resumo-texto">${d.resumo_analista}</div>
-      </div>
-    `;
+      </div>`;
   }
 
-  // Pontos positivos
   if (d.pontos_positivos) {
     const itens = d.pontos_positivos.split('|').map(s => s.trim()).filter(Boolean);
     html += `
@@ -544,11 +676,9 @@ function renderResultados(d) {
         <ul style="margin-top:8px;padding-left:18px;font-size:14px;color:var(--text2);line-height:1.8">
           ${itens.map(i => `<li>${i}</li>`).join('')}
         </ul>
-      </div>
-    `;
+      </div>`;
   }
 
-  // Riscos
   if (d.principais_riscos) {
     const itens = d.principais_riscos.split('|').map(s => s.trim()).filter(Boolean);
     html += `
@@ -557,18 +687,15 @@ function renderResultados(d) {
         <ul style="margin-top:8px;padding-left:18px;font-size:14px;color:var(--text2);line-height:1.8">
           ${itens.map(i => `<li>${i}</li>`).join('')}
         </ul>
-      </div>
-    `;
+      </div>`;
   }
 
-  // Comentário do gestor
   if (d.comentario_gestor) {
     html += `
       <div class="comentario-box">
         <div class="result-label">💬 COMENTÁRIO DO GESTOR</div>
         <div class="comentario-texto">${String(d.comentario_gestor).replace(/\n/g, ' ')}</div>
-      </div>
-    `;
+      </div>`;
   }
 
   container.innerHTML = html;

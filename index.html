@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Análise de FIIs · IA Gemini</title>
+<title>Leitor de Relatórios Gerenciais · FIIs</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Atkinson+Hyperlegible:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
@@ -21,7 +21,7 @@
   --input-bg: #1c2333; --input-border: rgba(255,255,255,0.13);
   --debug-bg: #1c2333; --overlay-bg: rgba(14,17,23,.88);
   --footer-border: rgba(255,255,255,0.07);
-  --analise-bg: #1c2333;
+  --result-item-bg: #1c2333;
 }
 body.light {
   --bg: #f5f7fa; --bg2: #ffffff; --bg3: #f0f2f5;
@@ -36,11 +36,11 @@ body.light {
   --input-bg: #ffffff; --input-border: #e2e8f0;
   --debug-bg: #f7fafc; --overlay-bg: rgba(255,255,255,.95);
   --footer-border: rgba(0,0,0,0.08);
-  --analise-bg: #f7fafc;
+  --result-item-bg: #f7fafc;
 }
-* { box-sizing: border-box; margin: 0; padding: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; transition: all 0.2s ease; }
 
-body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
 .header { background: var(--header-bg); border-bottom: 1px solid var(--header-border); padding: 0 2rem; height: 60px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
 .header-logo { display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 600; }
@@ -51,7 +51,8 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 .theme-toggle:hover { border-color: var(--gold); transform: scale(1.05); }
 .main { max-width: 1200px; margin: 0 auto; padding: 2rem; }
 .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
-.card-title { font-size: 12px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; }
+.card-title { font-size: 12px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.card-title span { font-size: 11px; font-weight: 400; letter-spacing: 0; text-transform: none; }
 .upload-row { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
 .file-label { display: flex; align-items: center; gap: 8px; background: var(--bg3); border: 1.5px dashed var(--border2); border-radius: 8px; padding: 9px 14px; cursor: pointer; font-size: 14px; color: var(--text2); flex: 1; min-width: 180px; }
 .file-label:hover { border-color: var(--gold); color: var(--gold); }
@@ -65,14 +66,17 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 .status.show { display: flex; }
 .status-ok { background: var(--green-bg); color: var(--green); border: 1px solid rgba(46,204,113,0.25); }
 .status-err { background: var(--red-bg); color: var(--red); border: 1px solid rgba(231,76,60,0.25); }
-.status-warning { background: var(--amber-bg); color: var(--amber); border: 1px solid rgba(243,156,18,0.25); }
 
-.analise-content { background: var(--analise-bg); border-radius: 10px; padding: 1.5rem; line-height: 1.6; font-size: 14px; }
-.analise-content h2, .analise-content h3 { color: var(--gold); margin-top: 1.2rem; margin-bottom: 0.5rem; }
-.analise-content h2:first-child { margin-top: 0; }
-.analise-content hr { border-color: var(--border); margin: 1rem 0; }
-.analise-content ul, .analise-content ol { padding-left: 1.5rem; margin: 0.5rem 0; }
-.analise-content p { margin: 0.75rem 0; }
+.resultados-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-top: 1rem; }
+.result-card { background: var(--result-item-bg); border-radius: 10px; padding: 1rem; border: 1px solid var(--border); }
+.result-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text3); margin-bottom: 8px; }
+.result-value { font-size: 18px; font-weight: 700; font-family: 'Atkinson Hyperlegible', monospace; word-break: break-word; line-height: 1.3; }
+.result-value.small { font-size: 14px; font-weight: 400; }
+.result-value.alerta { color: var(--red); }
+.result-value.ok { color: var(--green); }
+.comentario-box { grid-column: 1 / -1; background: var(--result-item-bg); border-radius: 10px; padding: 1rem; border-left: 3px solid var(--gold); margin-top: 0.5rem; }
+.comentario-texto { font-size: 14px; line-height: 1.5; color: var(--text2); margin-top: 6px; max-height: 250px; overflow-y: auto; }
+.ocorrencia-item { margin-bottom: 0.5rem; padding: 0.25rem 0; border-bottom: 1px solid var(--border); }
 
 .debug-wrapper { margin-top: 0.75rem; }
 .debug-header { display: flex; align-items: center; justify-content: flex-end; margin-bottom: 0.5rem; }
@@ -87,36 +91,29 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 .footer { text-align: center; font-size: 12px; color: var(--text3); padding: 2rem; border-top: 1px solid var(--footer-border); margin-top: 1rem; }
 .arrow { transition: transform 0.2s ease; display: inline-block; }
 .arrow.rotated { transform: rotate(90deg); }
-
-.api-config { margin-top: 1rem; padding: 0.75rem; background: var(--blue-bg); border-radius: 8px; font-size: 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; }
-.api-config input { background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 6px; padding: 6px 12px; color: var(--text); width: 320px; max-width: 100%; font-size: 12px; font-family: monospace; }
-.api-config input:focus { outline: none; border-color: var(--gold); }
-.info-banner { margin-top: 1rem; padding: 0.75rem; background: var(--amber-bg); border-radius: 8px; font-size: 12px; color: var(--amber); }
+.fundo-ticker { display: inline-block; background: var(--gold); color: #000; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 700; margin-bottom: 12px; }
 </style>
 </head>
 <body>
 
-<div class="overlay" id="overlay">
-  <div class="spin"></div>
-  <div class="spin-text" id="overlayText">Processando PDF...</div>
-</div>
+<div class="overlay" id="overlay"><div class="spin"></div><div class="spin-text">Processando PDF...</div></div>
 
 <header class="header">
   <div class="header-logo">
     <div class="dot">FII</div>
-    Análise Inteligente com IA
+    Leitor de Relatórios Gerenciais
   </div>
   <div class="header-right">
     <div class="header-date" id="hDate"></div>
-    <button class="theme-toggle" id="themeToggle" title="Modo claro/escuro">🌙</button>
+    <button class="theme-toggle" id="themeToggle" title="Alternar modo claro/escuro">🌙</button>
   </div>
 </header>
 
 <main class="main">
   <div class="card">
     <div class="card-title">
-      📄 Relatório Gerencial de FII (PDF)
-      <span>Gemini IA · Análise completa</span>
+      📄 Importar relatório gerencial de FII (PDF)
+      <span>Extração manual · Vacância · Inadimplência · LTV · Comentários · Movimentações</span>
     </div>
     <div class="upload-row">
       <label class="file-label" for="filePdf">
@@ -126,27 +123,16 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
         <span id="fileName">Selecionar arquivo PDF...</span>
       </label>
       <input type="file" id="filePdf" accept=".pdf">
-      <button class="btn btn-gold" id="btnAnalisar">🤖 Analisar com IA</button>
+      <button class="btn btn-gold" id="btnImportar">📊 Extrair dados</button>
       <button class="btn btn-ghost" id="btnLimpar">Limpar</button>
     </div>
-
-    <div class="api-config">
-      <span>🔑 Chave API Gemini (gratuita):</span>
-      <input type="password" id="apiKey" placeholder="Cole sua chave aqui (ex: AIzaSy...)">
-      <span style="font-size:11px; color:var(--text3)">🔗 <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--gold)">Obter chave grátis</a></span>
-    </div>
-
     <div id="status" class="status"></div>
-
-    <div class="info-banner">
-      💡 Usando modelo: <strong>gemini-2.0-flash-exp</strong> (gratuito e mais recente)
-    </div>
 
     <div class="debug-wrapper">
       <div class="debug-header">
         <button class="btn-debug" id="btnToggleDebug">
           <span class="arrow" id="debugArrow">▶</span> 
-          📋 Ver extração do PDF (debug)
+          📋 Detalhes da leitura do PDF (debug)
         </button>
       </div>
       <div id="debugBox" class="debug-box"></div>
@@ -155,15 +141,15 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 
   <div id="resultArea" class="card" style="display:none">
     <div class="card-title">
-      📊 Análise do Relatório · Gemini IA
-      <span id="fundoNome" style="color:var(--gold)"></span>
+      📊 Resumo do Relatório Gerencial
+      <span id="fundoIdentificado" style="color:var(--gold)"></span>
     </div>
-    <div id="analiseConteudo" class="analise-content"></div>
+    <div id="resultadosConteudo" class="resultados-grid"></div>
   </div>
 </main>
 
 <footer class="footer">
-  Análise gerada por IA · Baseada no relatório gerencial enviado · Não constitui recomendação de investimento
+  Extração automática de indicadores de FIIs · Compatível com múltiplas gestoras
 </footer>
 
 <script>
@@ -183,7 +169,7 @@ function setStatus(msg, tipo) {
   const el = document.getElementById('status'); 
   el.innerHTML = msg; 
   el.className = `status show status-${tipo}`; 
-  setTimeout(() => el.classList.remove('show'), 8000);
+  setTimeout(() => el.classList.remove('show'), 5000); 
 }
 
 function normalizarTexto(texto) {
@@ -209,139 +195,245 @@ async function extrairTextoPDF(file) {
   
   const normalizado = normalizarTexto(textoCompleto);
   dbg(`📊 Total de caracteres extraídos: ${normalizado.length}`);
-  dbg(`📝 Primeiros 500 caracteres:\n${normalizado.substring(0, 500)}`);
+  dbg(`📝 Primeiros 800 caracteres:\n${normalizado.substring(0, 800)}`);
   
-  return normalizado;
+  return { normalizado, original: textoCompleto };
 }
 
-async function chamarGemini(apiKey, textoPDF) {
-  const promptCompleto = `Você é um analista de fundos imobiliários (FIIs) especializado. Analise o relatório gerencial abaixo e gere um relatório seguindo EXATAMENTE este formato:
-
-1. Resumo Executivo
-(visão geral em até 8-10 linhas com os fatos realmente relevantes)
-
-2. Dividendos, Rentabilidade e Yield
-- distribuição do mês
-- dividend yield mensal e anualizado
-
-3. Liquidez e Base de Cotistas
-- volume negociado
-- variação mensal
-
-4. Eventos Relevantes do Mês
-- aquisições/vendas
-- fatos relevantes
-
-5. Receitas, Despesas, Caixa e Índice de Eficiência
-- receita total
-- despesas totais
-- resultado de caixa
-- resultado distribuído
-
-6. Portfólio
-- taxa de ocupação (vacância)
-- WAULT
-- concentrações
-
-7. Endividamento / Alavancagem
-- saldo da dívida
-- indexadores
-
-8. Pontos Positivos do Mês
-
-9. Pontos de Atenção / Riscos
-
-10. Conclusão
-
-Use apenas as informações do relatório. Se não encontrar algo, escreva "Não informado".
-
-Relatório:
-${textoPDF.substring(0, 35000)}`;
-
-  // CORREÇÃO FINAL: Usando o modelo mais recente que está disponível
-  // Fonte: https://ai.google.dev/gemini-api/docs/models
-  const modelName = "gemini-2.0-flash-exp";
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+function extrairCampos(texto) {
+  const resultados = {};
   
-  const payload = {
-    contents: [{
-      parts: [{ text: promptCompleto }]
-    }]
-  };
-
-  dbg(`🤖 Enviando para o Gemini...`);
-  dbg(`📡 Modelo: ${modelName}`);
-  dbg(`📡 URL: ${url.replace(apiKey, 'HIDDEN')}`);
+  // ========== 1. TICKER DO FUNDO ==========
+  const tickerMatch = texto.match(/\b([A-Z]{4}\d{2})\b/);
+  resultados.ticker = tickerMatch ? tickerMatch[1] : null;
+  dbg(`🏷️ Ticker: ${resultados.ticker || 'não encontrado'}`);
   
-  try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
-    if (!response.ok) {
-      const erro = await response.text();
-      dbg(`❌ Resposta de erro: ${erro}`);
-      
-      // Se o modelo 2.0 não funcionar, tenta o 1.5 como fallback
-      if (modelName === "gemini-2.0-flash-exp") {
-        dbg(`⚠️ Modelo 2.0 não disponível, tentando fallback para gemini-1.5-flash-002...`);
-        const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-002:generateContent?key=${apiKey}`;
-        const fallbackResponse = await fetch(fallbackUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        if (!fallbackResponse.ok) {
-          const fallbackErro = await fallbackResponse.text();
-          throw new Error(`API Gemini erro ${fallbackResponse.status}: ${fallbackErro}`);
-        }
-        const fallbackData = await fallbackResponse.json();
-        const fallbackTexto = fallbackData.candidates?.[0]?.content?.parts?.[0]?.text || "Não foi possível gerar a análise.";
-        return fallbackTexto;
-      }
-      
-      throw new Error(`API Gemini erro ${response.status}: ${erro}`);
-    }
-
-    const data = await response.json();
-    dbg("✅ Resposta recebida do Gemini");
-    
-    const textoResposta = data.candidates?.[0]?.content?.parts?.[0]?.text || "Não foi possível gerar a análise.";
-    
-    return textoResposta;
-  } catch (error) {
-    dbg(`❌ Erro na chamada: ${error.message}`);
-    throw error;
+  // ========== 2. GESTORA ==========
+  if (texto.match(/P[áa]tria/i)) resultados.gestora = "Pátria Investimentos";
+  else if (texto.match(/BTG/i)) resultados.gestora = "BTG Pactual";
+  else if (texto.match(/XP/i)) resultados.gestora = "XP Asset";
+  else if (texto.match(/Sun/i)) resultados.gestora = "Sun Asset";
+  else if (texto.match(/Credit\s+Suisse/i)) resultados.gestora = "Credit Suisse";
+  else if (texto.match(/Rio\s+Bravo/i)) resultados.gestora = "Rio Bravo";
+  else if (texto.match(/Kinea/i)) resultados.gestora = "Kinea";
+  else if (texto.match(/Hedge/i)) resultados.gestora = "Hedge";
+  else if (texto.match(/Vinci/i)) resultados.gestora = "Vinci";
+  else if (texto.match(/Riza/i)) resultados.gestora = "Riza";
+  else if (texto.match(/Sparta/i)) resultados.gestora = "Sparta";
+  else resultados.gestora = "Não identificada";
+  dbg(`🏢 Gestora: ${resultados.gestora}`);
+  
+  // ========== 3. VACÂNCIA (física e financeira) ==========
+  const vacFisicaMatch = texto.match(/vac[âa]ncia\s*(?:f[íi]sica)?\s*[:\-]?\s*(\d+(?:[.,]\d+)?\s*%)/i);
+  resultados.vacancia_fisica = vacFisicaMatch ? vacFisicaMatch[1] : null;
+  dbg(`📊 Vacância Física: ${resultados.vacancia_fisica || 'não encontrado'}`);
+  
+  const vacFinanceiraMatch = texto.match(/vac[âa]ncia\s*financeira\s*[:\-]?\s*(\d+(?:[.,]\d+)?\s*%)/i);
+  resultados.vacancia_financeira = vacFinanceiraMatch ? vacFinanceiraMatch[1] : null;
+  dbg(`💰 Vacância Financeira: ${resultados.vacancia_financeira || 'não encontrado'}`);
+  
+  // ========== 4. INADIMPLÊNCIA ==========
+  const inadMatch = texto.match(/inadimpl[êe]ncia\s*[:\-]?\s*R?\$?\s*([\d\.,]+)/i);
+  resultados.inadimplencia = inadMatch ? inadMatch[1] : null;
+  dbg(`⚠️ Inadimplência: ${resultados.inadimplencia ? 'R$ ' + resultados.inadimplencia : 'não encontrado'}`);
+  
+  // ========== 5. LTV ==========
+  const ltvMatch = texto.match(/LTV\s*[:\-]?\s*(\d+(?:[.,]\d+)?\s*%)/i);
+  resultados.ltv = ltvMatch ? ltvMatch[1] : null;
+  dbg(`🏦 LTV: ${resultados.ltv || 'não encontrado'}%`);
+  
+  // ========== 6. DISTRIBUIÇÃO (R$/cota) ==========
+  const distMatch = texto.match(/distribui[cç][aã]o\s*[:\-]?\s*R?\$?\s*(\d+(?:[.,]\d+)?)\s*\/\s*cota/i);
+  if (!distMatch) {
+    const distMatch2 = texto.match(/R\$\s*(\d+(?:[.,]\d+)?)\s*\/\s*cota/i);
+    resultados.distribuicao = distMatch2 ? distMatch2[1] : null;
+  } else {
+    resultados.distribuicao = distMatch[1];
   }
-}
-
-function formatarAnalise(texto) {
-  let html = texto
-    .replace(/\n\n/g, '<br><br>')
-    .replace(/\n/g, '<br>')
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    .replace(/^# (.*?)$/gm, '<h2>$1</h2>')
-    .replace(/^## (.*?)$/gm, '<h3>$1</h3>')
-    .replace(/^- (.*?)$/gm, '• $1<br>')
-    .replace(/^(\d+)\.\s+(.*?)$/gm, '<h3>$1. $2</h3>');
+  dbg(`💰 Distribuição: ${resultados.distribuicao ? 'R$ ' + resultados.distribuicao + '/cota' : 'não encontrado'}`);
   
-  return html;
+  // ========== 7. RESULTADO DISTRIBUÍVEL ==========
+  const resultMatch = texto.match(/resultado\s+distribu[íi]vel\s*[:\-]?\s*R?\$?\s*(\d+(?:[.,]\d+)?)\s*\/\s*cota/i);
+  resultados.resultado_distribuivel = resultMatch ? resultMatch[1] : null;
+  dbg(`📈 Resultado Distribuível: ${resultados.resultado_distribuivel ? 'R$ ' + resultados.resultado_distribuivel + '/cota' : 'não encontrado'}`);
+  
+  // ========== 8. RECEITA TOTAL (R$/cota ou total) ==========
+  const receitaMatch = texto.match(/receita\s*total\s*[:\-]?\s*R?\$?\s*(\d+(?:[.,]\d+)?)\s*\/?\s*cota?/i);
+  resultados.receita_total = receitaMatch ? receitaMatch[1] : null;
+  dbg(`📊 Receita Total: ${resultados.receita_total ? 'R$ ' + resultados.receita_total + '/cota' : 'não encontrado'}`);
+  
+  // ========== 9. DESPESAS TOTAIS ==========
+  const despesasMatch = texto.match(/despesas?\s*totais?\s*[:\-]?\s*R?\$?\s*(\d+(?:[.,]\d+)?)\s*\/?\s*cota?/i);
+  resultados.despesas_totais = despesasMatch ? despesasMatch[1] : null;
+  dbg(`📉 Despesas Totais: ${resultados.despesas_totais ? 'R$ ' + resultados.despesas_totais : 'não encontrado'}`);
+  
+  // ========== 10. SAÍDA DE INQUILINO ==========
+  const saidaInqMatch = texto.match(/sa[íi]da\s+da\s+([A-Z]{3,}\s+[A-Za-z]+)/i);
+  if (saidaInqMatch) {
+    resultados.saida_inquilino = saidaInqMatch[1];
+  } else {
+    const saidaInqMatch2 = texto.match(/sa[íi]da\s+de\s+inquilino[^.]*\./i);
+    resultados.saida_inquilino = saidaInqMatch2 ? saidaInqMatch2[0] : null;
+  }
+  dbg(`🚪 Saída de Inquilino: ${resultados.saida_inquilino || 'não encontrado'}`);
+  
+  // ========== 11. ENTRADA DE INQUILINO ==========
+  const entradaInqMatch = texto.match(/entrada\s+de\s+([A-Z]{3,}\s+[A-Za-z]+)/i);
+  if (entradaInqMatch) {
+    resultados.entrada_inquilino = entradaInqMatch[1];
+  } else {
+    const entradaInqMatch2 = texto.match(/nov[oa]\s+inquilin[oa][^.]*\./i);
+    resultados.entrada_inquilino = entradaInqMatch2 ? entradaInqMatch2[0] : null;
+  }
+  dbg(`🏠 Entrada de Inquilino: ${resultados.entrada_inquilino || 'não encontrado'}`);
+  
+  // ========== 12. REAJUSTES ==========
+  const reajusteMatch = texto.match(/reajustes?\s*realizados?\s*[:\-]?\s*([^.\n]+)/i);
+  if (reajusteMatch) {
+    resultados.reajustes = reajusteMatch[1];
+  } else if (texto.match(/n[ãa]o\s+havia\s+reajustes/)) {
+    resultados.reajustes = "Não houve reajustes no período";
+  } else {
+    resultados.reajustes = null;
+  }
+  dbg(`📅 Reajustes: ${resultados.reajustes || 'não encontrado'}`);
+  
+  // ========== 13. COMENTÁRIO DO GESTOR (pega um bloco maior) ==========
+  let comentario = null;
+  let comentarioMatch = texto.match(/Coment[áa]rios?\s+da\s+Gest[ãa]o[:\s]+([^\.]+\.\s*[^\.]+\.\s*[^\.]+\.)/i);
+  if (!comentarioMatch) {
+    comentarioMatch = texto.match(/Coment[áa]rios?\s+da\s+Gest[ãa]o\s*\([^)]+\)\s*([^■]+)/i);
+  }
+  if (comentarioMatch) {
+    comentario = comentarioMatch[1].trim().substring(0, 800);
+  }
+  resultados.comentario_gestor = comentario;
+  dbg(`💬 Comentário Gestor: ${comentario ? 'encontrado (' + comentario.length + ' caracteres)' : 'não encontrado'}`);
+  
+  // ========== 14. ALVOS DE VACÂNCIA FUTURA (opcional) ==========
+  const vacFuturaMatch = texto.match(/vac[âa]ncia\s+futura[^.]*\./i);
+  resultados.vacancia_futura = vacFuturaMatch ? vacFuturaMatch[0] : null;
+  
+  // ========== 15. Saldo de Caixa / Parcelas a Pagar ==========
+  const caixaMatch = texto.match(/Registrado\s+no\s+Caixa\s+[:\-]?\s*R?\$?\s*([\d\.]+,\d{2})/i);
+  resultados.saldo_caixa = caixaMatch ? caixaMatch[1] : null;
+  
+  const parcelasMatch = texto.match(/parcela\s+(?:no\s+valor\s+de\s+)?R?\$?\s*([\d\.]+,\d{2})\s*(?:milh[õo]|milhões)/i);
+  resultados.parcelas_pagar = parcelasMatch ? parcelasMatch[1] : null;
+  
+  return resultados;
 }
 
-const STORAGE_KEY = 'gemini_api_key';
-
-function salvarApiKey(key) {
-  if (key) localStorage.setItem(STORAGE_KEY, key);
-  else localStorage.removeItem(STORAGE_KEY);
+function renderResultados(campos) {
+  const container = document.getElementById('resultadosConteudo');
+  const fundoLabel = document.getElementById('fundoIdentificado');
+  
+  fundoLabel.innerHTML = `<span class="fundo-ticker">${campos.ticker || 'FII'}</span> <span style="font-size:12px">${campos.gestora}</span>`;
+  
+  let html = `
+    <div class="result-card">
+      <div class="result-label">📊 Vacância Física</div>
+      <div class="result-value ${campos.vacancia_fisica && campos.vacancia_fisica !== '0%' ? 'alerta' : 'ok'}">${campos.vacancia_fisica || '—'}</div>
+    </div>
+    <div class="result-card">
+      <div class="result-label">💰 Vacância Financeira</div>
+      <div class="result-value">${campos.vacancia_financeira || '—'}</div>
+    </div>
+    <div class="result-card">
+      <div class="result-label">⚠️ Inadimplência</div>
+      <div class="result-value ${campos.inadimplencia ? 'alerta' : 'ok'}">${campos.inadimplencia ? 'R$ ' + campos.inadimplencia : '—'}</div>
+    </div>
+    <div class="result-card">
+      <div class="result-label">🏦 LTV (Loan to Value)</div>
+      <div class="result-value">${campos.ltv || '—'}</div>
+    </div>
+    <div class="result-card">
+      <div class="result-label">💰 Distribuição (R$/cota)</div>
+      <div class="result-value">${campos.distribuicao ? 'R$ ' + campos.distribuicao : '—'}</div>
+    </div>
+    <div class="result-card">
+      <div class="result-label">📈 Resultado Distribuível</div>
+      <div class="result-value">${campos.resultado_distribuivel ? 'R$ ' + campos.resultado_distribuivel + '/cota' : '—'}</div>
+    </div>
+  `;
+  
+  if (campos.receita_total) {
+    html += `
+      <div class="result-card">
+        <div class="result-label">📊 Receita Total</div>
+        <div class="result-value">R$ ${campos.receita_total}/cota</div>
+      </div>
+    `;
+  }
+  
+  if (campos.despesas_totais) {
+    html += `
+      <div class="result-card">
+        <div class="result-label">📉 Despesas Totais</div>
+        <div class="result-value">R$ ${campos.despesas_totais}</div>
+      </div>
+    `;
+  }
+  
+  if (campos.saida_inquilino) {
+    html += `
+      <div class="result-card">
+        <div class="result-label">🚪 Saída de Inquilino</div>
+        <div class="result-value small alerta">${campos.saida_inquilino}</div>
+      </div>
+    `;
+  }
+  
+  if (campos.entrada_inquilino) {
+    html += `
+      <div class="result-card">
+        <div class="result-label">🏠 Entrada de Inquilino</div>
+        <div class="result-value small ok">${campos.entrada_inquilino}</div>
+      </div>
+    `;
+  }
+  
+  if (campos.reajustes) {
+    html += `
+      <div class="result-card">
+        <div class="result-label">📅 Reajustes</div>
+        <div class="result-value small">${campos.reajustes}</div>
+      </div>
+    `;
+  }
+  
+  if (campos.saldo_caixa) {
+    html += `
+      <div class="result-card">
+        <div class="result-label">💰 Saldo em Caixa</div>
+        <div class="result-value">R$ ${campos.saldo_caixa}</div>
+      </div>
+    `;
+  }
+  
+  if (campos.parcelas_pagar) {
+    html += `
+      <div class="result-card">
+        <div class="result-label">📋 Parcelas a Pagar</div>
+        <div class="result-value small alerta">R$ ${campos.parcelas_pagar}</div>
+      </div>
+    `;
+  }
+  
+  if (campos.comentario_gestor) {
+    html += `
+      <div class="comentario-box">
+        <div class="result-label">💬 COMENTÁRIO DO GESTOR</div>
+        <div class="comentario-texto">${campos.comentario_gestor}</div>
+      </div>
+    `;
+  }
+  
+  container.innerHTML = html;
+  document.getElementById('resultArea').style.display = 'block';
 }
 
-function carregarApiKey() {
-  return localStorage.getItem(STORAGE_KEY) || '';
-}
-
+// Eventos
 document.getElementById('btnToggleDebug').addEventListener('click', () => {
   const debugBox = document.getElementById('debugBox');
   const arrow = document.getElementById('debugArrow');
@@ -353,42 +445,33 @@ document.getElementById('filePdf').addEventListener('change', function() {
   document.getElementById('fileName').textContent = this.files[0]?.name || 'Selecionar arquivo PDF...';
 });
 
-document.getElementById('btnAnalisar').addEventListener('click', async () => {
+document.getElementById('btnImportar').addEventListener('click', async () => {
   const file = document.getElementById('filePdf').files[0];
   if (!file) { setStatus('Selecione um arquivo PDF primeiro.', 'err'); return; }
-  
-  const apiKey = document.getElementById('apiKey').value.trim();
-  if (!apiKey) { setStatus('⚠️ Cole sua chave API do Gemini no campo acima.', 'warning'); return; }
-  
-  salvarApiKey(apiKey);
   
   clearDebug();
   document.getElementById('debugBox').classList.remove('show');
   document.getElementById('debugArrow').classList.remove('rotated');
   document.getElementById('resultArea').style.display = 'none';
   document.getElementById('overlay').classList.add('show');
-  document.getElementById('overlayText').textContent = 'Extraindo texto do PDF...';
   
   try {
-    document.getElementById('overlayText').textContent = 'Extraindo texto do PDF...';
-    const textoPDF = await extrairTextoPDF(file);
+    const { normalizado, original } = await extrairTextoPDF(file);
+    const campos = extrairCampos(normalizado);
     
-    if (textoPDF.length < 100) {
-      throw new Error('O PDF parece não conter texto extraível.');
+    const encontrouAlgo = campos.vacancia_fisica || campos.comentario_gestor || campos.distribuicao;
+    
+    if (encontrouAlgo) {
+      setStatus(`✅ Relatório processado! Gestora: ${campos.gestora}`, 'ok');
+      renderResultados(campos);
+    } else {
+      setStatus('⚠️ Nenhum dado relevante encontrado. Verifique o debug.', 'err');
+      document.getElementById('debugBox').classList.add('show');
+      document.getElementById('debugArrow').classList.add('rotated');
     }
-    
-    document.getElementById('overlayText').textContent = 'Enviando para IA Gemini... (até 30 segundos)';
-    const analise = await chamarGemini(apiKey, textoPDF);
-    
-    document.getElementById('fundoNome').innerHTML = `📄 ${file.name}`;
-    document.getElementById('analiseConteudo').innerHTML = formatarAnalise(analise);
-    document.getElementById('resultArea').style.display = 'block';
-    
-    setStatus('✅ Análise concluída com sucesso!', 'ok');
   } catch (e) {
-    console.error(e);
-    setStatus(`❌ Erro: ${e.message}`, 'err');
-    dbg(`ERRO DETALHADO: ${e.message}\n${e.stack || ''}`);
+    setStatus('Erro ao processar PDF: ' + e.message, 'err');
+    dbg('ERRO: ' + e.message);
     document.getElementById('debugBox').classList.add('show');
     document.getElementById('debugArrow').classList.add('rotated');
   } finally {
@@ -406,6 +489,7 @@ document.getElementById('btnLimpar').addEventListener('click', () => {
   document.getElementById('debugArrow').classList.remove('rotated');
 });
 
+// Tema claro/escuro
 document.getElementById('themeToggle').addEventListener('click', () => {
   const body = document.body;
   const btn = document.getElementById('themeToggle');
@@ -426,11 +510,6 @@ const savedTheme = localStorage.getItem('theme');
 if (savedTheme === 'light') {
   document.body.classList.add('light');
   document.getElementById('themeToggle').textContent = '☀️';
-}
-
-const savedApiKey = carregarApiKey();
-if (savedApiKey) {
-  document.getElementById('apiKey').value = savedApiKey;
 }
 </script>
 </body>

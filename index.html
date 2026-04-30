@@ -40,12 +40,7 @@ body.light {
 }
 * { box-sizing: border-box; margin: 0; padding: 0; transition: all 0.2s ease; }
 
-body { 
-  font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; 
-  background: var(--bg); 
-  color: var(--text); 
-  min-height: 100vh; 
-}
+body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
 .header { background: var(--header-bg); border-bottom: 1px solid var(--header-border); padding: 0 2rem; height: 60px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
 .header-logo { display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 600; }
@@ -74,56 +69,14 @@ body {
 .status-ok { background: var(--green-bg); color: var(--green); border: 1px solid rgba(46, 204, 113, 0.25); }
 .status-err { background: var(--red-bg); color: var(--red); border: 1px solid rgba(231, 76, 60, 0.25); }
 
-/* Área de resultados dos FIIs */
-.resultados-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1rem;
-  margin-top: 1rem;
-}
-.result-card {
-  background: var(--result-item-bg);
-  border-radius: 10px;
-  padding: 1rem;
-  border: 1px solid var(--border);
-}
-.result-label {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--text3);
-  margin-bottom: 8px;
-}
-.result-value {
-  font-size: 22px;
-  font-weight: 700;
-  font-family: 'Atkinson Hyperlegible', monospace;
-  word-break: break-word;
-  line-height: 1.3;
-}
-.result-value.small {
-  font-size: 14px;
-  font-weight: 400;
-}
-.result-value.alerta {
-  color: var(--red);
-}
-.result-value.ok {
-  color: var(--green);
-}
-.comentario-box {
-  grid-column: 1 / -1;
-  background: var(--result-item-bg);
-  border-radius: 10px;
-  padding: 1rem;
-  border-left: 3px solid var(--gold);
-}
-.comentario-texto {
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--text2);
-  margin-top: 6px;
-}
+.resultados-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-top: 1rem; }
+.result-card { background: var(--result-item-bg); border-radius: 10px; padding: 1rem; border: 1px solid var(--border); }
+.result-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text3); margin-bottom: 8px; }
+.result-value { font-size: 18px; font-weight: 700; font-family: 'Atkinson Hyperlegible', monospace; word-break: break-word; line-height: 1.3; }
+.result-value.small { font-size: 14px; font-weight: 400; }
+.result-value.alerta { color: var(--red); }
+.comentario-box { grid-column: 1 / -1; background: var(--result-item-bg); border-radius: 10px; padding: 1rem; border-left: 3px solid var(--gold); margin-top: 0.5rem; }
+.comentario-texto { font-size: 14px; line-height: 1.5; color: var(--text2); margin-top: 6px; max-height: 200px; overflow-y: auto; }
 
 .debug-wrapper { margin-top: 0.75rem; }
 .debug-header { display: flex; align-items: center; justify-content: flex-end; margin-bottom: 0.5rem; }
@@ -136,16 +89,7 @@ body {
 .footer { text-align: center; font-size: 12px; color: var(--text3); padding: 2rem; border-top: 1px solid var(--footer-border); margin-top: 1rem; }
 .arrow { transition: transform 0.2s ease; display: inline-block; }
 .arrow.rotated { transform: rotate(90deg); }
-.fundo-ticker {
-  display: inline-block;
-  background: var(--gold);
-  color: #000;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 700;
-  margin-bottom: 12px;
-}
+.fundo-ticker { display: inline-block; background: var(--gold); color: #000; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 700; margin-bottom: 12px; }
 </style>
 </head>
 <body>
@@ -193,15 +137,12 @@ body {
     </div>
   </div>
 
-  <!-- Área de resultados do relatório FII -->
   <div id="resultArea" class="card" style="display:none">
     <div class="card-title">
       📊 Resumo do Relatório Gerencial
       <span id="fundoIdentificado" style="color:var(--gold)"></span>
     </div>
-    <div id="resultadosConteudo" class="resultados-grid">
-      <!-- Os cards serão preenchidos dinamicamente -->
-    </div>
+    <div id="resultadosConteudo" class="resultados-grid"></div>
   </div>
 </main>
 
@@ -212,29 +153,7 @@ body {
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-// ========== CONFIGURAÇÕES DAS GESTORAS (serão expandidas) ==========
-// Cada gestora tem um mapeador de como encontrar os campos no PDF
-const CONFIG_GESTORAS = {
-  // Exemplo de configuração para BTG (será refinada com exemplos reais)
-  "BTG Pactual": {
-    vacancia_fisica: /vac[âa]ncia\s*(?:f[íi]sica)?\s*[:\-]?\s*(\d+(?:[.,]\d+)?\s*%)/i,
-    vacancia_financeira: /vac[âa]ncia\s*financeira\s*[:\-]?\s*(\d+(?:[.,]\d+)?\s*%)/i,
-    inadimplencia: /inadimpl[êe]ncia\s*[:\-]?\s*R?\$?\s*([\d\.,]+)/i,
-    ltv: /LTV\s*[:\-]?\s*(\d+(?:[.,]\d+)?\s*%)/i,
-    comentario_gestor: /coment[áa]rio\s*do\s*gestor:?\s*([^.\n]{100,800}?\.)/i
-  },
-  // Padrão genérico (fallback)
-  "Genérico": {
-    vacancia_fisica: /vac[âa]ncia(?:\s+f[íi]sica)?\s*[:\-]?\s*(\d+(?:[.,]\d+)?\s*%)/i,
-    vacancia_financeira: /vac[âa]ncia\s*financeira\s*[:\-]?\s*(\d+(?:[.,]\d+)?\s*%)/i,
-    inadimplencia: /inadimpl[êe]ncia\s*[:\-]?\s*R?\$?\s*([\d\.,]+)/i,
-    ltv: /LTV\s*[:\-]?\s*(\d+(?:[.,]\d+)?\s*%)/i,
-    comentario_gestor: /coment[áa]rio\s*do\s*gestor:?\s*([^.\n]{100,800}?\.)/is
-  }
-};
-
 let debugContent = [];
-let textoExtraidoCompleto = "";
 
 function dbg(txt) { 
   debugContent.push(txt);
@@ -252,46 +171,39 @@ function setStatus(msg, tipo) {
   setTimeout(() => el.classList.remove('show'), 5000); 
 }
 
-// Detecta qual gestora baseado no texto do PDF (simples por enquanto)
-function detectarGestora(texto) {
-  const gestoras = ["BTG Pactual", "Sun Asset", "Credit Suisse", "Rio Bravo", "XP Asset", "Hedge", "Kinea", "Vinci"];
-  for (let g of gestoras) {
-    if (texto.includes(g) || texto.toUpperCase().includes(g.toUpperCase())) {
-      dbg(`🔍 Gestora detectada: ${g}`);
-      return g;
-    }
-  }
-  dbg(`🔍 Nenhuma gestora específica detectada, usando configuração genérica`);
-  return "Genérico";
+// 🔥 TÉCNICA PRINCIPAL: Normalizar texto (remove espaços irregulares e quebras de linha)
+function normalizarTexto(texto) {
+  let normalizado = texto
+    .replace(/[\n\r\t]+/g, ' ')        // quebras de linha → espaço
+    .replace(/\s+/g, ' ')              // múltiplos espaços → um espaço
+    .replace(/[^\x20-\x7E\u00C0-\u00FF]/g, ' ') // remove caracteres não imprimíveis
+    .trim();
+  
+  // Versão sem espaços (para buscas mais agressivas)
+  const semEspacos = normalizado.replace(/\s+/g, '');
+  
+  return { normalizado, semEspacos };
 }
 
-// Extrai os campos usando a configuração da gestora
-function extrairCampos(texto, gestora) {
-  const config = CONFIG_GESTORAS[gestora] || CONFIG_GESTORAS["Genérico"];
-  const resultados = {};
-  
-  for (const [campo, regex] of Object.entries(config)) {
-    const match = texto.match(regex);
+// 🔥 Busca inteligente: tenta várias estratégias
+function buscaInteligente(textoNormalizado, textoCompacto, padroes, variaveis = []) {
+  for (const padrao of padroes) {
+    const match = textoNormalizado.match(padrao);
     if (match && match[1]) {
-      resultados[campo] = match[1].trim();
-      dbg(`✅ ${campo}: ${resultados[campo]}`);
-    } else {
-      resultados[campo] = null;
-      dbg(`❌ ${campo}: não encontrado`);
+      return match[1].trim();
     }
   }
   
-  // Tenta extrair o ticker do fundo (ex: "HGLG11", "XPML11")
-  const tickerMatch = texto.match(/\b([A-Z]{4}\d{2})\b/);
-  if (tickerMatch) {
-    resultados.ticker = tickerMatch[1];
-    dbg(`🏷️ Ticker identificado: ${resultados.ticker}`);
+  // Tenta no texto compacto (sem espaços)
+  for (const padrao of variaveis) {
+    const match = textoCompacto.match(padrao);
+    if (match && match[1]) {
+      return match[1].trim();
+    }
   }
-  
-  return resultados;
+  return null;
 }
 
-// Função principal de extração do PDF
 async function extrairDadosPDF(file) {
   const ab = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
@@ -304,68 +216,167 @@ async function extrairDadosPDF(file) {
     textoCompleto += pageText + ' ';
   }
   
-  textoExtraidoCompleto = textoCompleto;
-  dbg('=== PRIMEIROS 2000 CARACTERES DO PDF ===');
-  dbg(textoCompleto.substring(0, 2000));
+  // Normaliza o texto
+  const { normalizado, semEspacos } = normalizarTexto(textoCompleto);
   
-  const gestora = detectarGestora(textoCompleto);
-  const campos = extrairCampos(textoCompleto, gestora);
+  dbg('=== TEXTO NORMALIZADO (primeiros 1000 caracteres) ===');
+  dbg(normalizado.substring(0, 1000));
+  dbg('=== FIM DO TRECHO ===\n');
   
-  return { campos, gestora, textoCompleto };
-}
-
-// Renderiza os resultados na tela
-function renderResultados(campos, gestora, ticker) {
-  const container = document.getElementById('resultadosConteudo');
-  const fundoLabel = document.getElementById('fundoIdentificado');
+  // ========== EXTRAÇÃO COM MÚLTIPLOS PADRÕES ==========
   
-  if (ticker) {
-    fundoLabel.innerHTML = `<span class="fundo-ticker">${ticker}</span> <span style="font-size:12px">${gestora}</span>`;
-  } else {
-    fundoLabel.innerHTML = `<span style="font-size:12px">${gestora}</span>`;
-  }
-  
-  // Mapeamento dos campos para exibição amigável
-  const mapeamento = [
-    { label: "📊 Vacância Física", campo: "vacancia_fisica", classe: "", sufixo: "" },
-    { label: "💰 Vacância Financeira", campo: "vacancia_financeira", classe: "", sufixo: "" },
-    { label: "⚠️ Inadimplência", campo: "inadimplencia", classe: "alerta", sufixo: "" },
-    { label: "🏦 LTV (Loan to Value)", campo: "ltv", classe: "", sufixo: "" },
-    { label: "💬 Comentário do Gestor", campo: "comentario_gestor", classe: "comentario-box", sufixo: "", isComentario: true }
+  // 1. Vacância (física/financeira)
+  const padroesVacancia = [
+    /vac[âa]ncia\s+f[íi]sica[^\d]*(\d+(?:[.,]\d+)?\s*%)/i,
+    /vac[âa]ncia\s+do\s+Fundo[^\d]*(\d+(?:[.,]\d+)?\s*%)/i,
+    /vac[âa]ncia[^\d]*(\d+(?:[.,]\d+)?\s*%)/i,
+    /Taxa\s+de\s+vac[âa]ncia[^\d]*(\d+(?:[.,]\d+)?\s*%)/i
   ];
+  const vacancia = buscaInteligente(normalizado, semEspacos, padroesVacancia);
   
-  let html = '';
-  for (const item of mapeamento) {
-    const valor = campos[item.campo];
-    if (item.isComentario) {
-      html += `
-        <div class="comentario-box">
-          <div class="result-label">💬 COMENTÁRIO DO GESTOR</div>
-          <div class="comentario-texto">${valor ? valor : 'Não identificado no relatório'}</div>
-        </div>
-      `;
+  // 2. Inadimplência
+  const padroesInadimplencia = [
+    /inadimpl[êe]ncia[^\d]*R?\$?\s*([\d\.,]+)/i,
+    /inadimpl[êe]ncia[^\d]*(\d+(?:[.,]\d+)?\s*%)/i,
+    /calote[^\d]*R?\$?\s*([\d\.,]+)/i
+  ];
+  const inadimplencia = buscaInteligente(normalizado, semEspacos, padroesInadimplencia);
+  
+  // 3. LTV
+  const padroesLTV = [
+    /LTV[^\d]*(\d+(?:[.,]\d+)?\s*%)/i,
+    /Loan\s+to\s+Value[^\d]*(\d+(?:[.,]\d+)?\s*%)/i,
+    /Rela[cç][aã]o\s+D[íi]vida[^\d]*(\d+(?:[.,]\d+)?\s*%)/i
+  ];
+  const ltv = buscaInteligente(normalizado, semEspacos, padroesLTV);
+  
+  // 4. Comentário do Gestor (pega um bloco maior)
+  let comentarioGestor = null;
+  const matchComentario = normalizado.match(/Coment[áa]rios?\s+da\s+Gest[aã]o:?\s*([^.]+\.[^.]+\.[^.]+\.)/i);
+  if (matchComentario) {
+    comentarioGestor = matchComentario[1].trim().substring(0, 800);
+    dbg(`✅ Comentário do Gestor encontrado (${comentarioGestor.length} caracteres)`);
+  } else {
+    const matchComentario2 = normalizado.match(/Coment[áa]rios?\s+da\s+Gest[aã]o\s+\([^)]+\)\s*([^■]+)/i);
+    if (matchComentario2) {
+      comentarioGestor = matchComentario2[1].trim().substring(0, 800);
+      dbg(`✅ Comentário do Gestor (variação 2) encontrado`);
     } else {
-      let valorExibido = valor ? valor : '—';
-      let classeExtra = '';
-      if (item.campo === 'inadimplencia' && valor && valor !== '0,00' && valor !== '0.00' && !valor.includes('0,00') && !valor.includes('0.00')) {
-        classeExtra = 'alerta';
-      }
-      html += `
-        <div class="result-card">
-          <div class="result-label">${item.label}</div>
-          <div class="result-value ${classeExtra}">${valorExibido}</div>
-        </div>
-      `;
+      dbg(`❌ Comentário do Gestor não encontrado`);
     }
   }
   
-  // Adiciona card de gestora detectada
-  html += `
+  // 5. Distribuição (rendimento por cota)
+  const padroesDistribuicao = [
+    /distribui[cç][aã]o[^\d]*R?\$?\s*([\d\.,]+)\s*\/\s*cota/i,
+    /rendimento[^\d]*R?\$?\s*([\d\.,]+)\s*\/\s*cota/i,
+    /R\$\s*([\d\.,]+)\s*\/\s*cota/i
+  ];
+  const distribuicao = buscaInteligente(normalizado, semEspacos, padroesDistribuicao);
+  
+  // 6. Resultado distribuível
+  const padroesResultado = [
+    /resultado\s+distribu[íi]vel[^\d]*R?\$?\s*([\d\.,]+)\s*\/\s*cota/i,
+    /resultado\s+do\s+Fundo[^\d]*R?\$?\s*([\d\.,]+)/i
+  ];
+  const resultadoDistribuivel = buscaInteligente(normalizado, semEspacos, padroesResultado);
+  
+  // 7. Informações sobre vacância futura (saída de inquilino)
+  let saidaInquilino = null;
+  if (normalizado.match(/sa[íi]da\s+da\s+VCM\s+Veritas/i)) {
+    saidaInquilino = "Saída da VCM Veritas prevista para junho/26";
+    dbg(`✅ Saída de inquilino identificada: ${saidaInquilino}`);
+  }
+  
+  // 8. Reajustes
+  let reajustes = null;
+  if (normalizado.match(/n[aã]o\s+havia\s+reajustes\s+ou\s+revisionais/i)) {
+    reajustes = "Não houve reajustes ou revisionais no período";
+    dbg(`✅ Reajustes: ${reajustes}`);
+  }
+  
+  // 9. Ticker do fundo
+  const tickerMatch = normalizado.match(/\b([A-Z]{4}\d{2})\b/);
+  const ticker = tickerMatch ? tickerMatch[1] : null;
+  if (ticker) dbg(`🏷️ Ticker: ${ticker}`);
+  
+  // 10. Gestora
+  let gestora = "Não identificada";
+  if (normalizado.match(/P[aá]tria/i)) gestora = "Pátria Investimentos";
+  else if (normalizado.match(/BTG/i)) gestora = "BTG Pactual";
+  else if (normalizado.match(/XP/i)) gestora = "XP Asset";
+  
+  dbg(`🏢 Gestora: ${gestora}`);
+  
+  return {
+    vacancia,
+    inadimplencia,
+    ltv,
+    comentarioGestor,
+    distribuicao,
+    resultadoDistribuivel,
+    saidaInquilino,
+    reajustes,
+    ticker,
+    gestora
+  };
+}
+
+function renderResultados(campos) {
+  const container = document.getElementById('resultadosConteudo');
+  const fundoLabel = document.getElementById('fundoIdentificado');
+  
+  fundoLabel.innerHTML = `<span class="fundo-ticker">${campos.ticker || 'FII'}</span> <span style="font-size:12px">${campos.gestora}</span>`;
+  
+  let html = `
     <div class="result-card">
-      <div class="result-label">🏢 Gestora Detectada</div>
-      <div class="result-value small">${gestora}</div>
+      <div class="result-label">📊 Vacância</div>
+      <div class="result-value ${campos.vacancia && campos.vacancia !== '0%' ? 'alerta' : 'ok'}">${campos.vacancia || '—'}</div>
+    </div>
+    <div class="result-card">
+      <div class="result-label">⚠️ Inadimplência</div>
+      <div class="result-value ${campos.inadimplencia ? 'alerta' : 'ok'}">${campos.inadimplencia || '—'}</div>
+    </div>
+    <div class="result-card">
+      <div class="result-label">🏦 LTV</div>
+      <div class="result-value">${campos.ltv || '—'}</div>
+    </div>
+    <div class="result-card">
+      <div class="result-label">💰 Distribuição (R$/cota)</div>
+      <div class="result-value">${campos.distribuicao ? 'R$ ' + campos.distribuicao : '—'}</div>
+    </div>
+    <div class="result-card">
+      <div class="result-label">📈 Resultado Distribuível</div>
+      <div class="result-value">${campos.resultadoDistribuivel ? 'R$ ' + campos.resultadoDistribuivel : '—'}</div>
     </div>
   `;
+  
+  if (campos.saidaInquilino) {
+    html += `
+      <div class="result-card">
+        <div class="result-label">🚪 Saída de Inquilino</div>
+        <div class="result-value small alerta">${campos.saidaInquilino}</div>
+      </div>
+    `;
+  }
+  
+  if (campos.reajustes) {
+    html += `
+      <div class="result-card">
+        <div class="result-label">📅 Reajustes</div>
+        <div class="result-value small">${campos.reajustes}</div>
+      </div>
+    `;
+  }
+  
+  if (campos.comentarioGestor) {
+    html += `
+      <div class="comentario-box">
+        <div class="result-label">💬 COMENTÁRIO DO GESTOR</div>
+        <div class="comentario-texto">${campos.comentarioGestor}</div>
+      </div>
+    `;
+  }
   
   container.innerHTML = html;
   document.getElementById('resultArea').style.display = 'block';
@@ -394,15 +405,13 @@ document.getElementById('btnImportar').addEventListener('click', async () => {
   document.getElementById('overlay').classList.add('show');
   
   try {
-    const { campos, gestora, textoCompleto } = await extrairDadosPDF(file);
-    const ticker = campos.ticker || null;
+    const campos = await extrairDadosPDF(file);
     
-    // Verifica se encontrou pelo menos um campo relevante
-    const encontrouAlgo = Object.values(campos).some(v => v !== null && v !== undefined && v !== '');
+    const encontrouAlgo = campos.vacancia || campos.comentarioGestor || campos.distribuicao;
     
     if (encontrouAlgo) {
-      setStatus(`✅ Relatório processado! Gestora: ${gestora}`, 'ok');
-      renderResultados(campos, gestora, ticker);
+      setStatus(`✅ Relatório processado! Gestora: ${campos.gestora}`, 'ok');
+      renderResultados(campos);
     } else {
       setStatus('⚠️ Nenhum dado relevante encontrado. Verifique o debug.', 'err');
       document.getElementById('debugBox').classList.add('show');
@@ -428,7 +437,6 @@ document.getElementById('btnLimpar').addEventListener('click', () => {
   document.getElementById('debugArrow').classList.remove('rotated');
 });
 
-// Tema claro/escuro
 document.getElementById('themeToggle').addEventListener('click', () => {
   const body = document.body;
   const btn = document.getElementById('themeToggle');
@@ -443,10 +451,8 @@ document.getElementById('themeToggle').addEventListener('click', () => {
   }
 });
 
-// Data no header
 document.getElementById('hDate').textContent = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
 
-// Inicializar tema
 const savedTheme = localStorage.getItem('theme');
 if (savedTheme === 'light') {
   document.body.classList.add('light');

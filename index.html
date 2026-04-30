@@ -346,45 +346,59 @@ IMPORTANTE:
 RELATÓRIO:
 ${textoLimitado}`;
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+  // Cascata de modelos: tenta o melhor primeiro, cai para os outros se 503/429
+  const MODELOS = [
+    { nome: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
+    { nome: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash' },
+    { nome: 'gemini-1.5-flash', label: 'Gemini 1.5 Flash' },
+  ];
+
   const body = {
     contents: [{ parts: [{ text: prompt }] }],
     generationConfig: { temperature: 0.1, maxOutputTokens: 8192 }
   };
 
-  const MAX_TENTATIVAS = 4;
-  const ESPERAS = [10000, 20000, 40000]; // 10s, 20s, 40s entre tentativas
+  const TENTATIVAS_POR_MODELO = 2;
+  const ESPERA_RETRY = 8000; // 8s entre tentativas do mesmo modelo
+  const ESPERA_MODELO = 3000; // 3s antes de trocar de modelo
 
-  for (let tentativa = 1; tentativa <= MAX_TENTATIVAS; tentativa++) {
-    if (tentativa > 1) {
-      const espera = ESPERAS[tentativa - 2];
-      dbg(`⏳ Tentativa ${tentativa}/${MAX_TENTATIVAS} — aguardando ${espera/1000}s antes de tentar novamente...`);
-      setOverlay(true, `Servidor ocupado. Tentativa ${tentativa}/${MAX_TENTATIVAS} em ${espera/1000}s...`);
-      await sleep(espera);
-      setOverlay(true, `Tentativa ${tentativa}/${MAX_TENTATIVAS} — enviando para Gemini AI...`);
-    }
+  let ultimoErro = '';
 
-    const resp = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
+  for (let m = 0; m < MODELOS.length; m++) {
+    const modelo = MODELOS[m];
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelo.nome}:generateContent?key=${apiKey}`;
+    dbg(`\n🔄 Tentando modelo: ${modelo.label}...`);
 
-    // Erros que valem retry: 429 (rate limit) e 503 (servidor sobrecarregado)
-    if (!resp.ok) {
-      const errText = await resp.text();
-      dbg(`❌ Tentativa ${tentativa} — Erro ${resp.status}: ${errText.substring(0, 300)}`);
-
-      const retryCodes = [429, 503, 502, 500];
-      if (retryCodes.includes(resp.status) && tentativa < MAX_TENTATIVAS) {
-        continue; // tenta de novo
+    for (let tentativa = 1; tentativa <= TENTATIVAS_POR_MODELO; tentativa++) {
+      if (tentativa > 1) {
+        dbg(`⏳ Retry ${tentativa}/${TENTATIVAS_POR_MODELO} com ${modelo.label} em ${ESPERA_RETRY/1000}s...`);
+        setOverlay(true, `Servidor ocupado. Retry ${tentativa}/${TENTATIVAS_POR_MODELO} com ${modelo.label}...`);
+        await sleep(ESPERA_RETRY);
       }
 
-      throw new Error(`Erro na API Gemini (${resp.status}): verifique sua chave ou tente novamente.`);
-    }
+      setOverlay(true, `Analisando com ${modelo.label}... (tentativa ${tentativa}/${TENTATIVAS_POR_MODELO})`);
 
-    const data = await resp.json();
-    dbg(`✅ Resposta recebida na tentativa ${tentativa}.`);
+      const resp = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+
+      if (!resp.ok) {
+        const errText = await resp.text();
+        ultimoErro = `${resp.status} — ${modelo.label}`;
+        dbg(`❌ ${modelo.label} tentativa ${tentativa} — Erro ${resp.status}: ${errText.substring(0, 200)}`);
+
+        const retryCodes = [429, 503, 502, 500];
+        if (retryCodes.includes(resp.status)) {
+          continue; // tenta de novo com mesmo modelo
+        }
+        // Erro não-recuperável (401, 400, etc): para tudo
+        throw new Error(`Erro na API Gemini (${resp.status}): verifique sua chave de API.`);
+      }
+
+      const data = await resp.json();
+      dbg(`✅ Resposta recebida com ${modelo.label} (tentativa ${tentativa}).`);
 
     const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
     dbg(`📦 Resposta bruta (primeiros 500 chars):\n${rawText.substring(0, 500)}`);
@@ -427,11 +441,21 @@ ${textoLimitado}`;
       }
 
       dbg(`❌ Não foi possível recuperar campos suficientes.\nTexto recebido:\n${rawText}`);
-      throw new Error('O modelo retornou um formato inesperado. Tente novamente.');
+      // JSON inválido mesmo com fallback — tenta próximo modelo
+      ultimoErro = `JSON inválido — ${modelo.label}`;
+      break; // sai do loop de tentativas deste modelo
     }
-  }
+    } // fim loop tentativas
 
-  throw new Error('Todas as tentativas falharam. O servidor Gemini está instável. Tente em alguns minutos.');
+    // Se chegou aqui, este modelo falhou em todas as tentativas
+    if (m < MODELOS.length - 1) {
+      dbg(`⚠️ ${modelo.label} indisponível. Trocando para ${MODELOS[m+1].label} em 3s...`);
+      setOverlay(true, `${modelo.label} indisponível. Tentando ${MODELOS[m+1].label}...`);
+      await sleep(3000);
+    }
+  } // fim loop modelos
+
+  throw new Error(`Todos os modelos Gemini estão indisponíveis (${ultimoErro}). Tente novamente em alguns minutos.`);
 }
 
 // ========== RENDER ==========

@@ -349,7 +349,7 @@ ${textoLimitado}`;
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
   const body = {
     contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: { temperature: 0.1, maxOutputTokens: 2048 }
+    generationConfig: { temperature: 0.1, maxOutputTokens: 8192 }
   };
 
   const MAX_TENTATIVAS = 4;
@@ -392,12 +392,41 @@ ${textoLimitado}`;
     let jsonStr = rawText.trim()
       .replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
 
+    // Tenta parse direto
     try {
       const parsed = JSON.parse(jsonStr);
       dbg("✅ JSON parseado com sucesso.");
       return parsed;
     } catch (e) {
-      dbg(`⚠️ Falha ao parsear JSON: ${e.message}\nTexto recebido:\n${rawText}`);
+      dbg(`⚠️ JSON incompleto (${e.message}). Tentando recuperar campos extraídos...`);
+
+      // Fallback: extrai campos via regex do JSON parcial
+      const recuperado = {};
+      const campos = [
+        'ticker','gestora','tipo_fii','periodo_referencia',
+        'vacancia_fisica','vacancia_financeira','inadimplencia','ltv',
+        'distribuicao','resultado_distribuivel','receita_total','despesas_totais',
+        'saldo_caixa','num_imoveis','num_inquilinos','abl_total',
+        'saida_inquilino','entrada_inquilino','reajustes','parcelas_pagar',
+        'principais_riscos','pontos_positivos','resumo_analista','comentario_gestor'
+      ];
+
+      campos.forEach(campo => {
+        // Captura "campo": "valor" — mesmo que o JSON esteja cortado
+        const re = new RegExp(`"${campo}"\\s*:\\s*"((?:[^"\\\\]|\\\\.)*)"`);
+        const match = jsonStr.match(re);
+        if (match) recuperado[campo] = match[1];
+        else recuperado[campo] = null;
+      });
+
+      const encontrados = Object.values(recuperado).filter(v => v !== null).length;
+      if (encontrados >= 3) {
+        dbg(`✅ Recuperação parcial: ${encontrados} campos extraídos do JSON incompleto.`);
+        recuperado._aviso = `⚠️ Resposta parcial (JSON truncado). ${encontrados} campos recuperados.`;
+        return recuperado;
+      }
+
+      dbg(`❌ Não foi possível recuperar campos suficientes.\nTexto recebido:\n${rawText}`);
       throw new Error('O modelo retornou um formato inesperado. Tente novamente.');
     }
   }

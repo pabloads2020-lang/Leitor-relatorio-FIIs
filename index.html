@@ -299,11 +299,12 @@ async function extrairTextoPDF(file) {
   return normalizado;
 }
 
-// ========== ANÁLISE COM GEMINI ==========
+// ========== ANÁLISE COM GEMINI (com retry automático) ==========
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
 async function analisarComGemini(textoPDF, apiKey) {
   dbg("🤖 Enviando para Gemini AI...");
 
-  // Limita o texto para não exceder o limite da API (1M tokens, mas vamos ser conservadores)
   const textoLimitado = textoPDF.substring(0, 80000);
 
   const prompt = `Você é um analista especialista em Fundos de Investimento Imobiliário (FIIs) do Brasil.
@@ -346,47 +347,62 @@ RELATÓRIO:
 ${textoLimitado}`;
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-
   const body = {
     contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: {
-      temperature: 0.1,
-      maxOutputTokens: 2048
-    }
+    generationConfig: { temperature: 0.1, maxOutputTokens: 2048 }
   };
 
-  const resp = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
-  });
+  const MAX_TENTATIVAS = 4;
+  const ESPERAS = [10000, 20000, 40000]; // 10s, 20s, 40s entre tentativas
 
-  if (!resp.ok) {
-    const errText = await resp.text();
-    dbg(`❌ Erro da API Gemini: ${resp.status} - ${errText}`);
-    throw new Error(`Erro na API Gemini (${resp.status}): verifique sua chave ou tente novamente.`);
+  for (let tentativa = 1; tentativa <= MAX_TENTATIVAS; tentativa++) {
+    if (tentativa > 1) {
+      const espera = ESPERAS[tentativa - 2];
+      dbg(`⏳ Tentativa ${tentativa}/${MAX_TENTATIVAS} — aguardando ${espera/1000}s antes de tentar novamente...`);
+      setOverlay(true, `Servidor ocupado. Tentativa ${tentativa}/${MAX_TENTATIVAS} em ${espera/1000}s...`);
+      await sleep(espera);
+      setOverlay(true, `Tentativa ${tentativa}/${MAX_TENTATIVAS} — enviando para Gemini AI...`);
+    }
+
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    // Erros que valem retry: 429 (rate limit) e 503 (servidor sobrecarregado)
+    if (!resp.ok) {
+      const errText = await resp.text();
+      dbg(`❌ Tentativa ${tentativa} — Erro ${resp.status}: ${errText.substring(0, 300)}`);
+
+      const retryCodes = [429, 503, 502, 500];
+      if (retryCodes.includes(resp.status) && tentativa < MAX_TENTATIVAS) {
+        continue; // tenta de novo
+      }
+
+      throw new Error(`Erro na API Gemini (${resp.status}): verifique sua chave ou tente novamente.`);
+    }
+
+    const data = await resp.json();
+    dbg(`✅ Resposta recebida na tentativa ${tentativa}.`);
+
+    const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    dbg(`📦 Resposta bruta (primeiros 500 chars):\n${rawText.substring(0, 500)}`);
+
+    let jsonStr = rawText.trim()
+      .replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
+
+    try {
+      const parsed = JSON.parse(jsonStr);
+      dbg("✅ JSON parseado com sucesso.");
+      return parsed;
+    } catch (e) {
+      dbg(`⚠️ Falha ao parsear JSON: ${e.message}\nTexto recebido:\n${rawText}`);
+      throw new Error('O modelo retornou um formato inesperado. Tente novamente.');
+    }
   }
 
-  const data = await resp.json();
-  dbg("✅ Resposta recebida do Gemini.");
-
-  const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-  dbg(`📦 Resposta bruta (primeiros 500 chars):\n${rawText.substring(0, 500)}`);
-
-  // Tenta parsear o JSON
-  let jsonStr = rawText.trim();
-  // Remove possíveis blocos markdown que o modelo possa ter colocado
-  jsonStr = jsonStr.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
-
-  try {
-    const parsed = JSON.parse(jsonStr);
-    dbg("✅ JSON parseado com sucesso.");
-    return parsed;
-  } catch (e) {
-    dbg(`⚠️ Falha ao parsear JSON: ${e.message}`);
-    dbg(`Texto recebido:\n${rawText}`);
-    throw new Error('O modelo retornou um formato inesperado. Tente novamente.');
-  }
+  throw new Error('Todas as tentativas falharam. O servidor Gemini está instável. Tente em alguns minutos.');
 }
 
 // ========== RENDER ==========

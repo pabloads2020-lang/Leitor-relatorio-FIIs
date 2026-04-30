@@ -131,7 +131,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 
     <div class="api-config">
       <span>🔑 Chave API Gemini (gratuita):</span>
-      <input type="password" id="apiKey" placeholder=AIzaSyCMfZ-NEapw3cAbHT7mabGKXvZKhcz2XsI>
+      <input type="password" id="apiKey" placeholder="Cole sua chave aqui (ex: AIzaSy...)">
       <span style="font-size:11px; color:var(--text3)">🔗 <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--gold)">Obter chave grátis</a></span>
     </div>
 
@@ -248,7 +248,7 @@ async function chamarGemini(apiKey, textoPDF) {
 - se for fundo de papel (CRI): analisar carteira, concentração, LTV
 
 7. Endividamento / Alavancagem
-- salda da dívida
+- saldo da dívida
 - indexadores
 - cronograma de amortização
 - riscos associados
@@ -269,9 +269,10 @@ OBSERVAÇÕES IMPORTANTES:
 - Os valores monetários devem ser apresentados formatados (ex: R$ 1.234,56).
 - Use bullet points (-) para listas quando apropriado.`;
 
-  const promptUsuario = `Relatório gerencial do FII:\n\n${textoPDF.substring(0, 45000)}`; // Limite de segurança
+  const promptUsuario = `Relatório gerencial do FII:\n\n${textoPDF.substring(0, 45000)}`;
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+  // CORREÇÃO: Modelo correto para a API v1beta
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
   
   const payload = {
     contents: [{
@@ -296,6 +297,7 @@ OBSERVAÇÕES IMPORTANTES:
 
   if (!response.ok) {
     const erro = await response.text();
+    dbg(`❌ Resposta de erro: ${erro}`);
     throw new Error(`API Gemini erro ${response.status}: ${erro}`);
   }
 

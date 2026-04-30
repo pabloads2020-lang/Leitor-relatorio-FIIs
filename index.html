@@ -76,7 +76,6 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
 .result-value.ok { color: var(--green); }
 .comentario-box { grid-column: 1 / -1; background: var(--result-item-bg); border-radius: 10px; padding: 1rem; border-left: 3px solid var(--gold); margin-top: 0.5rem; }
 .comentario-texto { font-size: 14px; line-height: 1.5; color: var(--text2); margin-top: 6px; max-height: 250px; overflow-y: auto; }
-.ocorrencia-item { margin-bottom: 0.5rem; padding: 0.25rem 0; border-bottom: 1px solid var(--border); }
 
 .debug-wrapper { margin-top: 0.75rem; }
 .debug-header { display: flex; align-items: center; justify-content: flex-end; margin-bottom: 0.5rem; }
@@ -113,7 +112,7 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
   <div class="card">
     <div class="card-title">
       📄 Importar relatório gerencial de FII (PDF)
-      <span>Extração manual · Vacância · Inadimplência · LTV · Comentários · Movimentações</span>
+      <span>Extração automática · Vacância · Inadimplência · LTV · Rendimentos</span>
     </div>
     <div class="upload-row">
       <label class="file-label" for="filePdf">
@@ -132,7 +131,7 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
       <div class="debug-header">
         <button class="btn-debug" id="btnToggleDebug">
           <span class="arrow" id="debugArrow">▶</span> 
-          📋 Detalhes da leitura do PDF (debug)
+          📋 Detalhes da leitura do PDF
         </button>
       </div>
       <div id="debugBox" class="debug-box"></div>
@@ -149,7 +148,7 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
 </main>
 
 <footer class="footer">
-  Extração automática de indicadores de FIIs · Compatível com múltiplas gestoras
+  Extração automática de indicadores · Compatível com múltiplas gestoras
 </footer>
 
 <script>
@@ -195,15 +194,15 @@ async function extrairTextoPDF(file) {
   
   const normalizado = normalizarTexto(textoCompleto);
   dbg(`📊 Total de caracteres extraídos: ${normalizado.length}`);
-  dbg(`📝 Primeiros 800 caracteres:\n${normalizado.substring(0, 800)}`);
+  dbg(`📝 Primeiros 1000 caracteres:\n${normalizado.substring(0, 1000)}`);
   
-  return { normalizado, original: textoCompleto };
+  return normalizado;
 }
 
 function extrairCampos(texto) {
   const resultados = {};
   
-  // ========== 1. TICKER DO FUNDO ==========
+  // ========== 1. TICKER ==========
   const tickerMatch = texto.match(/\b([A-Z]{4}\d{2})\b/);
   resultados.ticker = tickerMatch ? tickerMatch[1] : null;
   dbg(`🏷️ Ticker: ${resultados.ticker || 'não encontrado'}`);
@@ -212,114 +211,127 @@ function extrairCampos(texto) {
   if (texto.match(/P[áa]tria/i)) resultados.gestora = "Pátria Investimentos";
   else if (texto.match(/BTG/i)) resultados.gestora = "BTG Pactual";
   else if (texto.match(/XP/i)) resultados.gestora = "XP Asset";
-  else if (texto.match(/Sun/i)) resultados.gestora = "Sun Asset";
-  else if (texto.match(/Credit\s+Suisse/i)) resultados.gestora = "Credit Suisse";
-  else if (texto.match(/Rio\s+Bravo/i)) resultados.gestora = "Rio Bravo";
-  else if (texto.match(/Kinea/i)) resultados.gestora = "Kinea";
-  else if (texto.match(/Hedge/i)) resultados.gestora = "Hedge";
-  else if (texto.match(/Vinci/i)) resultados.gestora = "Vinci";
-  else if (texto.match(/Riza/i)) resultados.gestora = "Riza";
-  else if (texto.match(/Sparta/i)) resultados.gestora = "Sparta";
   else resultados.gestora = "Não identificada";
   dbg(`🏢 Gestora: ${resultados.gestora}`);
   
-  // ========== 3. VACÂNCIA (física e financeira) ==========
-  const vacFisicaMatch = texto.match(/vac[âa]ncia\s*(?:f[íi]sica)?\s*[:\-]?\s*(\d+(?:[.,]\d+)?\s*%)/i);
-  resultados.vacancia_fisica = vacFisicaMatch ? vacFisicaMatch[1] : null;
+  // ========== 3. VACÂNCIA FÍSICA (mais flexível) ==========
+  let vacMatch = texto.match(/vac[âa]ncia\s*(?:f[íi]sica)?\s*[:\-]?\s*(\d+(?:[.,]\d+)?\s*%)/i);
+  if (!vacMatch) {
+    vacMatch = texto.match(/vac[âa]ncia\s+do\s+Fundo\s+encerrou\s+(?:março|mês)\s+em\s+(\d+(?:[.,]\d+)?\s*%)/i);
+  }
+  if (!vacMatch) {
+    vacMatch = texto.match(/Vac[âa]ncia\s*Fisica\*?\s*(\d+(?:[.,]\d+)?\s*%)/i);
+  }
+  resultados.vacancia_fisica = vacMatch ? vacMatch[1] : null;
   dbg(`📊 Vacância Física: ${resultados.vacancia_fisica || 'não encontrado'}`);
   
-  const vacFinanceiraMatch = texto.match(/vac[âa]ncia\s*financeira\s*[:\-]?\s*(\d+(?:[.,]\d+)?\s*%)/i);
-  resultados.vacancia_financeira = vacFinanceiraMatch ? vacFinanceiraMatch[1] : null;
+  // ========== 4. VACÂNCIA FINANCEIRA ==========
+  let vacFinMatch = texto.match(/vac[âa]ncia\s*financeira\s*[:\-]?\s*(\d+(?:[.,]\d+)?\s*%)/i);
+  resultados.vacancia_financeira = vacFinMatch ? vacFinMatch[1] : null;
   dbg(`💰 Vacância Financeira: ${resultados.vacancia_financeira || 'não encontrado'}`);
   
-  // ========== 4. INADIMPLÊNCIA ==========
-  const inadMatch = texto.match(/inadimpl[êe]ncia\s*[:\-]?\s*R?\$?\s*([\d\.,]+)/i);
-  resultados.inadimplencia = inadMatch ? inadMatch[1] : null;
-  dbg(`⚠️ Inadimplência: ${resultados.inadimplencia ? 'R$ ' + resultados.inadimplencia : 'não encontrado'}`);
-  
-  // ========== 5. LTV ==========
-  const ltvMatch = texto.match(/LTV\s*[:\-]?\s*(\d+(?:[.,]\d+)?\s*%)/i);
-  resultados.ltv = ltvMatch ? ltvMatch[1] : null;
-  dbg(`🏦 LTV: ${resultados.ltv || 'não encontrado'}%`);
-  
-  // ========== 6. DISTRIBUIÇÃO (R$/cota) ==========
-  const distMatch = texto.match(/distribui[cç][aã]o\s*[:\-]?\s*R?\$?\s*(\d+(?:[.,]\d+)?)\s*\/\s*cota/i);
-  if (!distMatch) {
-    const distMatch2 = texto.match(/R\$\s*(\d+(?:[.,]\d+)?)\s*\/\s*cota/i);
-    resultados.distribuicao = distMatch2 ? distMatch2[1] : null;
-  } else {
-    resultados.distribuicao = distMatch[1];
+  // ========== 5. INADIMPLÊNCIA ==========
+  let inadMatch = texto.match(/inadimpl[êe]ncia\s*[:\-]?\s*R?\$?\s*([\d\.,]+)/i);
+  if (!inadMatch) {
+    inadMatch = texto.match(/inadimpl[êe]ncia\s*[:\-]?\s*(\d+(?:[.,]\d+)?\s*%)/i);
   }
+  resultados.inadimplencia = inadMatch ? inadMatch[1] : null;
+  dbg(`⚠️ Inadimplência: ${resultados.inadimplencia || 'não encontrado'}`);
+  
+  // ========== 6. LTV ==========
+  let ltvMatch = texto.match(/LTV\s*[:\-]?\s*(\d+(?:[.,]\d+)?\s*%)/i);
+  if (!ltvMatch) {
+    ltvMatch = texto.match(/Rela[cç][aã]o\s+D[íi]vida[^\d]*(\d+(?:[.,]\d+)?\s*%)/i);
+  }
+  resultados.ltv = ltvMatch ? ltvMatch[1] : null;
+  dbg(`🏦 LTV: ${resultados.ltv || 'não encontrado'}`);
+  
+  // ========== 7. DISTRIBUIÇÃO (R$/cota) ==========
+  let distMatch = texto.match(/distribui[cç][aã]o\s+de\s+rendimentos?\s+foi\s+de\s+R?\$?\s*(\d+(?:[.,]\d+)?)\s*\/\s*cota/i);
+  if (!distMatch) {
+    distMatch = texto.match(/distribui[cç][aã]o\s+foi\s+de\s+R?\$?\s*(\d+(?:[.,]\d+)?)\s*\/\s*cota/i);
+  }
+  if (!distMatch) {
+    distMatch = texto.match(/R\$\s*(\d+(?:[.,]\d+)?)\s*\/\s*cota/i);
+  }
+  resultados.distribuicao = distMatch ? distMatch[1] : null;
   dbg(`💰 Distribuição: ${resultados.distribuicao ? 'R$ ' + resultados.distribuicao + '/cota' : 'não encontrado'}`);
   
-  // ========== 7. RESULTADO DISTRIBUÍVEL ==========
-  const resultMatch = texto.match(/resultado\s+distribu[íi]vel\s*[:\-]?\s*R?\$?\s*(\d+(?:[.,]\d+)?)\s*\/\s*cota/i);
-  resultados.resultado_distribuivel = resultMatch ? resultMatch[1] : null;
+  // ========== 8. RESULTADO DISTRIBUÍVEL ==========
+  let resMatch = texto.match(/resultado\s+distribu[íi]vel\s+de\s+R?\$?\s*(\d+(?:[.,]\d+)?)\s*\/\s*cota/i);
+  if (!resMatch) {
+    resMatch = texto.match(/resultado\s+distribu[íi]vel\s*[:\-]?\s*R?\$?\s*(\d+(?:[.,]\d+)?)/i);
+  }
+  if (!resMatch) {
+    resMatch = texto.match(/Resultado\s+do\s+Fundo\s*[:\-]?\s*R?\$?\s*(\d+(?:[.,]\d+)?)\s*\/\s*cota/i);
+  }
+  resultados.resultado_distribuivel = resMatch ? resMatch[1] : null;
   dbg(`📈 Resultado Distribuível: ${resultados.resultado_distribuivel ? 'R$ ' + resultados.resultado_distribuivel + '/cota' : 'não encontrado'}`);
   
-  // ========== 8. RECEITA TOTAL (R$/cota ou total) ==========
-  const receitaMatch = texto.match(/receita\s*total\s*[:\-]?\s*R?\$?\s*(\d+(?:[.,]\d+)?)\s*\/?\s*cota?/i);
-  resultados.receita_total = receitaMatch ? receitaMatch[1] : null;
+  // ========== 9. RECEITA TOTAL ==========
+  let recMatch = texto.match(/receita\s+total\s*[:\-]?\s*R?\$?\s*(\d+(?:[.,]\d+)?)\s*\/\s*cota/i);
+  if (!recMatch) {
+    recMatch = texto.match(/receita\s+total\s+de\s+R?\$?\s*(\d+(?:[.,]\d+)?)/i);
+  }
+  resultados.receita_total = recMatch ? recMatch[1] : null;
   dbg(`📊 Receita Total: ${resultados.receita_total ? 'R$ ' + resultados.receita_total + '/cota' : 'não encontrado'}`);
   
-  // ========== 9. DESPESAS TOTAIS ==========
-  const despesasMatch = texto.match(/despesas?\s*totais?\s*[:\-]?\s*R?\$?\s*(\d+(?:[.,]\d+)?)\s*\/?\s*cota?/i);
-  resultados.despesas_totais = despesasMatch ? despesasMatch[1] : null;
+  // ========== 10. DESPESAS TOTAIS ==========
+  let despMatch = texto.match(/despesas?\s+totais?\s*[:\-]?\s*R?\$?\s*(\d+(?:[.,]\d+)?)/i);
+  resultados.despesas_totais = despMatch ? despMatch[1] : null;
   dbg(`📉 Despesas Totais: ${resultados.despesas_totais ? 'R$ ' + resultados.despesas_totais : 'não encontrado'}`);
   
-  // ========== 10. SAÍDA DE INQUILINO ==========
-  const saidaInqMatch = texto.match(/sa[íi]da\s+da\s+([A-Z]{3,}\s+[A-Za-z]+)/i);
-  if (saidaInqMatch) {
-    resultados.saida_inquilino = saidaInqMatch[1];
-  } else {
-    const saidaInqMatch2 = texto.match(/sa[íi]da\s+de\s+inquilino[^.]*\./i);
-    resultados.saida_inquilino = saidaInqMatch2 ? saidaInqMatch2[0] : null;
+  // ========== 11. SAÍDA DE INQUILINO ==========
+  let saidaMatch = texto.match(/sa[íi]da\s+da\s+([A-Z]{3,}\s+[A-Za-z]+)/i);
+  if (!saidaMatch) {
+    saidaMatch = texto.match(/Sa[íi]da\s+de\s+inquilino[^.]*\./i);
   }
+  resultados.saida_inquilino = saidaMatch ? (saidaMatch[1] || saidaMatch[0]) : null;
   dbg(`🚪 Saída de Inquilino: ${resultados.saida_inquilino || 'não encontrado'}`);
   
-  // ========== 11. ENTRADA DE INQUILINO ==========
-  const entradaInqMatch = texto.match(/entrada\s+de\s+([A-Z]{3,}\s+[A-Za-z]+)/i);
-  if (entradaInqMatch) {
-    resultados.entrada_inquilino = entradaInqMatch[1];
-  } else {
-    const entradaInqMatch2 = texto.match(/nov[oa]\s+inquilin[oa][^.]*\./i);
-    resultados.entrada_inquilino = entradaInqMatch2 ? entradaInqMatch2[0] : null;
+  // ========== 12. ENTRADA DE INQUILINO ==========
+  let entraMatch = texto.match(/entrada\s+de\s+([A-Z]{3,}\s+[A-Za-z]+)/i);
+  if (!entraMatch) {
+    entraMatch = texto.match(/nov[oa]\s+inquilin[oa][^.]*\./i);
   }
+  resultados.entrada_inquilino = entraMatch ? (entraMatch[1] || entraMatch[0]) : null;
   dbg(`🏠 Entrada de Inquilino: ${resultados.entrada_inquilino || 'não encontrado'}`);
   
-  // ========== 12. REAJUSTES ==========
-  const reajusteMatch = texto.match(/reajustes?\s*realizados?\s*[:\-]?\s*([^.\n]+)/i);
-  if (reajusteMatch) {
-    resultados.reajustes = reajusteMatch[1];
-  } else if (texto.match(/n[ãa]o\s+havia\s+reajustes/)) {
-    resultados.reajustes = "Não houve reajustes no período";
-  } else {
-    resultados.reajustes = null;
+  // ========== 13. REAJUSTES ==========
+  let reajMatch = texto.match(/reajustes?\s+realizados?\s*[:\-]?\s*([^.\n]+)/i);
+  if (!reajMatch && texto.match(/n[ãa]o\s+havia\s+reajustes/i)) {
+    reajMatch = ["não havia reajustes", "não havia reajustes"];
   }
+  resultados.reajustes = reajMatch ? reajMatch[1] : null;
   dbg(`📅 Reajustes: ${resultados.reajustes || 'não encontrado'}`);
   
-  // ========== 13. COMENTÁRIO DO GESTOR (pega um bloco maior) ==========
-  let comentario = null;
-  let comentarioMatch = texto.match(/Coment[áa]rios?\s+da\s+Gest[ãa]o[:\s]+([^\.]+\.\s*[^\.]+\.\s*[^\.]+\.)/i);
-  if (!comentarioMatch) {
-    comentarioMatch = texto.match(/Coment[áa]rios?\s+da\s+Gest[ãa]o\s*\([^)]+\)\s*([^■]+)/i);
+  // ========== 14. SALDO DE CAIXA ==========
+  let caixaMatch = texto.match(/caixa\s*[:\-]?\s*R?\$?\s*([\d\.]+,\d{2})\s*(?:milh[õo]|milhões)?/i);
+  resultados.saldo_caixa = caixaMatch ? caixaMatch[1] : null;
+  dbg(`💰 Saldo em Caixa: ${resultados.saldo_caixa ? 'R$ ' + resultados.saldo_caixa : 'não encontrado'}`);
+  
+  // ========== 15. PARCELAS A PAGAR ==========
+  let parcelasMatch = texto.match(/parcela\s+no\s+valor\s+de\s+R?\$?\s*([\d\.]+,\d{2})\s*(?:milh[õo]|milhões)/i);
+  if (!parcelasMatch) {
+    parcelasMatch = texto.match(/R?\$?\s*([\d\.]+,\d{2})\s*(?:milh[õo]|milhões)\s*a\s+pagar/i);
   }
-  if (comentarioMatch) {
-    comentario = comentarioMatch[1].trim().substring(0, 800);
+  resultados.parcelas_pagar = parcelasMatch ? parcelasMatch[1] : null;
+  dbg(`📋 Parcelas a Pagar: ${resultados.parcelas_pagar ? 'R$ ' + resultados.parcelas_pagar : 'não encontrado'}`);
+  
+  // ========== 16. COMENTÁRIO DO GESTOR ==========
+  let comentario = null;
+  let comMatch = texto.match(/Coment[áa]rios?\s+da\s+Gest[ãa]o[:\s]+([^\.]+\.\s*[^\.]+\.\s*[^\.]+\.)/i);
+  if (!comMatch) {
+    comMatch = texto.match(/Coment[áa]rios?\s+da\s+Gest[ãa]o\s*\([^)]+\)\s*([^■]+)/i);
+  }
+  if (!comMatch) {
+    comMatch = texto.match(/Coment[áa]rios?\s+da\s+Gest[ãa]o[:\s]*([\s\S]{200,800})/i);
+  }
+  if (comMatch) {
+    comentario = comMatch[1].trim().substring(0, 800);
   }
   resultados.comentario_gestor = comentario;
   dbg(`💬 Comentário Gestor: ${comentario ? 'encontrado (' + comentario.length + ' caracteres)' : 'não encontrado'}`);
-  
-  // ========== 14. ALVOS DE VACÂNCIA FUTURA (opcional) ==========
-  const vacFuturaMatch = texto.match(/vac[âa]ncia\s+futura[^.]*\./i);
-  resultados.vacancia_futura = vacFuturaMatch ? vacFuturaMatch[0] : null;
-  
-  // ========== 15. Saldo de Caixa / Parcelas a Pagar ==========
-  const caixaMatch = texto.match(/Registrado\s+no\s+Caixa\s+[:\-]?\s*R?\$?\s*([\d\.]+,\d{2})/i);
-  resultados.saldo_caixa = caixaMatch ? caixaMatch[1] : null;
-  
-  const parcelasMatch = texto.match(/parcela\s+(?:no\s+valor\s+de\s+)?R?\$?\s*([\d\.]+,\d{2})\s*(?:milh[õo]|milhões)/i);
-  resultados.parcelas_pagar = parcelasMatch ? parcelasMatch[1] : null;
   
   return resultados;
 }
@@ -341,7 +353,7 @@ function renderResultados(campos) {
     </div>
     <div class="result-card">
       <div class="result-label">⚠️ Inadimplência</div>
-      <div class="result-value ${campos.inadimplencia ? 'alerta' : 'ok'}">${campos.inadimplencia ? 'R$ ' + campos.inadimplencia : '—'}</div>
+      <div class="result-value ${campos.inadimplencia && campos.inadimplencia !== '0,00' && campos.inadimplencia !== '0.00' ? 'alerta' : 'ok'}">${campos.inadimplencia ? 'R$ ' + campos.inadimplencia : '—'}</div>
     </div>
     <div class="result-card">
       <div class="result-label">🏦 LTV (Loan to Value)</div>
@@ -375,6 +387,24 @@ function renderResultados(campos) {
     `;
   }
   
+  if (campos.saldo_caixa) {
+    html += `
+      <div class="result-card">
+        <div class="result-label">💰 Saldo em Caixa</div>
+        <div class="result-value">R$ ${campos.saldo_caixa}</div>
+      </div>
+    `;
+  }
+  
+  if (campos.parcelas_pagar) {
+    html += `
+      <div class="result-card">
+        <div class="result-label">📋 Parcelas a Pagar</div>
+        <div class="result-value small alerta">R$ ${campos.parcelas_pagar}</div>
+      </div>
+    `;
+  }
+  
   if (campos.saida_inquilino) {
     html += `
       <div class="result-card">
@@ -402,29 +432,11 @@ function renderResultados(campos) {
     `;
   }
   
-  if (campos.saldo_caixa) {
-    html += `
-      <div class="result-card">
-        <div class="result-label">💰 Saldo em Caixa</div>
-        <div class="result-value">R$ ${campos.saldo_caixa}</div>
-      </div>
-    `;
-  }
-  
-  if (campos.parcelas_pagar) {
-    html += `
-      <div class="result-card">
-        <div class="result-label">📋 Parcelas a Pagar</div>
-        <div class="result-value small alerta">R$ ${campos.parcelas_pagar}</div>
-      </div>
-    `;
-  }
-  
   if (campos.comentario_gestor) {
     html += `
       <div class="comentario-box">
         <div class="result-label">💬 COMENTÁRIO DO GESTOR</div>
-        <div class="comentario-texto">${campos.comentario_gestor}</div>
+        <div class="comentario-texto">${campos.comentario_gestor.replace(/\n/g, ' ')}</div>
       </div>
     `;
   }
@@ -433,7 +445,6 @@ function renderResultados(campos) {
   document.getElementById('resultArea').style.display = 'block';
 }
 
-// Eventos
 document.getElementById('btnToggleDebug').addEventListener('click', () => {
   const debugBox = document.getElementById('debugBox');
   const arrow = document.getElementById('debugArrow');
@@ -456,10 +467,10 @@ document.getElementById('btnImportar').addEventListener('click', async () => {
   document.getElementById('overlay').classList.add('show');
   
   try {
-    const { normalizado, original } = await extrairTextoPDF(file);
-    const campos = extrairCampos(normalizado);
+    const textoPDF = await extrairTextoPDF(file);
+    const campos = extrairCampos(textoPDF);
     
-    const encontrouAlgo = campos.vacancia_fisica || campos.comentario_gestor || campos.distribuicao;
+    const encontrouAlgo = campos.vacancia_fisica || campos.distribuicao || campos.comentario_gestor;
     
     if (encontrouAlgo) {
       setStatus(`✅ Relatório processado! Gestora: ${campos.gestora}`, 'ok');
@@ -489,7 +500,6 @@ document.getElementById('btnLimpar').addEventListener('click', () => {
   document.getElementById('debugArrow').classList.remove('rotated');
 });
 
-// Tema claro/escuro
 document.getElementById('themeToggle').addEventListener('click', () => {
   const body = document.body;
   const btn = document.getElementById('themeToggle');

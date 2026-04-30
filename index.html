@@ -211,8 +211,7 @@ async function extrairTextoPDF(file) {
 }
 
 async function chamarGemini(apiKey, textoPDF) {
-  // MODELO-PADRÃO que você criou
-  const promptSistema = `Você é um analista de fundos imobiliários (FIIs) especializado. Analise o relatório gerencial que será enviado e gere um relatório seguindo EXATAMENTE este formato:
+  const promptCompleto = `Você é um analista de fundos imobiliários (FIIs) especializado. Analise o relatório gerencial abaixo e gere um relatório seguindo EXATAMENTE este formato:
 
 1. Resumo Executivo
 (visão geral em até 8-10 linhas com os fatos realmente relevantes)
@@ -220,66 +219,49 @@ async function chamarGemini(apiKey, textoPDF) {
 2. Dividendos, Rentabilidade e Yield
 - distribuição do mês
 - dividend yield mensal e anualizado
-- comparações com pares ou benchmarks
+- comparações
 
 3. Liquidez e Base de Cotistas
-- volume negociado no mês
+- volume negociado
 - variação mensal
-- evolução da base de investidores
 
 4. Eventos Relevantes do Mês
-- aquisições/vendas de ativos
-- revisões de PDD
+- aquisições/vendas
 - fatos relevantes
-- mudanças no portfólio
 
 5. Receitas, Despesas, Caixa e Índice de Eficiência
 - receita total
 - despesas totais
 - resultado de caixa
 - resultado distribuído
-- índice de eficiência = despesas/receitas
+- índice de eficiência
 
 6. Portfólio
 - taxa de ocupação (vacância)
-- percentual de contratos atípicos/típicos
-- WAULT (prazo médio dos contratos)
-- concentração regional e setorial
-- se for fundo de papel (CRI): analisar carteira, concentração, LTV
+- WAULT
+- concentrações
 
 7. Endividamento / Alavancagem
 - saldo da dívida
 - indexadores
-- cronograma de amortização
-- riscos associados
 
 8. Pontos Positivos do Mês
-(listar em tópicos)
 
 9. Pontos de Atenção / Riscos
-(listar em tópicos)
 
 10. Conclusão
-(síntese em linguagem simples para o investidor, sem recomendação explícita)
 
-OBSERVAÇÕES IMPORTANTES:
-- Use apenas as informações contidas no relatório enviado.
-- Se alguma informação não estiver disponível, escreva "Não informado no relatório".
-- Mantenha linguagem clara, objetiva e profissional.
-- Os valores monetários devem ser apresentados formatados (ex: R$ 1.234,56).
-- Use bullet points (-) para listas quando apropriado.`;
+Use apenas as informações do relatório. Se não encontrar algo, escreva "Não informado".
 
-  const promptUsuario = `Relatório gerencial do FII:\n\n${textoPDF.substring(0, 45000)}`;
+Relatório:
+${textoPDF.substring(0, 40000)}`;
 
-  // CORREÇÃO: Modelo correto para a API v1beta
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
+  // CORREÇÃO: URL com modelo correto
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
   
   const payload = {
     contents: [{
-      parts: [
-        { text: promptSistema },
-        { text: promptUsuario }
-      ]
+      parts: [{ text: promptCompleto }]
     }],
     generationConfig: {
       temperature: 0.3,
@@ -288,6 +270,7 @@ OBSERVAÇÕES IMPORTANTES:
   };
 
   dbg("🤖 Enviando para o Gemini...");
+  dbg(`📡 Modelo: gemini-pro`);
   
   const response = await fetch(url, {
     method: 'POST',
@@ -310,7 +293,6 @@ OBSERVAÇÕES IMPORTANTES:
 }
 
 function formatarAnalise(texto) {
-  // Converte markdown básico para HTML
   let html = texto
     .replace(/\n\n/g, '<br><br>')
     .replace(/\n/g, '<br>')
@@ -318,15 +300,12 @@ function formatarAnalise(texto) {
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
     .replace(/^# (.*?)$/gm, '<h2>$1</h2>')
     .replace(/^## (.*?)$/gm, '<h3>$1</h3>')
-    .replace(/^- (.*?)$/gm, '• $1<br>');
-  
-  // Melhora títulos numerados
-  html = html.replace(/^(\d+)\.\s+(.*?)$/gm, '<h3>$1. $2</h3>');
+    .replace(/^- (.*?)$/gm, '• $1<br>')
+    .replace(/^(\d+)\.\s+(.*?)$/gm, '<h3>$1. $2</h3>');
   
   return html;
 }
 
-// LocalStorage para salvar a chave API
 const STORAGE_KEY = 'gemini_api_key';
 
 function salvarApiKey(key) {
@@ -370,10 +349,10 @@ document.getElementById('btnAnalisar').addEventListener('click', async () => {
     const textoPDF = await extrairTextoPDF(file);
     
     if (textoPDF.length < 100) {
-      throw new Error('O PDF parece não conter texto extraível. Pode ser um PDF escaneado.');
+      throw new Error('O PDF parece não conter texto extraível.');
     }
     
-    document.getElementById('overlayText').textContent = 'Enviando para IA Gemini... (pode levar alguns segundos)';
+    document.getElementById('overlayText').textContent = 'Enviando para IA Gemini... (até 30 segundos)';
     const analise = await chamarGemini(apiKey, textoPDF);
     
     document.getElementById('fundoNome').innerHTML = `📄 ${file.name}`;
@@ -402,7 +381,6 @@ document.getElementById('btnLimpar').addEventListener('click', () => {
   document.getElementById('debugArrow').classList.remove('rotated');
 });
 
-// Tema claro/escuro
 document.getElementById('themeToggle').addEventListener('click', () => {
   const body = document.body;
   const btn = document.getElementById('themeToggle');
@@ -417,10 +395,8 @@ document.getElementById('themeToggle').addEventListener('click', () => {
   }
 });
 
-// Data no header
 document.getElementById('hDate').textContent = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
 
-// Inicializar tema e chave salva
 const savedTheme = localStorage.getItem('theme');
 if (savedTheme === 'light') {
   document.body.classList.add('light');

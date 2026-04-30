@@ -3,9 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Análise de FIIs · IA Gemini</title>
+<title>Análise de FIIs · Claude IA</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Atkinson+Hyperlegible:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
 :root {
   --bg: #0e1117; --bg2: #161b25; --bg3: #1c2333;
@@ -39,7 +38,6 @@ body.light {
   --analise-bg: #f7fafc;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-
 body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
 .header { background: var(--header-bg); border-bottom: 1px solid var(--header-border); padding: 0 2rem; height: 60px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
@@ -73,7 +71,6 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 .analise-content hr { border-color: var(--border); margin: 1rem 0; }
 .analise-content ul, .analise-content ol { padding-left: 1.5rem; margin: 0.5rem 0; }
 .analise-content p { margin: 0.75rem 0; }
-.analise-content pre { background: var(--bg3); padding: 1rem; border-radius: 8px; overflow-x: auto; }
 
 .debug-wrapper { margin-top: 0.75rem; }
 .debug-header { display: flex; align-items: center; justify-content: flex-end; margin-bottom: 0.5rem; }
@@ -92,13 +89,17 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 .api-config { margin-top: 1rem; padding: 0.75rem; background: var(--blue-bg); border-radius: 8px; font-size: 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; }
 .api-config input { background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 6px; padding: 6px 12px; color: var(--text); width: 320px; max-width: 100%; font-size: 12px; font-family: monospace; }
 .api-config input:focus { outline: none; border-color: var(--gold); }
+
+/* Streaming cursor */
+.cursor-blink::after { content: '▋'; animation: blink 0.8s step-end infinite; color: var(--gold); }
+@keyframes blink { 50% { opacity: 0; } }
 </style>
 </head>
 <body>
 
 <div class="overlay" id="overlay">
   <div class="spin"></div>
-  <div class="spin-text" id="overlayText">Processando PDF...</div>
+  <div class="spin-text" id="overlayText">Enviando PDF para a IA...</div>
 </div>
 
 <header class="header">
@@ -116,7 +117,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
   <div class="card">
     <div class="card-title">
       📄 Relatório Gerencial de FII (PDF)
-      <span>Gemini IA · Análise completa</span>
+      <span>Claude IA · Análise completa</span>
     </div>
     <div class="upload-row">
       <label class="file-label" for="filePdf">
@@ -131,9 +132,9 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
     </div>
 
     <div class="api-config">
-      <span>🔑 Chave API Gemini (gratuita):</span>
-      <input type="password" id="apiKey" placeholder="Cole sua chave aqui (ex: AIzaSy...)">
-      <span style="font-size:11px; color:var(--text3)">🔗 <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--gold)">Obter chave grátis</a></span>
+      <span>🔑 Chave API Anthropic:</span>
+      <input type="password" id="apiKey" placeholder="Cole sua chave aqui (ex: sk-ant-api03-...)">
+      <span style="font-size:11px; color:var(--text3)">🔗 <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:var(--gold)">Obter chave na Anthropic</a></span>
     </div>
 
     <div id="status" class="status"></div>
@@ -141,8 +142,8 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
     <div class="debug-wrapper">
       <div class="debug-header">
         <button class="btn-debug" id="btnToggleDebug">
-          <span class="arrow" id="debugArrow">▶</span> 
-          📋 Ver extração do PDF (debug)
+          <span class="arrow" id="debugArrow">▶</span>
+          📋 Ver log de processamento (debug)
         </button>
       </div>
       <div id="debugBox" class="debug-box"></div>
@@ -151,7 +152,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 
   <div id="resultArea" class="card" style="display:none">
     <div class="card-title">
-      📊 Análise do Relatório · Gemini IA
+      📊 Análise do Relatório · Claude IA
       <span id="fundoNome" style="color:var(--gold)"></span>
     </div>
     <div id="analiseConteudo" class="analise-content"></div>
@@ -163,144 +164,25 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 </footer>
 
 <script>
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
+const STORAGE_KEY = 'anthropic_api_key';
 let debugContent = [];
 
-function dbg(txt) { 
+function dbg(txt) {
   debugContent.push(txt);
   document.getElementById('debugBox').textContent = debugContent.join('\n');
 }
-function clearDebug() { 
-  debugContent = []; 
+
+function clearDebug() {
+  debugContent = [];
   document.getElementById('debugBox').textContent = '';
 }
-function setStatus(msg, tipo) { 
-  const el = document.getElementById('status'); 
-  el.innerHTML = msg; 
-  el.className = `status show status-${tipo}`; 
-  setTimeout(() => el.classList.remove('show'), 8000);
+
+function setStatus(msg, tipo) {
+  const el = document.getElementById('status');
+  el.innerHTML = msg;
+  el.className = `status show status-${tipo}`;
+  if (tipo !== 'err') setTimeout(() => el.classList.remove('show'), 8000);
 }
-
-function normalizarTexto(texto) {
-  return texto
-    .replace(/[\n\r\t]+/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-async function extrairTextoPDF(file) {
-  dbg("📄 Iniciando extração do PDF...");
-  const ab = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
-  
-  let textoCompleto = '';
-  for (let p = 1; p <= pdf.numPages; p++) {
-    const page = await pdf.getPage(p);
-    const tc = await page.getTextContent();
-    const pageText = tc.items.map(item => item.str).join(' ');
-    textoCompleto += pageText + ' ';
-    dbg(`✅ Página ${p} extraída (${pageText.length} caracteres)`);
-  }
-  
-  const normalizado = normalizarTexto(textoCompleto);
-  dbg(`📊 Total de caracteres extraídos: ${normalizado.length}`);
-  dbg(`📝 Primeiros 500 caracteres:\n${normalizado.substring(0, 500)}`);
-  
-  return normalizado;
-}
-
-async function chamarGemini(apiKey, textoPDF) {
-  const promptCompleto = `Você é um analista de fundos imobiliários (FIIs) especializado. Analise o relatório gerencial abaixo e gere um relatório seguindo EXATAMENTE este formato:
-
-1. Resumo Executivo
-(visão geral em até 8-10 linhas com os fatos realmente relevantes)
-
-2. Dividendos, Rentabilidade e Yield
-- distribuição do mês
-- dividend yield mensal e anualizado
-
-3. Liquidez e Base de Cotistas
-- volume negociado
-- variação mensal
-
-4. Eventos Relevantes do Mês
-- aquisições/vendas
-- fatos relevantes
-
-5. Receitas, Despesas, Caixa e Índice de Eficiência
-- receita total
-- despesas totais
-- resultado de caixa
-- resultado distribuído
-
-6. Portfólio
-- taxa de ocupação (vacância)
-- WAULT
-- concentrações
-
-7. Endividamento / Alavancagem
-- saldo da dívida
-- indexadores
-
-8. Pontos Positivos do Mês
-
-9. Pontos de Atenção / Riscos
-
-10. Conclusão
-
-Use apenas as informações do relatório. Se não encontrar algo, escreva "Não informado".
-
-Relatório:
-${textoPDF.substring(0, 35000)}`;
-
-  // CORREÇÃO FINAL: Usando a API v1 com modelo estável
-  const url = `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${apiKey}`;
-  
-  const payload = {
-    contents: [{
-      parts: [{ text: promptCompleto }]
-    }]
-  };
-
-  dbg("🤖 Enviando para o Gemini...");
-  dbg(`📡 URL: ${url.replace(apiKey, 'HIDDEN')}`);
-  
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  });
-
-  if (!response.ok) {
-    const erro = await response.text();
-    dbg(`❌ Resposta de erro: ${erro}`);
-    throw new Error(`API Gemini erro ${response.status}: ${erro}`);
-  }
-
-  const data = await response.json();
-  dbg("✅ Resposta recebida do Gemini");
-  
-  const textoResposta = data.candidates?.[0]?.content?.parts?.[0]?.text || "Não foi possível gerar a análise.";
-  
-  return textoResposta;
-}
-
-function formatarAnalise(texto) {
-  let html = texto
-    .replace(/\n\n/g, '<br><br>')
-    .replace(/\n/g, '<br>')
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    .replace(/^# (.*?)$/gm, '<h2>$1</h2>')
-    .replace(/^## (.*?)$/gm, '<h3>$1</h3>')
-    .replace(/^- (.*?)$/gm, '• $1<br>')
-    .replace(/^(\d+)\.\s+(.*?)$/gm, '<h3>$1. $2</h3>');
-  
-  return html;
-}
-
-const STORAGE_KEY = 'gemini_api_key';
 
 function salvarApiKey(key) {
   if (key) localStorage.setItem(STORAGE_KEY, key);
@@ -311,53 +193,214 @@ function carregarApiKey() {
   return localStorage.getItem(STORAGE_KEY) || '';
 }
 
+// Converte File para base64 puro (sem prefixo data:...)
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      // reader.result = "data:application/pdf;base64,XXXX..."
+      const base64 = reader.result.split(',')[1];
+      resolve(base64);
+    };
+    reader.onerror = () => reject(new Error('Falha ao ler o arquivo PDF.'));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function chamarClaude(apiKey, pdfBase64) {
+  const prompt = `Você é um analista de fundos imobiliários (FIIs) especializado. Analise o relatório gerencial em anexo e gere um relatório seguindo EXATAMENTE este formato:
+
+## 1. Resumo Executivo
+(visão geral em até 8-10 linhas com os fatos realmente relevantes)
+
+## 2. Dividendos, Rentabilidade e Yield
+- Distribuição do mês
+- Dividend yield mensal e anualizado
+- Comparações relevantes
+
+## 3. Liquidez e Base de Cotistas
+- Volume negociado
+- Número de cotistas
+- Variação mensal
+
+## 4. Eventos Relevantes do Mês
+- Aquisições/vendas de ativos
+- Fatos relevantes divulgados
+
+## 5. Receitas, Despesas, Caixa e Índice de Eficiência
+- Receita total
+- Despesas totais
+- Resultado de caixa
+- Resultado distribuído
+- Índice de eficiência
+
+## 6. Portfólio
+- Tipos de ativos
+- Localização geográfica
+- Taxa de ocupação (vacância)
+- WAULT
+- Concentrações relevantes
+
+## 7. Endividamento / Alavancagem
+- Saldo da dívida
+- Indexadores
+- Prazo médio
+
+## 8. Pontos Positivos do Mês
+
+## 9. Pontos de Atenção / Riscos
+
+## 10. Conclusão
+
+Use apenas as informações do relatório. Se não encontrar algo, escreva "Não informado".`;
+
+  dbg("🤖 Enviando PDF para a API da Anthropic (Claude)...");
+  dbg("📡 Modelo: claude-sonnet-4-20250514");
+  dbg("📄 O PDF será lido diretamente pela IA (sem extração de texto)");
+
+  const payload = {
+    model: "claude-sonnet-4-20250514",
+    max_tokens: 4000,
+    messages: [
+      {
+        role: "user",
+        content: [
+          {
+            type: "document",
+            source: {
+              type: "base64",
+              media_type: "application/pdf",
+              data: pdfBase64
+            }
+          },
+          {
+            type: "text",
+            text: prompt
+          }
+        ]
+      }
+    ]
+  };
+
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+      "anthropic-dangerous-direct-browser-access": "true"
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (!response.ok) {
+    const erro = await response.text();
+    dbg(`❌ Resposta de erro da API: ${erro}`);
+
+    let msgAmigavel = `Erro ${response.status}`;
+    try {
+      const errObj = JSON.parse(erro);
+      if (errObj.error?.message) msgAmigavel += `: ${errObj.error.message}`;
+    } catch (_) {
+      msgAmigavel += `: ${erro.substring(0, 200)}`;
+    }
+
+    if (response.status === 401) msgAmigavel = "Chave API inválida. Verifique sua chave no console.anthropic.com";
+    if (response.status === 400) msgAmigavel = "Requisição inválida. O PDF pode estar corrompido ou muito grande (máx. ~32MB).";
+
+    throw new Error(msgAmigavel);
+  }
+
+  const data = await response.json();
+  dbg("✅ Resposta recebida com sucesso!");
+
+  const textoResposta = data.content?.[0]?.text || "Não foi possível gerar a análise.";
+  dbg(`📝 Tokens de entrada: ${data.usage?.input_tokens || '?'} | Saída: ${data.usage?.output_tokens || '?'}`);
+
+  return textoResposta;
+}
+
+function formatarAnalise(texto) {
+  // Converte Markdown simples em HTML
+  let html = texto
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    // Títulos
+    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+    .replace(/^# (.+)$/gm, '<h2>$1</h2>')
+    // Negrito e itálico
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    // Listas
+    .replace(/^[-•] (.+)$/gm, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>')
+    // Parágrafos e quebras
+    .replace(/\n\n/g, '</p><p>')
+    .replace(/\n/g, '<br>');
+
+  // Envolver em parágrafo se não começa com tag
+  if (!html.startsWith('<')) html = '<p>' + html + '</p>';
+
+  return html;
+}
+
+// ─── Eventos ───────────────────────────────────────────────
 document.getElementById('btnToggleDebug').addEventListener('click', () => {
-  const debugBox = document.getElementById('debugBox');
-  const arrow = document.getElementById('debugArrow');
-  debugBox.classList.toggle('show');
-  arrow.classList.toggle('rotated');
+  document.getElementById('debugBox').classList.toggle('show');
+  document.getElementById('debugArrow').classList.toggle('rotated');
 });
 
-document.getElementById('filePdf').addEventListener('change', function() {
+document.getElementById('filePdf').addEventListener('change', function () {
   document.getElementById('fileName').textContent = this.files[0]?.name || 'Selecionar arquivo PDF...';
 });
 
 document.getElementById('btnAnalisar').addEventListener('click', async () => {
   const file = document.getElementById('filePdf').files[0];
   if (!file) { setStatus('Selecione um arquivo PDF primeiro.', 'err'); return; }
-  
+
   const apiKey = document.getElementById('apiKey').value.trim();
-  if (!apiKey) { setStatus('⚠️ Cole sua chave API do Gemini no campo acima.', 'warning'); return; }
-  
+  if (!apiKey) { setStatus('⚠️ Cole sua chave API da Anthropic no campo acima.', 'warning'); return; }
+
+  // Validação básica do formato da chave
+  if (!apiKey.startsWith('sk-ant-')) {
+    setStatus('⚠️ A chave API da Anthropic começa com "sk-ant-". Verifique sua chave.', 'warning');
+    return;
+  }
+
   salvarApiKey(apiKey);
-  
   clearDebug();
   document.getElementById('debugBox').classList.remove('show');
   document.getElementById('debugArrow').classList.remove('rotated');
   document.getElementById('resultArea').style.display = 'none';
   document.getElementById('overlay').classList.add('show');
-  document.getElementById('overlayText').textContent = 'Extraindo texto do PDF...';
-  
+  document.getElementById('overlayText').textContent = 'Lendo o PDF...';
+
   try {
-    document.getElementById('overlayText').textContent = 'Extraindo texto do PDF...';
-    const textoPDF = await extrairTextoPDF(file);
-    
-    if (textoPDF.length < 100) {
-      throw new Error('O PDF parece não conter texto extraível.');
+    dbg(`📁 Arquivo: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`);
+
+    // Verificação de tamanho (limite ~32MB para base64)
+    if (file.size > 30 * 1024 * 1024) {
+      throw new Error('PDF muito grande. O tamanho máximo é 30MB.');
     }
-    
-    document.getElementById('overlayText').textContent = 'Enviando para IA Gemini... (até 30 segundos)';
-    const analise = await chamarGemini(apiKey, textoPDF);
-    
+
+    document.getElementById('overlayText').textContent = 'Enviando para Claude IA... (pode levar até 60 segundos)';
+
+    const pdfBase64 = await fileToBase64(file);
+    dbg(`✅ PDF convertido para base64 (${(pdfBase64.length / 1024).toFixed(1)} KB)`);
+
+    const analise = await chamarClaude(apiKey, pdfBase64);
+
     document.getElementById('fundoNome').innerHTML = `📄 ${file.name}`;
     document.getElementById('analiseConteudo').innerHTML = formatarAnalise(analise);
     document.getElementById('resultArea').style.display = 'block';
-    
+
     setStatus('✅ Análise concluída com sucesso!', 'ok');
   } catch (e) {
     console.error(e);
-    setStatus(`❌ Erro: ${e.message}`, 'err');
-    dbg(`ERRO DETALHADO: ${e.message}\n${e.stack || ''}`);
+    setStatus(`❌ ${e.message}`, 'err');
+    dbg(`\n❌ ERRO: ${e.message}\n${e.stack || ''}`);
     document.getElementById('debugBox').classList.add('show');
     document.getElementById('debugArrow').classList.add('rotated');
   } finally {
@@ -391,6 +434,7 @@ document.getElementById('themeToggle').addEventListener('click', () => {
 
 document.getElementById('hDate').textContent = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
 
+// Restaurar preferências salvas
 const savedTheme = localStorage.getItem('theme');
 if (savedTheme === 'light') {
   document.body.classList.add('light');

@@ -1,3 +1,4 @@
+o código ai
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -410,7 +411,7 @@ ${textoLimitado}`;
     dbg(`📦 Resposta bruta (primeiros 500 chars):\n${rawText.substring(0, 500)}`);
 
     let jsonStr = rawText.trim()
-      .replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
+      .replace(/^json\s*/i, '').replace(/^\s*/i, '').replace(/\s*$/i, '').trim();
 
     // Tenta parse direto
     try {
@@ -465,9 +466,17 @@ ${textoLimitado}`;
 }
 
 // ========== RENDER ==========
+// Converte qualquer valor (número ou string) para string segura para exibição
+function toStr(val) {
+  if (val === null || val === undefined) return null;
+  return String(val);
+}
+
 function colorVacancia(val) {
   if (!val) return '';
-  const num = parseFloat(val.replace(',', '.'));
+  const str = String(val); // garante que é string antes de .replace()
+  const num = parseFloat(str.replace(',', '.'));
+  if (isNaN(num)) return '';
   if (num === 0) return 'ok';
   if (num <= 5) return 'neutro';
   return 'alerta';
@@ -485,25 +494,25 @@ function renderResultados(d) {
 
   let html = '';
 
-  // Cards de indicadores
+  // Cards de indicadores — toStr() garante que números viram string antes de qualquer .replace()
   const indicadores = [
-    { label: '📊 Vacância Física', val: d.vacancia_fisica, cor: colorVacancia(d.vacancia_fisica) },
-    { label: '💰 Vacância Financeira', val: d.vacancia_financeira, cor: colorVacancia(d.vacancia_financeira) },
-    { label: '⚠️ Inadimplência', val: d.inadimplencia, cor: d.inadimplencia && d.inadimplencia !== '0%' && d.inadimplencia !== 'R$ 0,00' ? 'alerta' : 'ok' },
-    { label: '🏦 LTV (Loan to Value)', val: d.ltv, cor: '' },
-    { label: '💰 Distribuição (R$/cota)', val: d.distribuicao, cor: '' },
-    { label: '📈 Resultado Distribuível', val: d.resultado_distribuivel, cor: '' },
-    { label: '📊 Receita Total', val: d.receita_total, cor: '' },
-    { label: '📉 Despesas Totais', val: d.despesas_totais, cor: '' },
-    { label: '💰 Saldo em Caixa', val: d.saldo_caixa, cor: '' },
-    { label: '🏢 Nº de Imóveis', val: d.num_imoveis, cor: '' },
-    { label: '👥 Nº de Inquilinos', val: d.num_inquilinos, cor: '' },
-    { label: '📐 ABL Total', val: d.abl_total, cor: '' },
-    { label: '🏷️ Tipo de FII', val: d.tipo_fii, cor: '' },
-    { label: '📋 Parcelas a Pagar', val: d.parcelas_pagar, cor: d.parcelas_pagar ? 'alerta' : '' },
-    { label: '🚪 Saída de Inquilino', val: d.saida_inquilino, cor: d.saida_inquilino ? 'alerta' : '' },
-    { label: '🏠 Entrada de Inquilino', val: d.entrada_inquilino, cor: d.entrada_inquilino ? 'ok' : '' },
-    { label: '📅 Reajustes', val: d.reajustes, cor: '' },
+    { label: '📊 Vacância Física', val: toStr(d.vacancia_fisica), cor: colorVacancia(d.vacancia_fisica) },
+    { label: '💰 Vacância Financeira', val: toStr(d.vacancia_financeira), cor: colorVacancia(d.vacancia_financeira) },
+    { label: '⚠️ Inadimplência', val: toStr(d.inadimplencia), cor: d.inadimplencia && String(d.inadimplencia) !== '0%' && String(d.inadimplencia) !== 'R$ 0,00' && String(d.inadimplencia) !== '0' ? 'alerta' : 'ok' },
+    { label: '🏦 LTV (Loan to Value)', val: toStr(d.ltv), cor: '' },
+    { label: '💰 Distribuição (R$/cota)', val: toStr(d.distribuicao), cor: '' },
+    { label: '📈 Resultado Distribuível', val: toStr(d.resultado_distribuivel), cor: '' },
+    { label: '📊 Receita Total', val: toStr(d.receita_total), cor: '' },
+    { label: '📉 Despesas Totais', val: toStr(d.despesas_totais), cor: '' },
+    { label: '💰 Saldo em Caixa', val: toStr(d.saldo_caixa), cor: '' },
+    { label: '🏢 Nº de Imóveis', val: toStr(d.num_imoveis), cor: '' },
+    { label: '👥 Nº de Inquilinos', val: toStr(d.num_inquilinos), cor: '' },
+    { label: '📐 ABL Total', val: toStr(d.abl_total), cor: '' },
+    { label: '🏷️ Tipo de FII', val: toStr(d.tipo_fii), cor: '' },
+    { label: '📋 Parcelas a Pagar', val: toStr(d.parcelas_pagar), cor: d.parcelas_pagar ? 'alerta' : '' },
+    { label: '🚪 Saída de Inquilino', val: toStr(d.saida_inquilino), cor: d.saida_inquilino ? 'alerta' : '' },
+    { label: '🏠 Entrada de Inquilino', val: toStr(d.entrada_inquilino), cor: d.entrada_inquilino ? 'ok' : '' },
+    { label: '📅 Reajustes', val: toStr(d.reajustes), cor: '' },
   ];
 
   indicadores.forEach(({ label, val, cor }) => {
@@ -557,7 +566,7 @@ function renderResultados(d) {
     html += `
       <div class="comentario-box">
         <div class="result-label">💬 COMENTÁRIO DO GESTOR</div>
-        <div class="comentario-texto">${d.comentario_gestor.replace(/\n/g, ' ')}</div>
+        <div class="comentario-texto">${String(d.comentario_gestor).replace(/\n/g, ' ')}</div>
       </div>
     `;
   }

@@ -348,9 +348,9 @@ ${textoLimitado}`;
 
   // Cascata de modelos: tenta o melhor primeiro, cai para os outros se 503/429
   const MODELOS = [
-    { nome: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
-    { nome: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash' },
-    { nome: 'gemini-1.5-flash', label: 'Gemini 1.5 Flash' },
+    { nome: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash', skipOn429: false },
+    { nome: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash', skipOn429: false },
+    { nome: 'gemini-2.0-flash-lite', label: 'Gemini 2.0 Flash Lite', skipOn429: false },
   ];
 
   const body = {
@@ -389,11 +389,17 @@ ${textoLimitado}`;
         ultimoErro = `${resp.status} — ${modelo.label}`;
         dbg(`❌ ${modelo.label} tentativa ${tentativa} — Erro ${resp.status}: ${errText.substring(0, 200)}`);
 
-        const retryCodes = [429, 503, 502, 500];
+        // 429 = quota esgotada: não adianta retry, pula direto pro próximo modelo
+        if (resp.status === 429) {
+          dbg(`⚠️ Quota esgotada no ${modelo.label}. Pulando para próximo modelo...`);
+          break;
+        }
+        // 503/502/500 = servidor sobrecarregado: vale retry
+        const retryCodes = [503, 502, 500];
         if (retryCodes.includes(resp.status)) {
           continue; // tenta de novo com mesmo modelo
         }
-        // Erro não-recuperável (401, 400, etc): para tudo
+        // Erro não-recuperável (401, 400, 404, etc): para tudo
         throw new Error(`Erro na API Gemini (${resp.status}): verifique sua chave de API.`);
       }
 

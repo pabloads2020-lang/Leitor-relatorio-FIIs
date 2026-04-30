@@ -73,6 +73,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 .analise-content hr { border-color: var(--border); margin: 1rem 0; }
 .analise-content ul, .analise-content ol { padding-left: 1.5rem; margin: 0.5rem 0; }
 .analise-content p { margin: 0.75rem 0; }
+.analise-content pre { background: var(--bg3); padding: 1rem; border-radius: 8px; overflow-x: auto; }
 
 .debug-wrapper { margin-top: 0.75rem; }
 .debug-header { display: flex; align-items: center; justify-content: flex-end; margin-bottom: 0.5rem; }
@@ -165,7 +166,6 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
 let debugContent = [];
-let textoExtraido = "";
 
 function dbg(txt) { 
   debugContent.push(txt);
@@ -219,7 +219,6 @@ async function chamarGemini(apiKey, textoPDF) {
 2. Dividendos, Rentabilidade e Yield
 - distribuição do mês
 - dividend yield mensal e anualizado
-- comparações
 
 3. Liquidez e Base de Cotistas
 - volume negociado
@@ -234,7 +233,6 @@ async function chamarGemini(apiKey, textoPDF) {
 - despesas totais
 - resultado de caixa
 - resultado distribuído
-- índice de eficiência
 
 6. Portfólio
 - taxa de ocupação (vacância)
@@ -254,23 +252,19 @@ async function chamarGemini(apiKey, textoPDF) {
 Use apenas as informações do relatório. Se não encontrar algo, escreva "Não informado".
 
 Relatório:
-${textoPDF.substring(0, 40000)}`;
+${textoPDF.substring(0, 35000)}`;
 
-  // CORREÇÃO: URL com modelo correto
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
+  // CORREÇÃO FINAL: Usando a API v1 com modelo estável
+  const url = `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${apiKey}`;
   
   const payload = {
     contents: [{
       parts: [{ text: promptCompleto }]
-    }],
-    generationConfig: {
-      temperature: 0.3,
-      maxOutputTokens: 4000
-    }
+    }]
   };
 
   dbg("🤖 Enviando para o Gemini...");
-  dbg(`📡 Modelo: gemini-pro`);
+  dbg(`📡 URL: ${url.replace(apiKey, 'HIDDEN')}`);
   
   const response = await fetch(url, {
     method: 'POST',

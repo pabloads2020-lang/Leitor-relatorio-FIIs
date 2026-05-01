@@ -122,25 +122,6 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
 .fundo-ticker { display: inline-block; background: var(--gold); color: #000; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 700; margin-bottom: 12px; }
 
 .info-box { background: var(--blue-bg); border: 1px solid rgba(52,152,219,0.2); border-radius: 8px; padding: 10px 14px; font-size: 13px; color: var(--blue); margin-bottom: 0.75rem; line-height: 1.5; }
-
-/* TIPO BADGE */
-.tipo-badge { display: inline-flex; align-items: center; gap: 5px; border-radius: 20px; padding: 3px 12px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; }
-.tipo-tijolo { background: rgba(243,156,18,0.15); color: var(--amber); border: 1px solid rgba(243,156,18,0.3); }
-.tipo-papel { background: rgba(52,152,219,0.15); color: var(--blue); border: 1px solid rgba(52,152,219,0.3); }
-.tipo-hibrido { background: rgba(46,204,113,0.15); color: var(--green); border: 1px solid rgba(46,204,113,0.3); }
-
-/* SEÇÃO CARTEIRA CRI */
-.secao-titulo { grid-column: 1 / -1; font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 1.2px; padding: 0.75rem 0 0.5rem; border-top: 1px solid var(--border); margin-top: 0.5rem; display: flex; align-items: center; gap: 8px; }
-.carteira-box { grid-column: 1 / -1; background: var(--result-item-bg); border-radius: 10px; padding: 1.25rem; border-left: 3px solid var(--blue); margin-top: 0.25rem; }
-.carteira-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem; margin-top: 0.75rem; }
-.carteira-item { background: var(--bg3); border-radius: 8px; padding: 0.75rem 1rem; border: 1px solid var(--border); }
-.carteira-item-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text3); margin-bottom: 5px; }
-.carteira-item-val { font-size: 15px; font-weight: 700; font-family: 'Atkinson Hyperlegible', monospace; color: var(--text); }
-.carteira-item-val.ipca { color: var(--amber); }
-.carteira-item-val.cdi { color: var(--blue); }
-.carteira-item-val.ok { color: var(--green); }
-.setores-bar { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 0.75rem; }
-.setor-tag { background: var(--bg3); border: 1px solid var(--border2); border-radius: 20px; padding: 3px 10px; font-size: 12px; color: var(--text2); }
 </style>
 </head>
 <body>
@@ -157,7 +138,6 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
   </div>
   <div class="header-right">
     <div class="header-date" id="hDate"></div>
-    <div class="header-date" id="hClock" style="font-variant-numeric: tabular-nums; letter-spacing: 0.5px;"></div>
     <button class="theme-toggle" id="themeToggle" title="Alternar modo claro/escuro">🌙</button>
   </div>
 </header>
@@ -190,7 +170,7 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
   <div class="card">
     <div class="card-title">
       📄 Importar relatório gerencial de FII (PDF)
-      <span>Análise inteligente com Gemini AI · Detecta automaticamente FII de Tijolo, Papel ou Híbrido</span>
+      <span>Análise inteligente com Gemini AI · Vacância · Inadimplência · LTV · Rendimentos</span>
     </div>
     <div class="upload-row">
       <label class="file-label" for="filePdf">
@@ -325,348 +305,175 @@ function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 async function analisarComGemini(textoPDF, apiKey) {
   dbg("🤖 Enviando para Gemini AI...");
 
+  // Limita o texto para não exceder o limite da API (1M tokens, mas vamos ser conservadores)
   const textoLimitado = textoPDF.substring(0, 80000);
 
   const prompt = `Você é um analista especialista em Fundos de Investimento Imobiliário (FIIs) do Brasil.
 
-PASSO 1 — Identifique a categoria do fundo:
-- "tijolo": FIIs que possuem imóveis físicos (lajes corporativas, galpões logísticos, shoppings, hospitais, agências, etc.)
-- "papel": FIIs que investem em ativos financeiros imobiliários (CRI, LCI, LIG, CRA, debêntures imobiliárias — também chamados FIIs de recebíveis ou de crédito)
-- "hibrido": FIIs que combinam imóveis físicos e ativos financeiros
-
-PASSO 2 — Com base na categoria identificada, extraia os campos relevantes e retorne um JSON com EXATAMENTE esta estrutura (sem markdown, só o JSON puro):
+Analise o relatório gerencial abaixo e retorne um JSON com EXATAMENTE esta estrutura (sem markdown, só o JSON puro):
 
 {
   "ticker": "código do fundo ex: ABCD11 ou null",
   "gestora": "nome da gestora ou null",
-  "categoria": "tijolo | papel | hibrido",
-  "tipo_fii": "subtipo detalhado: Lajes Corporativas, Logístico, Shopping, CRI, LCI, Híbrido, etc ou null",
+  "tipo_fii": "tipo: Lajes Corporativas, Logístico, Shopping, CRI, Híbrido, etc ou null",
   "periodo_referencia": "mês/ano do relatório ou null",
+  "vacancia_fisica": "valor em % ou null",
+  "vacancia_financeira": "valor em % ou null",
+  "inadimplencia": "valor em R$ ou % ou null",
+  "ltv": "valor em % ou null",
+  "divida_pl": "valor em % de dívida sobre o patrimônio líquido (ex: 57%) ou null",
+  "custo_divida": "custo médio da dívida ex: IPCA+6,5% ou null",
+  "prazo_medio_divida": "prazo médio em anos ou null",
   "distribuicao": "valor em R$/cota ou null",
   "resultado_distribuivel": "valor em R$/cota ou null",
   "receita_total": "valor ou null",
   "despesas_totais": "valor ou null",
   "saldo_caixa": "valor ou null",
-  "patrimonio_liquido": "valor total do PL ou null",
-  "num_cotas": "número de cotas emitidas ou null",
-
-  "CAMPOS EXCLUSIVOS PARA TIJOLO (null se for papel puro)":
-  "vacancia_fisica": "valor em % ou null",
-  "vacancia_financeira": "valor em % ou null",
-  "inadimplencia": "valor em R$ ou % ou null",
-  "ltv": "valor em % ou null",
   "num_imoveis": "número de imóveis ou null",
   "num_inquilinos": "número de inquilinos ou null",
   "abl_total": "área bruta locável total ou null",
   "saida_inquilino": "nome/descrição ou null",
   "entrada_inquilino": "nome/descrição ou null",
-  "reajustes": "descrição dos reajustes contratuais ou null",
-  "parcelas_pagar": "valor de parcelas/obrigações a pagar ou null",
-
-  "CAMPOS EXCLUSIVOS PARA PAPEL (null se for tijolo puro)":
-  "num_cri": "número total de CRIs na carteira ou null",
-  "perc_ativos_alvo": "% do PL alocado em ativos-alvo (CRI/LCI/etc) ou null",
-  "perc_caixa": "% do PL em instrumentos de caixa ou null",
-  "perc_cri_ipca": "% da carteira em CRI indexado ao IPCA ou null",
-  "perc_cri_cdi": "% da carteira em CRI indexado ao CDI ou null",
-  "perc_lci": "% da carteira em LCI ou null",
-  "remuneracao_ipca": "remuneração média dos CRIs IPCA ex: IPCA+10,31% ou null",
-  "remuneracao_cdi": "remuneração média dos CRIs CDI ex: CDI+3,14% ou null",
-  "prazo_medio_ipca": "prazo médio dos CRIs IPCA em anos ou null",
-  "prazo_medio_cdi": "prazo médio dos CRIs CDI em anos ou null",
-  "duration_media": "duration média geral da carteira ou null",
-  "ltv_medio_carteira": "LTV médio da carteira de CRIs ou null",
-  "inadimplencia_carteira": "inadimplência na carteira de crédito ou null",
-  "setores_carteira": "setores dos CRIs separados por | ex: Shoppings|Residencial|Logístico ou null",
-  "alocacao_setores_detalhe": "descrição detalhada da alocação por setor com percentuais ou null",
-  "novos_cri": "descrição de novos CRIs adquiridos no período ou null",
-  "cri_liquidados": "descrição de CRIs liquidados/amortizados no período ou null",
-
-  "principais_riscos": "lista dos 3 principais riscos identificados, separados por | ou null",
+  "reajustes": "descrição dos reajustes ou null",
+  "parcelas_pagar": "valor ou null",
+  "principais_riscos": "lista dos 3 principais riscos identificados no relatório (incluindo riscos de alavancagem se houver), separados por | ou null",
   "pontos_positivos": "lista dos 3 principais pontos positivos, separados por | ou null",
-  "resumo_analista": "resumo crítico de 4 a 6 frases do ponto de vista de um investidor cuidadoso. Para tijolo: foque em vacância, inadimplência, qualidade dos inquilinos e perspectivas. Para papel: foque em qualidade da carteira de crédito, indexadores, duration, risco de crédito e spread.",
+  "resumo_analista": "resumo crítico de 4 a 6 frases do ponto de vista de um investidor cuidadoso, destacando o que mais importa saber sobre este fundo neste período (mencione o nível de alavancagem/dívida se for relevante)",
   "comentario_gestor": "trecho do comentário da gestão se houver, máximo 600 caracteres, ou null"
 }
 
 IMPORTANTE:
 - Retorne APENAS o JSON, sem texto antes ou depois, sem blocos de código markdown.
-- Remova as linhas de comentário (que começam com aspas e contêm "CAMPOS EXCLUSIVOS") do JSON retornado — elas são apenas instruções.
 - Se um dado não estiver no relatório, use null.
-- Seja preciso nos percentuais e valores numéricos — copie exatamente como aparecem no relatório.
+- No resumo_analista, seja direto e crítico: mencione se a vacância está alta, se a distribuição caiu, se há riscos relevantes de dívida, se o fundo está bem gerido.
 
 RELATÓRIO:
 ${textoLimitado}`;
 
-  // Cascata de modelos: tenta o melhor primeiro, cai para os outros se 503/429
-  const MODELOS = [
-    { nome: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash', skipOn429: false },
-    { nome: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash', skipOn429: false },
-    { nome: 'gemini-2.0-flash-lite', label: 'Gemini 2.0 Flash Lite', skipOn429: false },
-  ];
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
   const body = {
     contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: { temperature: 0.1, maxOutputTokens: 8192 }
+    generationConfig: {
+      temperature: 0.1,
+      maxOutputTokens: 2048
+    }
   };
 
-  const TENTATIVAS_POR_MODELO = 2;
-  const ESPERA_RETRY = 8000; // 8s entre tentativas do mesmo modelo
-  const ESPERA_MODELO = 3000; // 3s antes de trocar de modelo
+  const MAX_TENTATIVAS = 4;
+  const ESPERAS = [10000, 20000, 40000]; // 10s, 20s, 40s entre tentativas
 
-  let ultimoErro = '';
+  for (let tentativa = 1; tentativa <= MAX_TENTATIVAS; tentativa++) {
+    if (tentativa > 1) {
+      const espera = ESPERAS[tentativa - 2];
+      dbg(`⏳ Tentativa ${tentativa}/${MAX_TENTATIVAS} — aguardando ${espera/1000}s antes de tentar novamente...`);
+      setOverlay(true, `Servidor ocupado. Tentativa ${tentativa}/${MAX_TENTATIVAS} em ${espera/1000}s...`);
+      await sleep(espera);
+      setOverlay(true, `Tentativa ${tentativa}/${MAX_TENTATIVAS} — enviando para Gemini AI...`);
+    }
 
-  for (let m = 0; m < MODELOS.length; m++) {
-    const modelo = MODELOS[m];
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelo.nome}:generateContent?key=${apiKey}`;
-    dbg(`\n🔄 Tentando modelo: ${modelo.label}...`);
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
 
-    for (let tentativa = 1; tentativa <= TENTATIVAS_POR_MODELO; tentativa++) {
-      if (tentativa > 1) {
-        dbg(`⏳ Retry ${tentativa}/${TENTATIVAS_POR_MODELO} com ${modelo.label} em ${ESPERA_RETRY/1000}s...`);
-        setOverlay(true, `Servidor ocupado. Retry ${tentativa}/${TENTATIVAS_POR_MODELO} com ${modelo.label}...`);
-        await sleep(ESPERA_RETRY);
+    if (!resp.ok) {
+      const errText = await resp.text();
+      dbg(`❌ Tentativa ${tentativa} — Erro ${resp.status}: ${errText.substring(0, 300)}`);
+
+      const retryCodes = [429, 503, 502, 500];
+      if (retryCodes.includes(resp.status) && tentativa < MAX_TENTATIVAS) {
+        continue;
       }
+      throw new Error(`Erro na API Gemini (${resp.status}): verifique sua chave ou tente novamente.`);
+    }
 
-      setOverlay(true, `Analisando com ${modelo.label}... (tentativa ${tentativa}/${TENTATIVAS_POR_MODELO})`);
-
-      const resp = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
-
-      if (!resp.ok) {
-        const errText = await resp.text();
-        ultimoErro = `${resp.status} — ${modelo.label}`;
-        dbg(`❌ ${modelo.label} tentativa ${tentativa} — Erro ${resp.status}: ${errText.substring(0, 200)}`);
-
-        // 429 = quota esgotada: não adianta retry, pula direto pro próximo modelo
-        if (resp.status === 429) {
-          dbg(`⚠️ Quota esgotada no ${modelo.label}. Pulando para próximo modelo...`);
-          break;
-        }
-        // 503/502/500 = servidor sobrecarregado: vale retry
-        const retryCodes = [503, 502, 500];
-        if (retryCodes.includes(resp.status)) {
-          continue; // tenta de novo com mesmo modelo
-        }
-        // Erro não-recuperável (401, 400, 404, etc): para tudo
-        throw new Error(`Erro na API Gemini (${resp.status}): verifique sua chave de API.`);
-      }
-
-      const data = await resp.json();
-      dbg(`✅ Resposta recebida com ${modelo.label} (tentativa ${tentativa}).`);
+    const data = await resp.json();
+    dbg(`✅ Resposta recebida na tentativa ${tentativa}.`);
 
     const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
     dbg(`📦 Resposta bruta (primeiros 500 chars):\n${rawText.substring(0, 500)}`);
 
     let jsonStr = rawText.trim()
-      .replace(/^json\s*/i, '').replace(/^\s*/i, '').replace(/\s*$/i, '').trim();
+      .replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
 
-    // Tenta parse direto
     try {
       const parsed = JSON.parse(jsonStr);
       dbg("✅ JSON parseado com sucesso.");
       return parsed;
     } catch (e) {
-      dbg(`⚠️ JSON incompleto (${e.message}). Tentando recuperar campos extraídos...`);
-
-      // Fallback: extrai campos via regex do JSON parcial
-      const recuperado = {};
-      const campos = [
-        'ticker','gestora','categoria','tipo_fii','periodo_referencia',
-        'distribuicao','resultado_distribuivel','receita_total','despesas_totais',
-        'saldo_caixa','patrimonio_liquido','num_cotas',
-        // tijolo
-        'vacancia_fisica','vacancia_financeira','inadimplencia','ltv',
-        'num_imoveis','num_inquilinos','abl_total',
-        'saida_inquilino','entrada_inquilino','reajustes','parcelas_pagar',
-        // papel
-        'num_cri','perc_ativos_alvo','perc_caixa','perc_cri_ipca','perc_cri_cdi','perc_lci',
-        'remuneracao_ipca','remuneracao_cdi','prazo_medio_ipca','prazo_medio_cdi',
-        'duration_media','ltv_medio_carteira','inadimplencia_carteira',
-        'setores_carteira','alocacao_setores_detalhe','novos_cri','cri_liquidados',
-        // comuns
-        'principais_riscos','pontos_positivos','resumo_analista','comentario_gestor'
-      ];
-
-      campos.forEach(campo => {
-        // Captura "campo": "valor" — mesmo que o JSON esteja cortado
-        const re = new RegExp(`"${campo}"\\s*:\\s*"((?:[^"\\\\]|\\\\.)*)"`);
-        const match = jsonStr.match(re);
-        if (match) recuperado[campo] = match[1];
-        else recuperado[campo] = null;
-      });
-
-      const encontrados = Object.values(recuperado).filter(v => v !== null).length;
-      if (encontrados >= 3) {
-        dbg(`✅ Recuperação parcial: ${encontrados} campos extraídos do JSON incompleto.`);
-        recuperado._aviso = `⚠️ Resposta parcial (JSON truncado). ${encontrados} campos recuperados.`;
-        return recuperado;
-      }
-
-      dbg(`❌ Não foi possível recuperar campos suficientes.\nTexto recebido:\n${rawText}`);
-      // JSON inválido mesmo com fallback — tenta próximo modelo
-      ultimoErro = `JSON inválido — ${modelo.label}`;
-      break; // sai do loop de tentativas deste modelo
+      dbg(`⚠️ Falha ao parsear JSON: ${e.message}\nTexto recebido:\n${rawText}`);
+      throw new Error('O modelo retornou um formato inesperado. Tente novamente.');
     }
-    } // fim loop tentativas
+  }
 
-    // Se chegou aqui, este modelo falhou em todas as tentativas
-    if (m < MODELOS.length - 1) {
-      dbg(`⚠️ ${modelo.label} indisponível. Trocando para ${MODELOS[m+1].label} em 3s...`);
-      setOverlay(true, `${modelo.label} indisponível. Tentando ${MODELOS[m+1].label}...`);
-      await sleep(3000);
-    }
-  } // fim loop modelos
-
-  throw new Error(`Todos os modelos Gemini estão indisponíveis (${ultimoErro}). Tente novamente em alguns minutos.`);
+  throw new Error('Todas as tentativas falharam. O servidor Gemini está instável. Tente em alguns minutos.');
 }
 
 // ========== RENDER ==========
-// Converte qualquer valor (número ou string) para string segura para exibição
-function toStr(val) {
-  if (val === null || val === undefined) return null;
-  return String(val);
-}
-
 function colorVacancia(val) {
   if (!val) return '';
-  const str = String(val); // garante que é string antes de .replace()
-  const num = parseFloat(str.replace(',', '.'));
-  if (isNaN(num)) return '';
+  const num = parseFloat(val.replace(',', '.'));
   if (num === 0) return 'ok';
   if (num <= 5) return 'neutro';
   return 'alerta';
 }
 
-function tipoBadge(categoria, tipo) {
-  if (!categoria) return '';
-  const cls = categoria === 'papel' ? 'tipo-papel' : categoria === 'hibrido' ? 'tipo-hibrido' : 'tipo-tijolo';
-  const emoji = categoria === 'papel' ? '📜' : categoria === 'hibrido' ? '🔀' : '🏢';
-  const label = tipo || (categoria === 'papel' ? 'FII de Papel' : categoria === 'hibrido' ? 'FII Híbrido' : 'FII de Tijolo');
-  return `<span class="tipo-badge ${cls}">${emoji} ${label}</span>`;
-}
-
-function cardIndicador(label, val, cor) {
-  if (!val) return '';
-  return `<div class="result-card"><div class="result-label">${label}</div><div class="result-value small ${cor}">${val}</div></div>`;
-}
-
 function renderResultados(d) {
   const container = document.getElementById('resultadosConteudo');
   const fundoLabel = document.getElementById('fundoIdentificado');
-  const categoria = (d.categoria || '').toLowerCase();
 
   fundoLabel.innerHTML = `
     ${d.ticker ? `<span class="fundo-ticker">${d.ticker}</span>` : ''}
-    ${tipoBadge(categoria, d.tipo_fii)}
-    <span style="font-size:12px;margin-left:4px">${d.gestora || ''}</span>
+    <span style="font-size:12px">${d.gestora || ''}</span>
     ${d.periodo_referencia ? `<span style="font-size:11px;color:var(--text3);margin-left:6px">${d.periodo_referencia}</span>` : ''}
   `;
 
   let html = '';
 
-  // ── INDICADORES COMUNS ──
-  html += cardIndicador('💰 Distribuição (R$/cota)', toStr(d.distribuicao), '');
-  html += cardIndicador('📈 Resultado Distribuível', toStr(d.resultado_distribuivel), '');
-  html += cardIndicador('📊 Receita Total', toStr(d.receita_total), '');
-  html += cardIndicador('📉 Despesas Totais', toStr(d.despesas_totais), '');
-  html += cardIndicador('💰 Saldo em Caixa', toStr(d.saldo_caixa), '');
-  html += cardIndicador('🏦 Patrimônio Líquido', toStr(d.patrimonio_liquido), '');
-  html += cardIndicador('🔢 Nº de Cotas', toStr(d.num_cotas), '');
+  // Cards de indicadores
+  const indicadores = [
+    { label: '📊 Vacância Física', val: d.vacancia_fisica, cor: colorVacancia(d.vacancia_fisica) },
+    { label: '💰 Vacância Financeira', val: d.vacancia_financeira, cor: colorVacancia(d.vacancia_financeira) },
+    { label: '⚠️ Inadimplência', val: d.inadimplencia, cor: d.inadimplencia && d.inadimplencia !== '0%' && d.inadimplencia !== 'R$ 0,00' ? 'alerta' : 'ok' },
+    { label: '🏦 LTV (Loan to Value)', val: d.ltv, cor: '' },
+    { label: '💰 Distribuição (R$/cota)', val: d.distribuicao, cor: '' },
+    { label: '📈 Resultado Distribuível', val: d.resultado_distribuivel, cor: '' },
+    { label: '📊 Receita Total', val: d.receita_total, cor: '' },
+    { label: '📉 Despesas Totais', val: d.despesas_totais, cor: '' },
+    { label: '💰 Saldo em Caixa', val: d.saldo_caixa, cor: '' },
+    { label: '🏢 Nº de Imóveis', val: d.num_imoveis, cor: '' },
+    { label: '👥 Nº de Inquilinos', val: d.num_inquilinos, cor: '' },
+    { label: '📐 ABL Total', val: d.abl_total, cor: '' },
+    { label: '🏷️ Tipo de FII', val: d.tipo_fii, cor: '' },
+    { label: '📋 Parcelas a Pagar', val: d.parcelas_pagar, cor: d.parcelas_pagar ? 'alerta' : '' },
+    { label: '🚪 Saída de Inquilino', val: d.saida_inquilino, cor: d.saida_inquilino ? 'alerta' : '' },
+    { label: '🏠 Entrada de Inquilino', val: d.entrada_inquilino, cor: d.entrada_inquilino ? 'ok' : '' },
+    { label: '📅 Reajustes', val: d.reajustes, cor: '' },
+  ];
 
-  // ── SEÇÃO TIJOLO ──
-  if (categoria === 'tijolo' || categoria === 'hibrido') {
-    html += `<div class="secao-titulo">🏢 Indicadores do Portfólio Físico</div>`;
-    html += cardIndicador('📊 Vacância Física', toStr(d.vacancia_fisica), colorVacancia(d.vacancia_fisica));
-    html += cardIndicador('💰 Vacância Financeira', toStr(d.vacancia_financeira), colorVacancia(d.vacancia_financeira));
-    html += cardIndicador('⚠️ Inadimplência', toStr(d.inadimplencia),
-      d.inadimplencia && !['0%','R$ 0,00','0'].includes(String(d.inadimplencia)) ? 'alerta' : 'ok');
-    html += cardIndicador('🏦 LTV (Loan to Value)', toStr(d.ltv), '');
-    html += cardIndicador('🏢 Nº de Imóveis', toStr(d.num_imoveis), '');
-    html += cardIndicador('👥 Nº de Inquilinos', toStr(d.num_inquilinos), '');
-    html += cardIndicador('📐 ABL Total', toStr(d.abl_total), '');
-    html += cardIndicador('📋 Parcelas a Pagar', toStr(d.parcelas_pagar), d.parcelas_pagar ? 'alerta' : '');
-    html += cardIndicador('🚪 Saída de Inquilino', toStr(d.saida_inquilino), d.saida_inquilino ? 'alerta' : '');
-    html += cardIndicador('🏠 Entrada de Inquilino', toStr(d.entrada_inquilino), d.entrada_inquilino ? 'ok' : '');
-    html += cardIndicador('📅 Reajustes Contratuais', toStr(d.reajustes), '');
-  }
+  indicadores.forEach(({ label, val, cor }) => {
+    if (!val) return;
+    html += `
+      <div class="result-card">
+        <div class="result-label">${label}</div>
+        <div class="result-value small ${cor}">${val}</div>
+      </div>
+    `;
+  });
 
-  // ── SEÇÃO PAPEL ──
-  if (categoria === 'papel' || categoria === 'hibrido') {
-    html += `<div class="secao-titulo">📜 Carteira de Crédito Imobiliário</div>`;
-
-    // Cards rápidos de carteira
-    html += cardIndicador('📦 Nº de CRIs', toStr(d.num_cri), '');
-    html += cardIndicador('🎯 Ativos-Alvo (% PL)', toStr(d.perc_ativos_alvo), '');
-    html += cardIndicador('💵 Caixa (% PL)', toStr(d.perc_caixa), '');
-    html += cardIndicador('⚠️ Inadimplência Carteira', toStr(d.inadimplencia_carteira),
-      d.inadimplencia_carteira && !['0%','0'].includes(String(d.inadimplencia_carteira)) ? 'alerta' : 'ok');
-    html += cardIndicador('📏 LTV Médio Carteira', toStr(d.ltv_medio_carteira), '');
-    html += cardIndicador('⏱️ Duration Média', toStr(d.duration_media), '');
-
-    // Box de alocação IPCA vs CDI
-    const temIpca = d.perc_cri_ipca || d.remuneracao_ipca || d.prazo_medio_ipca;
-    const temCdi  = d.perc_cri_cdi  || d.remuneracao_cdi  || d.prazo_medio_cdi;
-    if (temIpca || temCdi || d.perc_lci) {
-      html += `
-        <div class="carteira-box" style="grid-column:1/-1">
-          <div class="result-label">📊 ALOCAÇÃO POR INDEXADOR</div>
-          <div class="carteira-grid">
-            ${temIpca ? `
-              <div class="carteira-item">
-                <div class="carteira-item-label">🟡 CRI IPCA</div>
-                ${d.perc_cri_ipca ? `<div class="carteira-item-val ipca">${toStr(d.perc_cri_ipca)} da carteira</div>` : ''}
-                ${d.remuneracao_ipca ? `<div style="font-size:12px;color:var(--text2);margin-top:4px">Spread: <strong>${toStr(d.remuneracao_ipca)}</strong></div>` : ''}
-                ${d.prazo_medio_ipca ? `<div style="font-size:12px;color:var(--text3);margin-top:2px">Prazo médio: ${toStr(d.prazo_medio_ipca)} anos</div>` : ''}
-              </div>` : ''}
-            ${temCdi ? `
-              <div class="carteira-item">
-                <div class="carteira-item-label">🔵 CRI CDI</div>
-                ${d.perc_cri_cdi ? `<div class="carteira-item-val cdi">${toStr(d.perc_cri_cdi)} da carteira</div>` : ''}
-                ${d.remuneracao_cdi ? `<div style="font-size:12px;color:var(--text2);margin-top:4px">Spread: <strong>${toStr(d.remuneracao_cdi)}</strong></div>` : ''}
-                ${d.prazo_medio_cdi ? `<div style="font-size:12px;color:var(--text3);margin-top:2px">Prazo médio: ${toStr(d.prazo_medio_cdi)} anos</div>` : ''}
-              </div>` : ''}
-            ${d.perc_lci ? `
-              <div class="carteira-item">
-                <div class="carteira-item-label">🟢 LCI</div>
-                <div class="carteira-item-val ok">${toStr(d.perc_lci)} da carteira</div>
-              </div>` : ''}
-          </div>
-        </div>`;
-    }
-
-    // Setores da carteira
-    if (d.setores_carteira) {
-      const setores = d.setores_carteira.split('|').map(s => s.trim()).filter(Boolean);
-      html += `
-        <div class="carteira-box" style="grid-column:1/-1">
-          <div class="result-label">🏗️ SETORES DA CARTEIRA</div>
-          ${d.alocacao_setores_detalhe ? `<div style="font-size:13px;color:var(--text2);margin:8px 0 10px;">${toStr(d.alocacao_setores_detalhe)}</div>` : ''}
-          <div class="setores-bar">
-            ${setores.map(s => `<span class="setor-tag">${s}</span>`).join('')}
-          </div>
-        </div>`;
-    }
-
-    // Movimentações da carteira
-    if (d.novos_cri || d.cri_liquidados) {
-      html += `<div class="secao-titulo">🔄 Movimentações do Período</div>`;
-      html += cardIndicador('🆕 Novos CRIs Adquiridos', toStr(d.novos_cri), 'ok');
-      html += cardIndicador('✅ CRIs Liquidados/Amortizados', toStr(d.cri_liquidados), '');
-    }
-  }
-
-  // ── ANÁLISE IA ──
+  // Resumo do analista
   if (d.resumo_analista) {
     html += `
       <div class="resumo-box">
         <div class="result-label">🤖 ANÁLISE DO RELATÓRIO (Gemini AI)</div>
         <div class="resumo-texto">${d.resumo_analista}</div>
-      </div>`;
+      </div>
+    `;
   }
 
+  // Pontos positivos
   if (d.pontos_positivos) {
     const itens = d.pontos_positivos.split('|').map(s => s.trim()).filter(Boolean);
     html += `
@@ -675,9 +482,11 @@ function renderResultados(d) {
         <ul style="margin-top:8px;padding-left:18px;font-size:14px;color:var(--text2);line-height:1.8">
           ${itens.map(i => `<li>${i}</li>`).join('')}
         </ul>
-      </div>`;
+      </div>
+    `;
   }
 
+  // Riscos
   if (d.principais_riscos) {
     const itens = d.principais_riscos.split('|').map(s => s.trim()).filter(Boolean);
     html += `
@@ -686,15 +495,18 @@ function renderResultados(d) {
         <ul style="margin-top:8px;padding-left:18px;font-size:14px;color:var(--text2);line-height:1.8">
           ${itens.map(i => `<li>${i}</li>`).join('')}
         </ul>
-      </div>`;
+      </div>
+    `;
   }
 
+  // Comentário do gestor
   if (d.comentario_gestor) {
     html += `
       <div class="comentario-box">
         <div class="result-label">💬 COMENTÁRIO DO GESTOR</div>
-        <div class="comentario-texto">${String(d.comentario_gestor).replace(/\n/g, ' ')}</div>
-      </div>`;
+        <div class="comentario-texto">${d.comentario_gestor.replace(/\n/g, ' ')}</div>
+      </div>
+    `;
   }
 
   container.innerHTML = html;
@@ -776,16 +588,6 @@ document.getElementById('themeToggle').addEventListener('click', () => {
 });
 
 document.getElementById('hDate').textContent = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
-
-function atualizarRelogio() {
-  const agora = new Date();
-  const h = String(agora.getHours()).padStart(2, '0');
-  const m = String(agora.getMinutes()).padStart(2, '0');
-  const s = String(agora.getSeconds()).padStart(2, '0');
-  document.getElementById('hClock').textContent = `${h}:${m}:${s}`;
-}
-atualizarRelogio();
-setInterval(atualizarRelogio, 1000);
 
 const savedTheme = localStorage.getItem('theme');
 if (savedTheme === 'light') {

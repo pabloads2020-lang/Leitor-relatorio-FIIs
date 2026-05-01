@@ -366,7 +366,7 @@ ${textoLimitado}`;
     contents: [{ parts: [{ text: prompt }] }],
     generationConfig: {
       temperature: 0.1,
-      maxOutputTokens: 2048
+      maxOutputTokens: 8192
     }
   };
 
@@ -403,7 +403,7 @@ ${textoLimitado}`;
     dbg(`✅ Resposta recebida na tentativa ${tentativa}.`);
 
     const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    dbg(`📦 Resposta bruta (primeiros 500 chars):\n${rawText.substring(0, 500)}`);
+    dbg(`📦 Resposta bruta (primeiros 1000 chars):\n${rawText.substring(0, 1000)}`);
 
     let jsonStr = rawText.trim()
       .replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();

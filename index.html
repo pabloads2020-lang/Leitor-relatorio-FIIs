@@ -1,10 +1,10 @@
-TESTE
+teste 2
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Leitor de Relatórios Gerenciais · FIIs · Versão Robusta</title>
+<title>Leitor de Relatórios Gerenciais · FIIs · Versão Completa</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Atkinson+Hyperlegible:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
@@ -17,6 +17,7 @@ TESTE
   --red: #e74c3c; --red-bg: rgba(231,76,60,0.12);
   --amber: #f39c12; --amber-bg: rgba(243,156,18,0.12);
   --blue: #3498db; --blue-bg: rgba(52,152,219,0.12);
+  --purple: #9b59b6; --purple-bg: rgba(155,89,182,0.12);
   --header-bg: #161b25; --header-border: rgba(255,255,255,0.07);
   --card-bg: #161b25; --card-border: rgba(255,255,255,0.07);
   --input-bg: #1c2333; --input-border: rgba(255,255,255,0.13);
@@ -32,6 +33,7 @@ body.light {
   --green: #27ae60; --green-bg: rgba(39,174,96,0.1);
   --red: #e74c3c; --red-bg: rgba(231,76,60,0.1);
   --amber: #e67e22; --amber-bg: rgba(230,126,34,0.1);
+  --purple: #8e44ad; --purple-bg: rgba(142,68,173,0.1);
   --header-bg: #ffff; --header-border: rgba(0,0,0,0.08);
   --card-bg: #ffff; --card-border: rgba(0,0,0,0.08);
   --input-bg: #ffff; --input-border: #e2e8f0;
@@ -99,8 +101,6 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
 
 .riscos-box { grid-column: 1 / -1; background: var(--result-item-bg); border-radius: 10px; padding: 1.25rem; border-left: 3px solid var(--red); margin-top: 0.5rem; }
 .positivos-box { grid-column: 1 / -1; background: var(--result-item-bg); border-radius: 10px; padding: 1.25rem; border-left: 3px solid var(--green); margin-top: 0.5rem; }
-.comentario-box { grid-column: 1 / -1; background: var(--result-item-bg); border-radius: 10px; padding: 1rem; border-left: 3px solid var(--gold); margin-top: 0.5rem; }
-.comentario-texto { font-size: 14px; line-height: 1.5; color: var(--text2); margin-top: 6px; max-height: 250px; overflow-y: auto; }
 
 .debug-wrapper { margin-top: 0.75rem; }
 .debug-header { display: flex; align-items: center; justify-content: flex-end; margin-bottom: 0.5rem; }
@@ -137,13 +137,25 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
 .semaforo-label.neutro { color: var(--amber); }
 .semaforo-label.alerta { color: var(--red); }
 
-.divida-card { grid-column: 1 / -1; background: var(--result-item-bg); border-radius: 10px; padding: 1.25rem; border: 1px solid var(--border); margin-top: 0.5rem; }
-.divida-card.alerta-divida { border-color: rgba(231,76,60,0.4); background: rgba(231,76,60,0.05); }
-.divida-card.ok-divida { border-color: rgba(46,204,113,0.3); }
+/* Cards de Composição */
+.composicao-card { grid-column: 1 / -1; background: var(--result-item-bg); border-radius: 10px; padding: 1.25rem; border: 1px solid var(--border); margin-top: 0.5rem; }
+.composicao-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 0.75rem; }
+.composicao-item { text-align: center; padding: 0.75rem; border-radius: 8px; background: var(--bg3); }
+.composicao-item-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text3); margin-bottom: 4px; }
+.composicao-item-val { font-size: 22px; font-weight: 700; font-family: 'Atkinson Hyperlegible', monospace; color: var(--gold); }
+.composicao-tipo-badge { display: inline-block; background: var(--purple-bg); color: var(--purple); border-radius: 20px; padding: 2px 8px; font-size: 9px; font-weight: 600; margin-left: 6px; }
+
+/* Cards de Dívida */
+.divida-card { grid-column: 1 / -1; background: var(--result-item-bg); border-radius: 10px; padding: 1.25rem; border: 1px solid var(--border); margin-top: 0.5rem; transition: all 0.3s ease; }
+.divida-card.alerta-divida { border-color: rgba(231,76,60,0.4); background: rgba(231,76,60,0.05); box-shadow: 0 0 0 1px rgba(231,76,60,0.1); }
+.divida-card.ok-divida { border-color: rgba(46,204,113,0.3); background: rgba(46,204,113,0.02); }
 .divida-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-top: 0.75rem; }
-.divida-item { text-align: center; }
+.divida-item { text-align: center; padding: 0.5rem; border-radius: 8px; background: var(--bg3); }
 .divida-item-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text3); margin-bottom: 4px; }
 .divida-item-val { font-size: 16px; font-weight: 700; font-family: 'Atkinson Hyperlegible', monospace; }
+.divida-item-val.ok { color: var(--green); }
+.divida-item-val.neutro { color: var(--amber); }
+.divida-item-val.alerta { color: var(--red); }
 .divida-alerta-badge { display: inline-flex; align-items: center; gap: 5px; background: var(--red-bg); color: var(--red); border: 1px solid rgba(231,76,60,0.3); border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 600; margin-left: 8px; }
 .divida-ok-badge { display: inline-flex; align-items: center; gap: 5px; background: var(--green-bg); color: var(--green); border: 1px solid rgba(46,204,113,0.3); border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 600; margin-left: 8px; }
 
@@ -153,83 +165,11 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
 .btn-export { background: transparent; border: 1px solid var(--border2); color: var(--text2); border-radius: 8px; padding: 7px 14px; font-size: 13px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
 .btn-export:hover { border-color: var(--gold); color: var(--gold); background: rgba(245,200,66,0.08); }
 
-.divida-card {
-    grid-column: 1 / -1;
-    background: var(--result-item-bg);
-    border-radius: 10px;
-    padding: 1.25rem;
-    border: 1px solid var(--border);
-    margin-top: 0.5rem;
-    transition: all 0.3s ease;
-}
-.divida-card.alerta-divida {
-    border-color: rgba(231,76,60,0.4);
-    background: rgba(231,76,60,0.05);
-    box-shadow: 0 0 0 1px rgba(231,76,60,0.1);
-}
-.divida-card.ok-divida {
-    border-color: rgba(46,204,113,0.3);
-    background: rgba(46,204,113,0.02);
-}
-.divida-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 1rem;
-    margin-top: 0.75rem;
-}
-.divida-item {
-    text-align: center;
-    padding: 0.5rem;
-    border-radius: 8px;
-    background: var(--bg3);
-}
-.divida-item-label {
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--text3);
-    margin-bottom: 4px;
-}
-.divida-item-val {
-    font-size: 16px;
-    font-weight: 700;
-    font-family: 'Atkinson Hyperlegible', monospace;
-}
-.divida-item-val.ok { color: var(--green); }
-.divida-item-val.neutro { color: var(--amber); }
-.divida-item-val.alerta { color: var(--red); }
-.divida-alerta-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    background: var(--red-bg);
-    color: var(--red);
-    border: 1px solid rgba(231,76,60,0.3);
-    border-radius: 20px;
-    padding: 3px 10px;
-    font-size: 11px;
-    font-weight: 600;
-    margin-left: 8px;
-}
-.divida-ok-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    background: var(--green-bg);
-    color: var(--green);
-    border: 1px solid rgba(46,204,113,0.3);
-    border-radius: 20px;
-    padding: 3px 10px;
-    font-size: 11px;
-    font-weight: 600;
-    margin-left: 8px;
-}
-
 @media print {
   .header, .card:not(#resultArea), .footer, #btnExportarPDF, .btn-export, .debug-wrapper { display: none !important; }
   body { background: #fff !important; color: #000 !important; }
   #resultArea { display: block !important; border: none !important; box-shadow: none !important; }
-  .result-card, .resumo-box, .riscos-box, .positivos-box, .comentario-box, .divida-card { break-inside: avoid; }
+  .result-card, .resumo-box, .riscos-box, .positivos-box, .composicao-card, .divida-card { break-inside: avoid; }
 }
 </style>
 </head>
@@ -275,7 +215,7 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
   <div class="card">
     <div class="card-title">
       📄 Importar relatório gerencial de FII (PDF)
-      <span>Análise inteligente com Gemini AI · Versão Robusta v3</span>
+      <span>Análise inteligente com Gemini AI · Versão Completa</span>
     </div>
     <div class="drop-zone" id="dropZone">
       <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="display:block;margin:0 auto 6px">
@@ -321,7 +261,7 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
 </main>
 
 <footer class="footer">
-  Análise inteligente de FIIs com Gemini AI · Ferramenta de Triagem Profissional · v3 Robusta com Critérios de Alavancagem Ajustados
+  Análise inteligente de FIIs com Gemini AI · Ferramenta de Triagem Profissional · v4 com Card de Composição de Portfólio
 </footer>
 
 <script>
@@ -397,16 +337,14 @@ function extrairNumero(val) {
     return isNaN(n) ? null : n;
 }
 
-// ==================== FUNÇÕES DE CRITÉRIOS AJUSTADOS ====================
+// ==================== FUNÇÕES DE CRITÉRIOS ====================
 
-// Vacância: igual (mantido)
 function colorVacancia(val) {
     const n = extrairNumero(val);
     if (n === null) return '';
     return n <= 5 ? 'ok' : (n <= 20 ? 'neutro' : 'alerta');
 }
 
-// LTV: NOVOS CRITÉRIOS - Tijolo vs Papel
 function colorLTV(val, tipoFii) {
     const n = extrairNumero(val);
     if (n === null) return '';
@@ -414,29 +352,24 @@ function colorLTV(val, tipoFii) {
     const isPapel = (tipoFii||'').toLowerCase().match(/cri|papel|receb|credito/i);
     
     if (isPapel) {
-        // FII de Papel/CRI: até 50% ok, 50-70% atenção, >70% alerta
         return n <= 50 ? 'ok' : (n <= 70 ? 'neutro' : 'alerta');
     } else {
-        // FII de Tijolo: até 10% ok, 10-20% atenção, >20% alerta
         return n <= 10 ? 'ok' : (n <= 20 ? 'neutro' : 'alerta');
     }
 }
 
-// Inadimplência: mantido
 function colorInadimplencia(val) {
     const n = extrairNumero(val);
     if (n === null || n === 0) return 'ok';
     return n <= 10 ? 'ok' : (n <= 20 ? 'neutro' : 'alerta');
 }
 
-// Dívida/PL: NOVOS CRITÉRIOS - até 10% ok, 10-20% atenção, >20% alerta
 function colorDividaPL(val) {
     const n = extrairNumero(val);
     if (n === null) return 'ok';
     return n <= 10 ? 'ok' : (n <= 20 ? 'neutro' : 'alerta');
 }
 
-// Custo da Dívida: mantido
 function colorCustoDivida(val) {
     const n = extrairNumero(val);
     if (n === null) return null;
@@ -446,7 +379,7 @@ function colorCustoDivida(val) {
     return null;
 }
 
-// ==================== FUNÇÃO DO SEMÁFORO COM % REAL ====================
+// ==================== FUNÇÃO DO SEMÁFORO ====================
 function getPercentByMetric(titulo, valor, cor) {
     const num = extrairNumero(valor);
     if (num === null) return '50%';
@@ -466,21 +399,176 @@ function getPercentByMetric(titulo, valor, cor) {
     return '50%';
 }
 
-// ==================== CARD DE DÍVIDA MELHORADO ====================
+// ==================== NOVO CARD DE COMPOSIÇÃO DO PORTFÓLIO ====================
+function renderCardComposicao(d) {
+    const isPapel = (d.tipo_fii||'').toLowerCase().match(/cri|papel|receb|credito/i);
+    
+    let html = '';
+    
+    if (isPapel) {
+        // Fundo de Papel - mostra número de CRIs e ativos financeiros
+        const numCRIs = extrairNumero(d.num_cris) || extrairNumero(d.num_ativos) || null;
+        const numLCIs = extrairNumero(d.num_lcis) || null;
+        const numDebentures = extrairNumero(d.num_debentures) || null;
+        
+        if (!numCRIs && !numLCIs && !numDebentures) return '';
+        
+        html = `
+            <div class="composicao-card">
+                <div class="result-label">
+                    📋 COMPOSIÇÃO DO PORTFÓLIO · FUNDO DE PAPEL
+                    <span class="composicao-tipo-badge">CRI / LCI / Debêntures</span>
+                </div>
+                <div class="composicao-grid">
+        `;
+        
+        if (numCRIs) {
+            html += `
+                <div class="composicao-item">
+                    <div class="composicao-item-label">🏦 CRIs</div>
+                    <div class="composicao-item-val">${numCRIs}</div>
+                    <div style="font-size: 10px; color: var(--text3);">Certificados de Recebíveis Imobiliários</div>
+                </div>
+            `;
+        }
+        
+        if (numLCIs) {
+            html += `
+                <div class="composicao-item">
+                    <div class="composicao-item-label">📜 LCIs</div>
+                    <div class="composicao-item-val">${numLCIs}</div>
+                    <div style="font-size: 10px; color: var(--text3);">Letras de Crédito Imobiliário</div>
+                </div>
+            `;
+        }
+        
+        if (numDebentures) {
+            html += `
+                <div class="composicao-item">
+                    <div class="composicao-item-label">📈 Debêntures</div>
+                    <div class="composicao-item-val">${numDebentures}</div>
+                    <div style="font-size: 10px; color: var(--text3);">Debêntures Incentivadas</div>
+                </div>
+            `;
+        }
+        
+        html += `</div></div>`;
+        
+    } else {
+        // Fundo de Tijolo - mostra número de imóveis e tipos
+        const numImoveis = extrairNumero(d.num_imoveis);
+        const numGalpoes = extrairNumero(d.num_galpoes) || extrairNumero(d.num_logisticos) || null;
+        const numShoppings = extrairNumero(d.num_shoppings) || null;
+        const numLajes = extrairNumero(d.num_lajes) || extrairNumero(d.num_corporativos) || null;
+        const numFazendas = extrairNumero(d.num_fazendas) || extrairNumero(d.num_agro) || null;
+        const numTorres = extrairNumero(d.num_torres) || null;
+        
+        if (!numImoveis && !numGalpoes && !numShoppings && !numLajes && !numFazendas && !numTorres) {
+            // Fallback: mostra apenas o número de imóveis se disponível
+            if (numImoveis) {
+                html = `
+                    <div class="composicao-card">
+                        <div class="result-label">📋 COMPOSIÇÃO DO PORTFÓLIO · FUNDO DE TIJOLEIRA</div>
+                        <div class="composicao-grid">
+                            <div class="composicao-item">
+                                <div class="composicao-item-label">🏢 IMÓVEIS</div>
+                                <div class="composicao-item-val">${numImoveis}</div>
+                                <div style="font-size: 10px; color: var(--text3);">Total de ativos imobiliários</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            return html || '';
+        }
+        
+        html = `
+            <div class="composicao-card">
+                <div class="result-label">
+                    📋 COMPOSIÇÃO DO PORTFÓLIO · FUNDO DE TIJOLEIRA
+                    <span class="composicao-tipo-badge">Imóveis Físicos</span>
+                </div>
+                <div class="composicao-grid">
+        `;
+        
+        if (numImoveis) {
+            html += `
+                <div class="composicao-item">
+                    <div class="composicao-item-label">🏢 TOTAL DE IMÓVEIS</div>
+                    <div class="composicao-item-val">${numImoveis}</div>
+                    <div style="font-size: 10px; color: var(--text3);">Ativos imobiliários no portfólio</div>
+                </div>
+            `;
+        }
+        
+        if (numGalpoes) {
+            html += `
+                <div class="composicao-item">
+                    <div class="composicao-item-label">📦 GALPÕES LOGÍSTICOS</div>
+                    <div class="composicao-item-val">${numGalpoes}</div>
+                    <div style="font-size: 10px; color: var(--text3);">Industrial / Distribuição</div>
+                </div>
+            `;
+        }
+        
+        if (numShoppings) {
+            html += `
+                <div class="composicao-item">
+                    <div class="composicao-item-label">🛍️ SHOPPINGS</div>
+                    <div class="composicao-item-val">${numShoppings}</div>
+                    <div style="font-size: 10px; color: var(--text3);">Centros comerciais</div>
+                </div>
+            `;
+        }
+        
+        if (numLajes) {
+            html += `
+                <div class="composicao-item">
+                    <div class="composicao-item-label">🏢 LAJES CORPORATIVAS</div>
+                    <div class="composicao-item-val">${numLajes}</div>
+                    <div style="font-size: 10px; color: var(--text3);">Escritórios / Comercial</div>
+                </div>
+            `;
+        }
+        
+        if (numTorres) {
+            html += `
+                <div class="composicao-item">
+                    <div class="composicao-item-label">🗼 TORRES / EDIFÍCIOS</div>
+                    <div class="composicao-item-val">${numTorres}</div>
+                    <div style="font-size: 10px; color: var(--text3);">Edifícios comerciais</div>
+                </div>
+            `;
+        }
+        
+        if (numFazendas) {
+            html += `
+                <div class="composicao-item">
+                    <div class="composicao-item-label">🌾 FAZENDAS / AGRO</div>
+                    <div class="composicao-item-val">${numFazendas}</div>
+                    <div style="font-size: 10px; color: var(--text3);">Propriedades rurais</div>
+                </div>
+            `;
+        }
+        
+        html += `</div></div>`;
+    }
+    
+    return html;
+}
+
+// ==================== CARD DE DÍVIDA ====================
 function renderCardDividaMelhorado(d) {
     const temDivida = d.ltv || d.divida_pl || d.custo_divida || d.prazo_medio_divida;
     if (!temDivida) return '';
     
-    // Avaliar cada métrica com os NOVOS CRITÉRIOS
     const corLTV = colorLTV(d.ltv, d.tipo_fii) || 'ok';
     const corDividaPL = colorDividaPL(d.divida_pl) || 'ok';
     const corCusto = colorCustoDivida(d.custo_divida) || 'ok';
     
-    // Avaliar prazo médio como fator de alívio
     const prazoMedio = extrairNumero(d.prazo_medio_divida);
     const temPrazoLongo = prazoMedio && prazoMedio > 5;
     
-    // Matriz de severidade
     const severityOrder = { 'ok': 0, 'neutro': 1, 'alerta': 2 };
     let maiorSeveridade = 'ok';
     
@@ -490,7 +578,6 @@ function renderCardDividaMelhorado(d) {
         }
     });
     
-    // Prazo longo pode amenizar (neutro vira ok, alerta vira neutro)
     if (temPrazoLongo && maiorSeveridade === 'neutro') {
         maiorSeveridade = 'ok';
     } else if (temPrazoLongo && maiorSeveridade === 'alerta') {
@@ -501,9 +588,8 @@ function renderCardDividaMelhorado(d) {
     let badge = '';
     let mensagem = '';
     
-    // Determinar o tipo de fundo para a mensagem
     const isPapel = (d.tipo_fii||'').toLowerCase().match(/cri|papel|receb|credito/i);
-    const tipoAlavancagem = isPapel ? ' (Limites para FII de Papel: LTV até 50% ok, 50-70% atenção, >70% alerta)' : ' (Limites para FII de Tijolo: LTV até 10% ok, 10-20% atenção, >20% alerta)';
+    const tipoAlavancagem = isPapel ? ' (Limites: LTV até 50% ok, 50-70% atenção, >70% alerta)' : ' (Limites: LTV até 10% ok, 10-20% atenção, >20% alerta)';
     
     switch(maiorSeveridade) {
         case 'ok':
@@ -553,7 +639,9 @@ function normalizarDadosIA(dados) {
                           'vacancia_fisica', 'vacancia_financeira', 'inadimplencia', 'ltv',
                           'distribuicao', 'resultado_distribuivel', 'origem_distribuicao',
                           'vencimentos_divida', 'media_dividendos_12m', 'divida_pl', 
-                          'custo_divida', 'prazo_medio_divida'];
+                          'custo_divida', 'prazo_medio_divida', 'num_imoveis', 'num_cris',
+                          'num_galpoes', 'num_shoppings', 'num_lajes', 'num_fazendas',
+                          'num_torres', 'num_lcis', 'num_debentures'];
     
     camposString.forEach(campo => {
         if (dados[campo] !== undefined && dados[campo] !== null && typeof dados[campo] !== 'string') {
@@ -571,7 +659,7 @@ function normalizarDadosIA(dados) {
     return dados;
 }
 
-// ==================== CACHE ROBUSTO ====================
+// ==================== CACHE ====================
 async function loadFromCache(hash) {
     const cached = localStorage.getItem('cache_' + hash);
     if (!cached) return null;
@@ -601,7 +689,7 @@ async function saveToCache(hash, data) {
     }
 }
 
-// ==================== FUNÇÕES DE RENDERIZAÇÃO ====================
+// ==================== RENDERIZAÇÃO PRINCIPAL ====================
 function renderCardSemaforo(tit, val, cor) {
     if(!val || val === 'null' || val === 'undefined' || val === '') return '';
     
@@ -639,13 +727,16 @@ function renderResultados(d) {
 
     let html = '';
     
-    // Cards de semáforo existentes
+    // Cards de semáforo
     html += renderCardSemaforo('📊 Vacancia Física', d.vacancia_fisica, colorVacancia(d.vacancia_fisica));
     html += renderCardSemaforo('💰 Vacancia Financeira', d.vacancia_financeira, colorVacancia(d.vacancia_financeira));
     html += renderCardSemaforo('⚠️ Inadimplência', d.inadimplencia, colorInadimplencia(d.inadimplencia));
     html += renderCardSemaforo('🏦 LTV', d.ltv, colorLTV(d.ltv, d.tipo_fii));
     
-    // Card de dívida melhorado
+    // NOVO CARD DE COMPOSIÇÃO
+    html += renderCardComposicao(d);
+    
+    // Card de dívida
     html += renderCardDividaMelhorado(d);
     
     if (d.origem_distribuicao) {
@@ -765,7 +856,15 @@ Analise o relatório gerencial e retorne um JSON puro (sem markdown) com esta es
   "comentario_gestor": "max 600 chars",
   "origem_distribuicao": "DRE, Fluxo de Caixa ou Misto",
   "vencimentos_divida": "resumo dos próximos vencimentos",
-  "media_dividendos_12m": "valor médio R$/cota nos últimos 12 meses"
+  "media_dividendos_12m": "valor médio R$/cota nos últimos 12 meses",
+  "num_cris": "número de CRIs no portfólio",
+  "num_galpoes": "número de galpões logísticos no portfólio",
+  "num_shoppings": "número de shoppings no portfólio",
+  "num_lajes": "número de lajes corporativas no portfólio",
+  "num_fazendas": "número de fazendas/propriedades rurais",
+  "num_torres": "número de torres/edifícios comerciais",
+  "num_lcis": "número de LCIs no portfólio",
+  "num_debentures": "número de debêntures no portfólio"
 }
 RELATÓRIO: ${textoPDF.substring(0, 80000)}`;
 
@@ -836,7 +935,7 @@ async function hashArquivo(f) {
     return Array.from(new Uint8Array(h)).map(b=>b.toString(16).padStart(2,'0')).join(''); 
 }
 
-// ==================== EVENTO PRINCIPAL DE IMPORTAÇÃO ====================
+// ==================== EVENTO PRINCIPAL ====================
 document.getElementById('btnImportar').addEventListener('click', async () => {
     if (isProcessing) {
         setStatus('⏳ Já estou processando um arquivo, aguarde...', 'warn');

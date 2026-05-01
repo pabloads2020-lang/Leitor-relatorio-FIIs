@@ -498,15 +498,30 @@ function colorVacancia(val) {
   return 'alerta';
 }
 
-function colorLTV(val) {
+// MODIFICADO: colorLTV agora aceita opcionalmente o tipo do fundo (tipoFii)
+// e aplica thresholds especiais para fundos CRI/papel/recebíveis:
+// - CRI-type: <=50% ok, <=70% neutro, >70% alerta
+// - outros: mantém comportamento anterior (<=10 ok, <=20 neutro, >20 alerta)
+function colorLTV(val, tipoFii) {
   if (!val) return '';
   const num = extrairNumero(val);
   if (num === null) return '';
-  // Verde (Seguro): até 10%
+
+  const t = (tipoFii || '').toString().toLowerCase();
+
+  // detecta tipos CRI/papel/recebíveis por palavras-chave (sinônimos)
+  const isCRIType = t.includes('cri') || t.includes('papel') || t.includes('receb');
+
+  if (isCRIType) {
+    // thresholds para fundos de CRI/papel/recebíveis
+    if (num <= 50) return 'ok';
+    if (num <= 70) return 'neutro';
+    return 'alerta';
+  }
+
+  // comportamento padrão para demais tipos de FII
   if (num <= 10) return 'ok';
-  // Amarelo (Atenção): >10% e <=20%
   if (num <= 20) return 'neutro';
-  // Vermelho (Risco): >20%
   return 'alerta';
 }
 
@@ -522,7 +537,6 @@ function colorInadimplencia(val) {
 }
 // -------------------------------------------------------------------------
 
-// MOVIDA: função colorEstruturaDivida (para fora de renderResultados)
 function colorEstruturaDivida(val) {
   if (!val) return '';
   const num = extrairNumero(val);
@@ -581,7 +595,8 @@ function renderResultados(d) {
   html += cardComSemaforo('⚠️ Inadimplência', d.inadimplencia, corInad, numInad * 2);
 
   // --- LTV com semáforo ---
-  const corLTV = colorLTV(d.ltv);
+  // ALTERAÇÃO: passa d.tipo_fii para detectar fundos CRI/papel/recebíveis
+  const corLTV = colorLTV(d.ltv, d.tipo_fii);
   const numLTV = extrairNumero(d.ltv) || 0;
   html += cardComSemaforo('🏦 LTV (Loan to Value)', d.ltv, corLTV, numLTV);
 
@@ -615,7 +630,8 @@ function renderResultados(d) {
   // --- CARD DÍVIDA / ALAVANCAGEM (uso dos thresholds 10/20 para avaliação) ---
 const temDivida = d.ltv || d.divida_pl || d.custo_divida || d.prazo_medio_divida;
 if (temDivida) {
-  const corLTVestr = colorLTV(d.ltv);
+  // ALTERAÇÃO: passar d.tipo_fii ao avaliar LTV da estrutura
+  const corLTVestr = colorLTV(d.ltv, d.tipo_fii);
   const corDividaPL = colorEstruturaDivida(d.divida_pl); // função já existente ou implemente similar a colorLTV
   // determina gravidade final: alerta > neutro > ok
   const severityOrder = { 'ok': 0, 'neutro': 1, 'alerta': 2 };

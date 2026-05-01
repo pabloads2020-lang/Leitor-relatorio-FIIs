@@ -1,10 +1,10 @@
-teste 2
+TESTE 3
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Leitor de Relatórios Gerenciais · FIIs · Versão Completa</title>
+<title>Leitor de Relatórios Gerenciais · FIIs · v5</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Atkinson+Hyperlegible:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
@@ -137,15 +137,50 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
 .semaforo-label.neutro { color: var(--amber); }
 .semaforo-label.alerta { color: var(--red); }
 
-/* Cards de Composição */
-.composicao-card { grid-column: 1 / -1; background: var(--result-item-bg); border-radius: 10px; padding: 1.25rem; border: 1px solid var(--border); margin-top: 0.5rem; }
-.composicao-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 0.75rem; }
-.composicao-item { text-align: center; padding: 0.75rem; border-radius: 8px; background: var(--bg3); }
-.composicao-item-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text3); margin-bottom: 4px; }
-.composicao-item-val { font-size: 22px; font-weight: 700; font-family: 'Atkinson Hyperlegible', monospace; color: var(--gold); }
-.composicao-tipo-badge { display: inline-block; background: var(--purple-bg); color: var(--purple); border-radius: 20px; padding: 2px 8px; font-size: 9px; font-weight: 600; margin-left: 6px; }
+/* Cards de Composição - AGORA DO MESMO TAMANHO DOS OUTROS */
+.composicao-card { 
+    background: var(--result-item-bg); 
+    border-radius: 10px; 
+    padding: 1rem; 
+    border: 1px solid var(--border);
+    /* SEM grid-column: 1 / -1 - agora ocupa tamanho normal */
+}
+.composicao-titulo { 
+    font-size: 11px; 
+    text-transform: uppercase; 
+    letter-spacing: 1px; 
+    color: var(--text3); 
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+.composicao-tipo-badge { 
+    display: inline-block; 
+    background: var(--purple-bg); 
+    color: var(--purple); 
+    border-radius: 20px; 
+    padding: 2px 8px; 
+    font-size: 9px; 
+    font-weight: 600; 
+}
+.composicao-valor { 
+    font-size: 22px; 
+    font-weight: 700; 
+    font-family: 'Atkinson Hyperlegible', monospace; 
+    color: var(--gold);
+    text-align: center;
+    margin: 8px 0;
+}
+.composicao-desc { 
+    font-size: 10px; 
+    color: var(--text3); 
+    text-align: center;
+}
 
-/* Cards de Dívida */
+/* Cards de Dívida - ocupam largura total */
 .divida-card { grid-column: 1 / -1; background: var(--result-item-bg); border-radius: 10px; padding: 1.25rem; border: 1px solid var(--border); margin-top: 0.5rem; transition: all 0.3s ease; }
 .divida-card.alerta-divida { border-color: rgba(231,76,60,0.4); background: rgba(231,76,60,0.05); box-shadow: 0 0 0 1px rgba(231,76,60,0.1); }
 .divida-card.ok-divida { border-color: rgba(46,204,113,0.3); background: rgba(46,204,113,0.02); }
@@ -261,7 +296,7 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
 </main>
 
 <footer class="footer">
-  Análise inteligente de FIIs com Gemini AI · Ferramenta de Triagem Profissional · v4 com Card de Composição de Portfólio
+  Análise inteligente de FIIs com Gemini AI · Ferramenta de Triagem Profissional · v5 com Cards Compactos
 </footer>
 
 <script>
@@ -399,162 +434,41 @@ function getPercentByMetric(titulo, valor, cor) {
     return '50%';
 }
 
-// ==================== NOVO CARD DE COMPOSIÇÃO DO PORTFÓLIO ====================
+// ==================== NOVO CARD DE COMPOSIÇÃO (TAMANHO NORMAL) ====================
 function renderCardComposicao(d) {
     const isPapel = (d.tipo_fii||'').toLowerCase().match(/cri|papel|receb|credito/i);
     
-    let html = '';
-    
     if (isPapel) {
-        // Fundo de Papel - mostra número de CRIs e ativos financeiros
+        // Fundo de Papel
         const numCRIs = extrairNumero(d.num_cris) || extrairNumero(d.num_ativos) || null;
-        const numLCIs = extrairNumero(d.num_lcis) || null;
-        const numDebentures = extrairNumero(d.num_debentures) || null;
+        if (!numCRIs) return '';
         
-        if (!numCRIs && !numLCIs && !numDebentures) return '';
-        
-        html = `
+        return `
             <div class="composicao-card">
-                <div class="result-label">
-                    📋 COMPOSIÇÃO DO PORTFÓLIO · FUNDO DE PAPEL
-                    <span class="composicao-tipo-badge">CRI / LCI / Debêntures</span>
+                <div class="composicao-titulo">
+                    📋 CRIs NO PORTFÓLIO
+                    <span class="composicao-tipo-badge">Papel</span>
                 </div>
-                <div class="composicao-grid">
+                <div class="composicao-valor">${numCRIs}</div>
+                <div class="composicao-desc">Certificados de Recebíveis Imobiliários</div>
+            </div>
         `;
-        
-        if (numCRIs) {
-            html += `
-                <div class="composicao-item">
-                    <div class="composicao-item-label">🏦 CRIs</div>
-                    <div class="composicao-item-val">${numCRIs}</div>
-                    <div style="font-size: 10px; color: var(--text3);">Certificados de Recebíveis Imobiliários</div>
-                </div>
-            `;
-        }
-        
-        if (numLCIs) {
-            html += `
-                <div class="composicao-item">
-                    <div class="composicao-item-label">📜 LCIs</div>
-                    <div class="composicao-item-val">${numLCIs}</div>
-                    <div style="font-size: 10px; color: var(--text3);">Letras de Crédito Imobiliário</div>
-                </div>
-            `;
-        }
-        
-        if (numDebentures) {
-            html += `
-                <div class="composicao-item">
-                    <div class="composicao-item-label">📈 Debêntures</div>
-                    <div class="composicao-item-val">${numDebentures}</div>
-                    <div style="font-size: 10px; color: var(--text3);">Debêntures Incentivadas</div>
-                </div>
-            `;
-        }
-        
-        html += `</div></div>`;
-        
     } else {
-        // Fundo de Tijolo - mostra número de imóveis e tipos
+        // Fundo de Tijolo
         const numImoveis = extrairNumero(d.num_imoveis);
-        const numGalpoes = extrairNumero(d.num_galpoes) || extrairNumero(d.num_logisticos) || null;
-        const numShoppings = extrairNumero(d.num_shoppings) || null;
-        const numLajes = extrairNumero(d.num_lajes) || extrairNumero(d.num_corporativos) || null;
-        const numFazendas = extrairNumero(d.num_fazendas) || extrairNumero(d.num_agro) || null;
-        const numTorres = extrairNumero(d.num_torres) || null;
+        if (!numImoveis) return '';
         
-        if (!numImoveis && !numGalpoes && !numShoppings && !numLajes && !numFazendas && !numTorres) {
-            // Fallback: mostra apenas o número de imóveis se disponível
-            if (numImoveis) {
-                html = `
-                    <div class="composicao-card">
-                        <div class="result-label">📋 COMPOSIÇÃO DO PORTFÓLIO · FUNDO DE TIJOLEIRA</div>
-                        <div class="composicao-grid">
-                            <div class="composicao-item">
-                                <div class="composicao-item-label">🏢 IMÓVEIS</div>
-                                <div class="composicao-item-val">${numImoveis}</div>
-                                <div style="font-size: 10px; color: var(--text3);">Total de ativos imobiliários</div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-            return html || '';
-        }
-        
-        html = `
+        return `
             <div class="composicao-card">
-                <div class="result-label">
-                    📋 COMPOSIÇÃO DO PORTFÓLIO · FUNDO DE TIJOLEIRA
-                    <span class="composicao-tipo-badge">Imóveis Físicos</span>
+                <div class="composicao-titulo">
+                    🏢 IMÓVEIS NO PORTFÓLIO
+                    <span class="composicao-tipo-badge">Tijolo</span>
                 </div>
-                <div class="composicao-grid">
+                <div class="composicao-valor">${numImoveis}</div>
+                <div class="composicao-desc">Ativos imobiliários físicos</div>
+            </div>
         `;
-        
-        if (numImoveis) {
-            html += `
-                <div class="composicao-item">
-                    <div class="composicao-item-label">🏢 TOTAL DE IMÓVEIS</div>
-                    <div class="composicao-item-val">${numImoveis}</div>
-                    <div style="font-size: 10px; color: var(--text3);">Ativos imobiliários no portfólio</div>
-                </div>
-            `;
-        }
-        
-        if (numGalpoes) {
-            html += `
-                <div class="composicao-item">
-                    <div class="composicao-item-label">📦 GALPÕES LOGÍSTICOS</div>
-                    <div class="composicao-item-val">${numGalpoes}</div>
-                    <div style="font-size: 10px; color: var(--text3);">Industrial / Distribuição</div>
-                </div>
-            `;
-        }
-        
-        if (numShoppings) {
-            html += `
-                <div class="composicao-item">
-                    <div class="composicao-item-label">🛍️ SHOPPINGS</div>
-                    <div class="composicao-item-val">${numShoppings}</div>
-                    <div style="font-size: 10px; color: var(--text3);">Centros comerciais</div>
-                </div>
-            `;
-        }
-        
-        if (numLajes) {
-            html += `
-                <div class="composicao-item">
-                    <div class="composicao-item-label">🏢 LAJES CORPORATIVAS</div>
-                    <div class="composicao-item-val">${numLajes}</div>
-                    <div style="font-size: 10px; color: var(--text3);">Escritórios / Comercial</div>
-                </div>
-            `;
-        }
-        
-        if (numTorres) {
-            html += `
-                <div class="composicao-item">
-                    <div class="composicao-item-label">🗼 TORRES / EDIFÍCIOS</div>
-                    <div class="composicao-item-val">${numTorres}</div>
-                    <div style="font-size: 10px; color: var(--text3);">Edifícios comerciais</div>
-                </div>
-            `;
-        }
-        
-        if (numFazendas) {
-            html += `
-                <div class="composicao-item">
-                    <div class="composicao-item-label">🌾 FAZENDAS / AGRO</div>
-                    <div class="composicao-item-val">${numFazendas}</div>
-                    <div style="font-size: 10px; color: var(--text3);">Propriedades rurais</div>
-                </div>
-            `;
-        }
-        
-        html += `</div></div>`;
     }
-    
-    return html;
 }
 
 // ==================== CARD DE DÍVIDA ====================
@@ -639,9 +553,7 @@ function normalizarDadosIA(dados) {
                           'vacancia_fisica', 'vacancia_financeira', 'inadimplencia', 'ltv',
                           'distribuicao', 'resultado_distribuivel', 'origem_distribuicao',
                           'vencimentos_divida', 'media_dividendos_12m', 'divida_pl', 
-                          'custo_divida', 'prazo_medio_divida', 'num_imoveis', 'num_cris',
-                          'num_galpoes', 'num_shoppings', 'num_lajes', 'num_fazendas',
-                          'num_torres', 'num_lcis', 'num_debentures'];
+                          'custo_divida', 'prazo_medio_divida', 'num_imoveis', 'num_cris'];
     
     camposString.forEach(campo => {
         if (dados[campo] !== undefined && dados[campo] !== null && typeof dados[campo] !== 'string') {
@@ -733,10 +645,10 @@ function renderResultados(d) {
     html += renderCardSemaforo('⚠️ Inadimplência', d.inadimplencia, colorInadimplencia(d.inadimplencia));
     html += renderCardSemaforo('🏦 LTV', d.ltv, colorLTV(d.ltv, d.tipo_fii));
     
-    // NOVO CARD DE COMPOSIÇÃO
+    // Card de Composição (tamanho normal)
     html += renderCardComposicao(d);
     
-    // Card de dívida
+    // Card de dívida (largura total)
     html += renderCardDividaMelhorado(d);
     
     if (d.origem_distribuicao) {
@@ -857,14 +769,7 @@ Analise o relatório gerencial e retorne um JSON puro (sem markdown) com esta es
   "origem_distribuicao": "DRE, Fluxo de Caixa ou Misto",
   "vencimentos_divida": "resumo dos próximos vencimentos",
   "media_dividendos_12m": "valor médio R$/cota nos últimos 12 meses",
-  "num_cris": "número de CRIs no portfólio",
-  "num_galpoes": "número de galpões logísticos no portfólio",
-  "num_shoppings": "número de shoppings no portfólio",
-  "num_lajes": "número de lajes corporativas no portfólio",
-  "num_fazendas": "número de fazendas/propriedades rurais",
-  "num_torres": "número de torres/edifícios comerciais",
-  "num_lcis": "número de LCIs no portfólio",
-  "num_debentures": "número de debêntures no portfólio"
+  "num_cris": "número de CRIs no portfólio"
 }
 RELATÓRIO: ${textoPDF.substring(0, 80000)}`;
 
@@ -1068,7 +973,6 @@ function registerDebugToggle(){
     const arrow = document.getElementById('debugArrow');
     
     if (!btn || !dbgBox || !arrow) {
-        console.warn('Elementos de debug não encontrados, tentando novamente em 500ms');
         setTimeout(registerDebugToggle, 500);
         return;
     }

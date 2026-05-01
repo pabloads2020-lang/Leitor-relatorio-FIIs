@@ -6,6 +6,8 @@
 <title>Leitor de Relatórios Gerenciais · FIIs</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Atkinson+Hyperlegible:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root {
   --bg: #0e1117; --bg2: #161b25; --bg3: #1c2333;
@@ -154,12 +156,7 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
 /* BOTÃO EXPORTAR PDF */
 .btn-export { background: transparent; border: 1px solid var(--border2); color: var(--text2); border-radius: 8px; padding: 7px 14px; font-size: 13px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
 .btn-export:hover { border-color: var(--gold); color: var(--gold); background: rgba(245,200,66,0.08); }
-@media print {
-  .header, .card:not(#resultArea), .footer, #btnExportarPDF, .btn-export, .debug-wrapper { display: none !important; }
-  body { background: #fff !important; color: #000 !important; }
-  #resultArea { display: block !important; border: none !important; box-shadow: none !important; }
-  .result-card, .resumo-box, .riscos-box, .positivos-box, .comentario-box, .divida-card { break-inside: avoid; }
-}
+.btn-export:disabled { opacity: 0.5; cursor: not-allowed; }
 </style>
 </head>
 <body>

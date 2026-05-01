@@ -490,8 +490,11 @@ function colorVacancia(val) {
   if (!val) return '';
   const num = extrairNumero(val);
   if (num === null) return '';
-  if (num === 0) return 'ok';
-  if (num <= 5) return 'neutro';
+  // Verde (Seguro): até 5%
+  if (num <= 5) return 'ok';
+  // Amarelo (Atenção): >5% e <=20%
+  if (num <= 20) return 'neutro';
+  // Vermelho (Risco): >20%
   return 'alerta';
 }
 
@@ -499,8 +502,11 @@ function colorLTV(val) {
   if (!val) return '';
   const num = extrairNumero(val);
   if (num === null) return '';
-  if (num <= 35) return 'ok';
-  if (num <= 50) return 'neutro';
+  // Verde (Seguro): até 10%
+  if (num <= 10) return 'ok';
+  // Amarelo (Atenção): >10% e <=20%
+  if (num <= 20) return 'neutro';
+  // Vermelho (Risco): >20%
   return 'alerta';
 }
 
@@ -515,6 +521,16 @@ function colorInadimplencia(val) {
   return 'alerta';                   // Vermelho >20%
 }
 // -------------------------------------------------------------------------
+
+// MOVIDA: função colorEstruturaDivida (para fora de renderResultados)
+function colorEstruturaDivida(val) {
+  if (!val) return '';
+  const num = extrairNumero(val);
+  if (num === null) return '';
+  if (num <= 10) return 'ok';
+  if (num <= 20) return 'neutro';
+  return 'alerta';
+}
 
 function semaforoHTML(cor, pct) {
   const labels = { ok: '✅ SAUDÁVEL', neutro: '⚠️ ATENÇÃO', alerta: '🔴 CRÍTICO' };
@@ -596,31 +612,41 @@ function renderResultados(d) {
     `;
   });
 
-  // --- CARD DÍVIDA / ALAVANCAGEM --- (mantive lógica original)
-  const temDivida = d.ltv || d.divida_pl || d.custo_divida || d.prazo_medio_divida;
-  if (temDivida) {
-    const numLTVval = extrairNumero(d.ltv);
-    const numDividaPL = extrairNumero(d.divida_pl);
-    const estaAlavancado = (numLTVval !== null && numLTVval > 50) || (numDividaPL !== null && numDividaPL > 60);
-    const classeCard = estaAlavancado ? 'alerta-divida' : 'ok-divida';
-    const badge = estaAlavancado
-      ? `<span class="divida-alerta-badge">⚠️ ALAVANCAGEM ELEVADA</span>`
-      : `<span class="divida-ok-badge">✅ ALAVANCAGEM CONTROLADA</span>`;
+  // --- CARD DÍVIDA / ALAVANCAGEM (uso dos thresholds 10/20 para avaliação) ---
+const temDivida = d.ltv || d.divida_pl || d.custo_divida || d.prazo_medio_divida;
+if (temDivida) {
+  const corLTVestr = colorLTV(d.ltv);
+  const corDividaPL = colorEstruturaDivida(d.divida_pl); // função já existente ou implemente similar a colorLTV
+  // determina gravidade final: alerta > neutro > ok
+  const severityOrder = { 'ok': 0, 'neutro': 1, 'alerta': 2 };
+  const maior = [corLTVestr || 'ok', corDividaPL || 'ok'].reduce((acc, cur) => {
+    return severityOrder[cur] > severityOrder[acc] ? cur : acc;
+  }, 'ok');
 
-    html += `
-      <div class="divida-card ${classeCard}">
-        <div class="result-label" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-          🏦 ESTRUTURA DE DÍVIDA / ALAVANCAGEM ${badge}
-        </div>
-        <div class="divida-grid">
-          ${d.ltv ? `<div class="divida-item"><div class="divida-item-label">LTV</div><div class="divida-item-val ${corLTV}">${d.ltv}</div></div>` : ''}
-          ${d.divida_pl ? `<div class="divida-item"><div class="divida-item-label">Dívida / PL</div><div class="divida-item-val ${numDividaPL > 60 ? 'alerta' : numDividaPL > 40 ? 'neutro' : 'ok'}">${d.divida_pl}</div></div>` : ''}
-          ${d.custo_divida ? `<div class="divida-item"><div class="divida-item-label">Custo da Dívida</div><div class="divida-item-val">${d.custo_divida}</div></div>` : ''}
-          ${d.prazo_medio_divida ? `<div class="divida-item"><div class="divida-item-label">Prazo Médio</div><div class="divida-item-val">${d.prazo_medio_divida}</div></div>` : ''}
-        </div>
-      </div>
-    `;
+  let classeCard = 'ok-divida';
+  let badge = `<span class="divida-ok-badge">✅ ALAVANCAGEM CONTROLADA</span>`;
+  if (maior === 'neutro') {
+    classeCard = '';
+    badge = `<span class="divida-ok-badge" style="background:var(--amber-bg); color:var(--amber); border-color:rgba(243,156,18,0.2)">⚠️ REQUER ATENÇÃO</span>`;
+  } else if (maior === 'alerta') {
+    classeCard = 'alerta-divida';
+    badge = `<span class="divida-alerta-badge">⚠️ ALAVANCAGEM ELEVADA</span>`;
   }
+
+  html += `
+    <div class="divida-card ${classeCard}">
+      <div class="result-label" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+        🏦 ESTRUTURA DE DÍVIDA / ALAVANCAGEM ${badge}
+      </div>
+      <div class="divida-grid">
+        ${d.ltv ? `<div class="divida-item"><div class="divida-item-label">LTV</div><div class="divida-item-val ${corLTVestr}">${d.ltv}</div></div>` : ''}
+        ${d.divida_pl ? `<div class="divida-item"><div class="divida-item-label">Dívida / PL</div><div class="divida-item-val ${corDividaPL}">${d.divida_pl}</div></div>` : ''}
+        ${d.custo_divida ? `<div class="divida-item"><div class="divida-item-label">Custo da Dívida</div><div class="divida-item-val">${d.custo_divida}</div></div>` : ''}
+        ${d.prazo_medio_divida ? `<div class="divida-item"><div class="divida-item-label">Prazo Médio</div><div class="divida-item-val">${d.prazo_medio_divida}</div></div>` : ''}
+      </div>
+    </div>
+  `;
+}
 
   // --- Resumo analista ---
   if (d.resumo_analista) {

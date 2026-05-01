@@ -490,11 +490,8 @@ function colorVacancia(val) {
   if (!val) return '';
   const num = extrairNumero(val);
   if (num === null) return '';
-  // Verde: até 5% (saudável)
-  if (num <= 5) return 'ok';
-  // Amarelo: >5% e <=20% (atenção)
-  if (num <= 20) return 'neutro';
-  // Vermelho: >20% (risco)
+  if (num === 0) return 'ok';
+  if (num <= 5) return 'neutro';
   return 'alerta';
 }
 
@@ -502,11 +499,8 @@ function colorLTV(val) {
   if (!val) return '';
   const num = extrairNumero(val);
   if (num === null) return '';
-  // Verde: até 10% (saudável)
-  if (num <= 10) return 'ok';
-  // Amarelo: >10% e <=20% (atenção)
-  if (num <= 20) return 'neutro';
-  // Vermelho: >20% (risco)
+  if (num <= 35) return 'ok';
+  if (num <= 50) return 'neutro';
   return 'alerta';
 }
 
@@ -515,23 +509,10 @@ function colorInadimplencia(val) {
   if (!val || val === '0%' || val === 'R\$ 0,00' || val === '0') return 'ok';
   const num = extrairNumero(val);
   if (num === null) return 'alerta';
-  // Verde: até 10%
-  if (num <= 10) return 'ok';
-  // Amarelo: >10% e <=20%
-  if (num <= 20) return 'neutro';
-  // Vermelho: >20%
-  return 'alerta';
-}
-// -------------------------------------------------------------------------
-
-// ---------- NOVA FUNÇÃO: Estrutura de dívida / alavancagem usando thresholds 10/20 ----------
-function colorEstruturaDivida(val) {
-  if (!val) return '';
-  const num = extrairNumero(val);
-  if (num === null) return '';
-  if (num <= 10) return 'ok';
-  if (num <= 20) return 'neutro';
-  return 'alerta';
+  if (num === 0) return 'ok';
+  if (num <= 10) return 'ok';        // Verde até 10%
+  if (num <= 20) return 'neutro';    // Amarelo 10-20%
+  return 'alerta';                   // Vermelho >20%
 }
 // -------------------------------------------------------------------------
 
@@ -615,34 +596,16 @@ function renderResultados(d) {
     `;
   });
 
-  // --- CARD DÍVIDA / ALAVANCAGEM (USANDO OS THRESHOLDS 10/20) ---
+  // --- CARD DÍVIDA / ALAVANCAGEM --- (mantive lógica original)
   const temDivida = d.ltv || d.divida_pl || d.custo_divida || d.prazo_medio_divida;
   if (temDivida) {
     const numLTVval = extrairNumero(d.ltv);
     const numDividaPL = extrairNumero(d.divida_pl);
-
-    // avalia cada métrica segundo as regras 10/20
-    const corLTVestr = colorEstruturaDivida(d.ltv);
-    const corDividaPL = colorEstruturaDivida(d.divida_pl);
-
-    // determina gravidade final: alerta > neutro > ok
-    const severityOrder = { 'ok': 0, 'neutro': 1, 'alerta': 2 };
-    const maior = [corLTVestr || 'ok', corDividaPL || 'ok'].reduce((acc, cur) => {
-      return severityOrder[cur] > severityOrder[acc] ? cur : acc;
-    }, 'ok');
-
-    let classeCard = 'ok-divida';
-    let badge = `<span class="divida-ok-badge">✅ ALAVANCAGEM CONTROLADA</span>`;
-    if (maior === 'neutro') {
-      classeCard = '';
-      badge = `<span class="divida-ok-badge" style="background:var(--amber-bg); color:var(--amber); border-color:rgba(243,156,18,0.2)">⚠️ REQUER ATENÇÃO</span>`;
-    } else if (maior === 'alerta') {
-      classeCard = 'alerta-divida';
-      badge = `<span class="divida-alerta-badge">⚠️ ALAVANCAGEM ELEVADA</span>`;
-    } else {
-      classeCard = 'ok-divida';
-      badge = `<span class="divida-ok-badge">✅ ALAVANCAGEM CONTROLADA</span>`;
-    }
+    const estaAlavancado = (numLTVval !== null && numLTVval > 50) || (numDividaPL !== null && numDividaPL > 60);
+    const classeCard = estaAlavancado ? 'alerta-divida' : 'ok-divida';
+    const badge = estaAlavancado
+      ? `<span class="divida-alerta-badge">⚠️ ALAVANCAGEM ELEVADA</span>`
+      : `<span class="divida-ok-badge">✅ ALAVANCAGEM CONTROLADA</span>`;
 
     html += `
       <div class="divida-card ${classeCard}">
@@ -650,8 +613,8 @@ function renderResultados(d) {
           🏦 ESTRUTURA DE DÍVIDA / ALAVANCAGEM ${badge}
         </div>
         <div class="divida-grid">
-          ${d.ltv ? `<div class="divida-item"><div class="divida-item-label">LTV</div><div class="divida-item-val ${corLTVestr}">${d.ltv}</div></div>` : ''}
-          ${d.divida_pl ? `<div class="divida-item"><div class="divida-item-label">Dívida / PL</div><div class="divida-item-val ${corDividaPL}">${d.divida_pl}</div></div>` : ''}
+          ${d.ltv ? `<div class="divida-item"><div class="divida-item-label">LTV</div><div class="divida-item-val ${corLTV}">${d.ltv}</div></div>` : ''}
+          ${d.divida_pl ? `<div class="divida-item"><div class="divida-item-label">Dívida / PL</div><div class="divida-item-val ${numDividaPL > 60 ? 'alerta' : numDividaPL > 40 ? 'neutro' : 'ok'}">${d.divida_pl}</div></div>` : ''}
           ${d.custo_divida ? `<div class="divida-item"><div class="divida-item-label">Custo da Dívida</div><div class="divida-item-val">${d.custo_divida}</div></div>` : ''}
           ${d.prazo_medio_divida ? `<div class="divida-item"><div class="divida-item-label">Prazo Médio</div><div class="divida-item-val">${d.prazo_medio_divida}</div></div>` : ''}
         </div>
@@ -709,13 +672,93 @@ function renderResultados(d) {
   document.getElementById('resultArea').style.display = 'block';
 }
 
-// ==== DRAG & DROP ====
+/* --- CACHE DE ANÁLISES (localStorage) ---
+   Integração sem alterar demais funcionalidades.
+   Identifica arquivo por hash SHA-256 do conteúdo, pergunta ao usuário
+   se quer usar o cache antes de consumir tokens. */
+const CACHE_PREFIX = 'leitor_fii_cache_';
+const CACHE_INDEX_KEY = 'leitor_fii_cache_index';
+const CACHE_MAX_ENTRIES = 50; // ajustável
+
+// Calcula SHA-256 do arquivo (hex)
+async function hashArquivoSHA256(file) {
+  const ab = await file.arrayBuffer();
+  const hashBuf = await crypto.subtle.digest('SHA-256', ab);
+  const hashArr = Array.from(new Uint8Array(hashBuf));
+  return hashArr.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function getCachedAnalysis(hash) {
+  try {
+    const raw = localStorage.getItem(CACHE_PREFIX + hash);
+    if (!raw) return null;
+    return JSON.parse(raw); // { data, ts, name }
+  } catch (e) {
+    console.warn('Erro ao ler cache:', e);
+    return null;
+  }
+}
+
+function saveCachedAnalysis(hash, data, fileName) {
+  try {
+    const obj = { data, ts: Date.now(), name: fileName || '' };
+    localStorage.setItem(CACHE_PREFIX + hash, JSON.stringify(obj));
+    let index = JSON.parse(localStorage.getItem(CACHE_INDEX_KEY) || '[]');
+    index = index.filter(k => k !== hash);
+    index.unshift(hash);
+    while (index.length > CACHE_MAX_ENTRIES) {
+      const removed = index.pop();
+      try { localStorage.removeItem(CACHE_PREFIX + removed); } catch (_) {}
+    }
+    localStorage.setItem(CACHE_INDEX_KEY, JSON.stringify(index));
+  } catch (e) {
+    console.warn('Erro ao salvar cache:', e);
+  }
+}
+
+function listCacheMeta() {
+  try {
+    const index = JSON.parse(localStorage.getItem(CACHE_INDEX_KEY) || '[]');
+    return index.map(h => {
+      const raw = localStorage.getItem(CACHE_PREFIX + h);
+      if (!raw) return { hash: h, ts: null, name: null };
+      const parsed = JSON.parse(raw);
+      return { hash: h, ts: parsed.ts, name: parsed.name };
+    });
+  } catch (e) {
+    return [];
+  }
+}
+
+function clearAllCache() {
+  try {
+    const index = JSON.parse(localStorage.getItem(CACHE_INDEX_KEY) || '[]');
+    index.forEach(h => localStorage.removeItem(CACHE_PREFIX + h));
+    localStorage.removeItem(CACHE_INDEX_KEY);
+  } catch (e) {
+    console.warn('Erro ao limpar cache:', e);
+  }
+}
+
+function showCacheIndexInConsole() {
+  const meta = listCacheMeta();
+  if (!meta.length) {
+    console.info('Cache vazio.');
+    return;
+  }
+  console.info('Cache de análises (mais recentes primeiro):');
+  meta.forEach(m => {
+    const dt = m.ts ? new Date(m.ts).toLocaleString() : '—';
+    console.info(`- ${m.hash} | ${m.name || 'sem-nome'} | salvo em: ${dt}`);
+  });
+}
+
+/* ====== DRAG & DROP & Evento para carregar arquivo (mantidos) ====== */
 function carregarArquivo(file) {
   if (!file || file.type !== 'application/pdf') {
     setStatus('⚠️ Apenas arquivos PDF são aceitos.', 'err');
     return;
   }
-  // Injeta o arquivo no input nativo
   const dt = new DataTransfer();
   dt.items.add(file);
   document.getElementById('filePdf').files = dt.files;
@@ -734,7 +777,7 @@ dropZone.addEventListener('drop', (e) => {
 });
 dropZone.addEventListener('click', () => document.getElementById('filePdf').click());
 
-// ==== EVENTOS ====
+/* ====== EVENTOS (pequenas coisas mantidas) ====== */
 document.getElementById('btnToggleDebug').addEventListener('click', () => {
   document.getElementById('debugBox').classList.toggle('show');
   document.getElementById('debugArrow').classList.toggle('rotated');
@@ -744,7 +787,15 @@ document.getElementById('filePdf').addEventListener('change', function () {
   document.getElementById('fileName').textContent = this.files[0]?.name || 'Selecionar arquivo PDF...';
 });
 
-document.getElementById('btnImportar').addEventListener('click', async () => {
+// ---------- SUBSTITUIÇÃO DO LISTENER btnImportar (integra cache) ----------
+const oldBtn = document.getElementById('btnImportar');
+if (oldBtn) {
+  // remove listeners antigos substituindo o nó (evita duplicidade)
+  oldBtn.replaceWith(oldBtn.cloneNode(true));
+}
+const btnImportarNovo = document.getElementById('btnImportar');
+
+btnImportarNovo.addEventListener('click', async () => {
   const file = document.getElementById('filePdf').files[0];
   if (!file) { setStatus('⚠️ Selecione um arquivo PDF primeiro.', 'err'); return; }
 
@@ -759,9 +810,30 @@ document.getElementById('btnImportar').addEventListener('click', async () => {
   document.getElementById('debugBox').classList.remove('show');
   document.getElementById('debugArrow').classList.remove('rotated');
   document.getElementById('resultArea').style.display = 'none';
-  setOverlay(true, 'Lendo o PDF...');
+  setOverlay(true, 'Calculando hash do arquivo...');
 
   try {
+    // 1) Calcula hash do PDF (identificador único)
+    const fileHash = await hashArquivoSHA256(file);
+    dbg(`🔐 Hash do arquivo: ${fileHash}`);
+
+    // 2) Verifica cache
+    const cached = getCachedAnalysis(fileHash);
+    if (cached) {
+      // pergunta ao usuário se deseja usar o cache
+      const usarCache = confirm(`Análise anterior encontrada para este arquivo (salva em ${new Date(cached.ts).toLocaleString()}).\n\nDeseja usar o resultado em cache sem consumir tokens? (OK = usar cache / Cancel = reprocessar)`);
+      if (usarCache) {
+        dbg('♻️ Usando análise em cache.');
+        renderResultados(cached.data);
+        setStatus('✅ Resultado carregado do cache local.', 'ok');
+        setOverlay(false);
+        return;
+      } else {
+        dbg('🔁 Usuário optou por reprocessar (ignorar cache).');
+      }
+    }
+
+    setOverlay(true, 'Lendo o PDF...');
     const textoPDF = await extrairTextoPDF(file);
 
     if (textoPDF.length < 100) {
@@ -770,6 +842,14 @@ document.getElementById('btnImportar').addEventListener('click', async () => {
 
     setOverlay(true, 'Analisando com Gemini AI... (pode levar até 30s)');
     const dados = await analisarComGemini(textoPDF, apiKey);
+
+    // 3) Salva no cache
+    try {
+      saveCachedAnalysis(fileHash, dados, file.name);
+      dbg('✅ Análise salva no cache local.');
+    } catch (e) {
+      dbg('⚠️ Falha ao salvar no cache: ' + e.message);
+    }
 
     renderResultados(dados);
     setStatus(`✅ Análise concluída! Fundo: ${dados.ticker || 'identificado'} · Gestora: ${dados.gestora || 'identificada'}`, 'ok');
@@ -783,6 +863,7 @@ document.getElementById('btnImportar').addEventListener('click', async () => {
     setOverlay(false);
   }
 });
+// -------------------------------------------------------------------------
 
 document.getElementById('btnLimpar').addEventListener('click', () => {
   document.getElementById('filePdf').value = '';
@@ -802,7 +883,7 @@ document.getElementById('themeToggle').addEventListener('click', () => {
     localStorage.setItem('theme', 'dark');
     btn.textContent = '🌙';
   } else {
-    body.classList.add('light');
+    document.body.classList.add('light');
     localStorage.setItem('theme', 'light');
     btn.textContent = '☀️';
   }

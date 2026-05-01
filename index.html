@@ -6,8 +6,6 @@
 <title>Leitor de Relatórios Gerenciais · FIIs</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Atkinson+Hyperlegible:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root {
   --bg: #0e1117; --bg2: #161b25; --bg3: #1c2333;
@@ -48,6 +46,7 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
 .dot { width: 28px; height: 28px; background: var(--gold); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: #000; }
 .header-right { display: flex; align-items: center; gap: 1rem; }
 .header-date { font-size: 13px; color: var(--text3); }
+.header-clock { font-size: 13px; font-weight: 400; color: var(--text3); font-family: 'DM Sans', sans-serif; letter-spacing: 0; }
 .theme-toggle { background: var(--bg3); border: 1px solid var(--border2); border-radius: 30px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; }
 .theme-toggle:hover { border-color: var(--gold); transform: scale(1.05); }
 
@@ -56,7 +55,7 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
 .card-title { font-size: 12px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; }
 .card-title span { font-size: 11px; font-weight: 400; letter-spacing: 0; text-transform: none; }
 
-/* API KEY SECTION */
+/* API KEY */
 .api-row { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
 .api-input-wrap { position: relative; flex: 1; min-width: 220px; }
 .api-input { width: 100%; background: var(--input-bg); border: 1.5px solid var(--input-border); border-radius: 8px; padding: 9px 40px 9px 14px; font-size: 14px; color: var(--text); font-family: monospace; outline: none; }
@@ -70,15 +69,10 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
 .api-status.valid { color: var(--green); }
 .api-status.invalid { color: var(--red); }
 
+/* UPLOAD */
 .upload-row { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
-.drop-zone { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: var(--bg3); border: 2px dashed var(--border2); border-radius: 10px; padding: 28px 20px; cursor: pointer; font-size: 14px; color: var(--text2); width: 100%; text-align: center; transition: border-color 0.2s, background 0.2s; }
-.drop-zone:hover, .drop-zone.dragover { border-color: var(--gold); color: var(--gold); background: rgba(245,200,66,0.06); }
-.drop-zone .drop-icon { font-size: 28px; line-height: 1; }
-.drop-zone .drop-hint { font-size: 12px; color: var(--text3); margin-top: 2px; }
-.drop-zone.has-file { border-color: var(--green); color: var(--green); background: var(--green-bg); }
-.drop-zone.has-file .drop-hint { color: var(--green); }
-.file-label { display: flex; align-items: center; gap: 8px; background: var(--bg3); border: 1.5px dashed var(--border2); border-radius: 8px; padding: 9px 14px; cursor: pointer; font-size: 14px; color: var(--text2); flex: 1; min-width: 180px; }
-.file-label:hover { border-color: var(--gold); color: var(--gold); }
+.file-label { display: flex; align-items: center; gap: 8px; background: var(--bg3); border: 1.5px dashed var(--border2); border-radius: 8px; padding: 9px 14px; cursor: pointer; font-size: 14px; color: var(--text2); flex: 1; min-width: 180px; transition: border-color 0.2s, color 0.2s, background 0.2s; }
+.file-label:hover, .file-label.drag-over { border-color: var(--gold); color: var(--gold); background: rgba(245,200,66,0.06); }
 #filePdf { display: none; }
 .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; white-space: nowrap; }
 .btn-gold { background: var(--gold); color: #000; }
@@ -91,6 +85,18 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
 .status-ok { background: var(--green-bg); color: var(--green); border: 1px solid rgba(46,204,113,0.25); }
 .status-err { background: var(--red-bg); color: var(--red); border: 1px solid rgba(231,76,60,0.25); }
 .status-warn { background: var(--amber-bg); color: var(--amber); border: 1px solid rgba(243,156,18,0.25); }
+
+/* RED FLAGS */
+.red-flags-box { display: none; background: rgba(231,76,60,0.08); border: 1.5px solid rgba(231,76,60,0.4); border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 1rem; animation: pulse-border 2s infinite; }
+.red-flags-box.show { display: block; }
+@keyframes pulse-border {
+  0%, 100% { border-color: rgba(231,76,60,0.4); box-shadow: 0 0 0 0 rgba(231,76,60,0); }
+  50% { border-color: rgba(231,76,60,0.8); box-shadow: 0 0 0 4px rgba(231,76,60,0.1); }
+}
+.red-flags-title { font-size: 13px; font-weight: 700; color: var(--red); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+.red-flag-item { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: var(--text2); padding: 4px 0; border-bottom: 1px solid rgba(231,76,60,0.1); }
+.red-flag-item:last-child { border-bottom: none; }
+.red-flag-icon { color: var(--red); font-size: 14px; flex-shrink: 0; margin-top: 1px; }
 
 /* RESULTADO IA */
 .ai-badge { display: inline-flex; align-items: center; gap: 5px; background: var(--blue-bg); color: var(--blue); border: 1px solid rgba(52,152,219,0.25); border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 600; }
@@ -105,12 +111,12 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
 
 .resumo-box { grid-column: 1 / -1; background: var(--result-item-bg); border-radius: 10px; padding: 1.25rem; border-left: 3px solid var(--blue); margin-top: 0.5rem; }
 .resumo-texto { font-size: 14px; line-height: 1.7; color: var(--text2); margin-top: 8px; white-space: pre-wrap; }
-
 .riscos-box { grid-column: 1 / -1; background: var(--result-item-bg); border-radius: 10px; padding: 1.25rem; border-left: 3px solid var(--red); margin-top: 0.5rem; }
 .positivos-box { grid-column: 1 / -1; background: var(--result-item-bg); border-radius: 10px; padding: 1.25rem; border-left: 3px solid var(--green); margin-top: 0.5rem; }
 .comentario-box { grid-column: 1 / -1; background: var(--result-item-bg); border-radius: 10px; padding: 1rem; border-left: 3px solid var(--gold); margin-top: 0.5rem; }
 .comentario-texto { font-size: 14px; line-height: 1.5; color: var(--text2); margin-top: 6px; max-height: 250px; overflow-y: auto; }
 
+/* DEBUG */
 .debug-wrapper { margin-top: 0.75rem; }
 .debug-header { display: flex; align-items: center; justify-content: flex-end; margin-bottom: 0.5rem; }
 .btn-debug { background: transparent; border: 1px solid var(--border2); border-radius: 20px; padding: 4px 12px; font-size: 11px; font-weight: 500; cursor: pointer; color: var(--text2); display: flex; align-items: center; gap: 6px; }
@@ -118,20 +124,46 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
 .debug-box { display: none; background: var(--debug-bg); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem; font-size: 12px; max-height: 300px; overflow-y: auto; white-space: pre-wrap; line-height: 1.7; font-family: monospace; }
 .debug-box.show { display: block; }
 
+/* OVERLAY */
 .overlay { display: none; position: fixed; inset: 0; background: var(--overlay-bg); z-index: 200; align-items: center; justify-content: center; flex-direction: column; gap: 1rem; }
 .overlay.show { display: flex; }
 .spin { width: 40px; height: 40px; border: 3px solid var(--border2); border-top-color: var(--gold); border-radius: 50%; animation: rot 0.8s linear infinite; }
 .spin-text { font-size: 14px; color: var(--text2); }
 @keyframes rot { to { transform: rotate(360deg); } }
 
-.footer { text-align: center; font-size: 12px; color: var(--text3); padding: 2rem; border-top: 1px solid var(--footer-border); margin-top: 1rem; }
-.arrow { transition: transform 0.2s ease; display: inline-block; }
-.arrow.rotated { transform: rotate(90deg); }
-.fundo-ticker { display: inline-block; background: var(--gold); color: #000; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 700; margin-bottom: 12px; }
+/* CHAT */
+.chat-card { display: none; }
+.chat-card.show { display: block; }
+.chat-messages { min-height: 80px; max-height: 420px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; margin-bottom: 1rem; padding-right: 4px; }
+.chat-msg { display: flex; gap: 10px; align-items: flex-start; }
+.chat-msg.user { flex-direction: row-reverse; }
+.chat-avatar { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+.chat-avatar.ai { background: var(--blue-bg); border: 1px solid rgba(52,152,219,0.3); }
+.chat-avatar.user { background: rgba(245,200,66,0.15); border: 1px solid rgba(245,200,66,0.3); }
+.chat-bubble { background: var(--result-item-bg); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; font-size: 13px; line-height: 1.6; color: var(--text2); max-width: 85%; }
+.chat-msg.user .chat-bubble { background: rgba(245,200,66,0.08); border-color: rgba(245,200,66,0.2); color: var(--text); }
+.chat-input-row { display: flex; gap: 8px; align-items: flex-end; }
+.chat-textarea { flex: 1; background: var(--input-bg); border: 1.5px solid var(--input-border); border-radius: 8px; padding: 10px 14px; font-size: 14px; color: var(--text); font-family: 'DM Sans', sans-serif; outline: none; resize: none; min-height: 44px; max-height: 120px; line-height: 1.5; }
+.chat-textarea:focus { border-color: var(--gold); }
+.chat-textarea::placeholder { color: var(--text3); }
+.btn-chat-send { background: var(--gold); color: #000; border: none; border-radius: 8px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; flex-shrink: 0; }
+.btn-chat-send:hover { background: var(--gold2); }
+.btn-chat-send:disabled { opacity: 0.5; cursor: not-allowed; }
+.chat-suggestions { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 0.75rem; }
+.chat-chip { background: var(--bg3); border: 1px solid var(--border2); border-radius: 20px; padding: 5px 12px; font-size: 12px; color: var(--text2); cursor: pointer; white-space: nowrap; }
+.chat-chip:hover { border-color: var(--gold); color: var(--gold); background: rgba(245,200,66,0.08); }
+.chat-typing { display: flex; align-items: center; gap: 4px; padding: 8px 12px; }
+.chat-typing span { width: 6px; height: 6px; background: var(--text3); border-radius: 50%; animation: typing 1.2s infinite; }
+.chat-typing span:nth-child(2) { animation-delay: 0.2s; }
+.chat-typing span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typing { 0%, 60%, 100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-6px); opacity: 1; } }
 
 .info-box { background: var(--blue-bg); border: 1px solid rgba(52,152,219,0.2); border-radius: 8px; padding: 10px 14px; font-size: 13px; color: var(--blue); margin-bottom: 0.75rem; line-height: 1.5; }
-.btn-export { background: transparent; border: 1px solid var(--border2); color: var(--text2); border-radius: 8px; padding: 7px 14px; font-size: 13px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
-.btn-export:hover { border-color: var(--green); color: var(--green); background: var(--green-bg); }
+.fundo-ticker { display: inline-block; background: var(--gold); color: #000; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 700; margin-bottom: 12px; }
+.arrow { transition: transform 0.2s ease; display: inline-block; }
+.arrow.rotated { transform: rotate(90deg); }
+
+.footer { text-align: center; font-size: 12px; color: var(--text3); padding: 2rem; border-top: 1px solid var(--footer-border); margin-top: 1rem; }
 </style>
 </head>
 <body>
@@ -148,6 +180,7 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
   </div>
   <div class="header-right">
     <div class="header-date" id="hDate"></div>
+    <div class="header-clock" id="hClock"></div>
     <button class="theme-toggle" id="themeToggle" title="Alternar modo claro/escuro">🌙</button>
   </div>
 </header>
@@ -160,11 +193,9 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
       🔑 Configuração da API Gemini (Google AI)
       <span>Gratuita · Chave salva localmente no seu navegador</span>
     </div>
-
     <div class="info-box">
       💡 A chave fica salva <strong>só no seu navegador</strong> (localStorage). Nunca é enviada para nenhum servidor nosso. Cada analista usa a própria chave gratuita.
     </div>
-
     <div class="api-row">
       <div class="api-input-wrap">
         <input type="password" id="apiKeyInput" class="api-input" placeholder="Cole aqui sua chave: AIza...">
@@ -176,19 +207,20 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
     <div class="api-status" id="apiStatus"></div>
   </div>
 
-  <!-- CARD: UPLOAD -->
+  <!-- CARD: UPLOAD (com drag & drop) -->
   <div class="card">
     <div class="card-title">
       📄 Importar relatório gerencial de FII (PDF)
       <span>Análise inteligente com Gemini AI · Vacância · Inadimplência · LTV · Rendimentos</span>
     </div>
-    <div id="dropZone" class="drop-zone" title="Clique ou arraste um PDF aqui">
-      <div class="drop-icon">📂</div>
-      <div id="fileName">Arraste o PDF aqui ou <strong>clique para selecionar</strong></div>
-      <div class="drop-hint">Apenas arquivos .pdf</div>
-    </div>
-    <input type="file" id="filePdf" accept=".pdf">
-    <div class="upload-row" style="margin-top:0.75rem;">
+    <div class="upload-row">
+      <label class="file-label" for="filePdf" id="dropZone">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+          <path d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
+        <span id="fileName">Selecionar ou arrastar PDF aqui...</span>
+      </label>
+      <input type="file" id="filePdf" accept=".pdf">
       <button class="btn btn-gold" id="btnImportar">🤖 Analisar com IA</button>
       <button class="btn btn-ghost" id="btnLimpar">Limpar</button>
     </div>
@@ -212,10 +244,43 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
         <span id="fundoIdentificado" style="color:var(--gold)"></span>
         <span class="ai-badge">✨ Gemini AI</span>
-        <button class="btn-export" id="btnExportarPDF">📄 Exportar PDF</button>
       </div>
     </div>
+
+    <!-- RED FLAGS -->
+    <div class="red-flags-box" id="redFlagsBox">
+      <div class="red-flags-title">🚨 ALERTAS — Situações que merecem atenção</div>
+      <div id="redFlagsList"></div>
+    </div>
+
     <div id="resultadosConteudo" class="resultados-grid"></div>
+  </div>
+
+  <!-- CARD: CHAT COM O RELATÓRIO -->
+  <div class="card chat-card" id="chatCard">
+    <div class="card-title">
+      💬 Pergunte ao relatório
+      <span>Powered by Gemini AI · Respostas baseadas no PDF carregado</span>
+    </div>
+    <div class="chat-suggestions" id="chatSuggestions">
+      <span class="chat-chip" onclick="enviarPerguntaRapida('Qual é o maior inquilino do fundo?')">Maior inquilino</span>
+      <span class="chat-chip" onclick="enviarPerguntaRapida('Como está a diversificação da carteira?')">Diversificação</span>
+      <span class="chat-chip" onclick="enviarPerguntaRapida('Quais são os vencimentos dos contratos?')">Vencimentos</span>
+      <span class="chat-chip" onclick="enviarPerguntaRapida('O fundo está alavancado? Qual o nível de dívida?')">Alavancagem</span>
+      <span class="chat-chip" onclick="enviarPerguntaRapida('Qual foi o resultado distribuível e a distribuição por cota?')">Distribuição</span>
+      <span class="chat-chip" onclick="enviarPerguntaRapida('Quais são os principais riscos mencionados pelo gestor?')">Riscos do gestor</span>
+      <span class="chat-chip" onclick="enviarPerguntaRapida('Houve saída ou entrada de inquilinos recentemente?')">Movimentação de inquilinos</span>
+    </div>
+    <div class="chat-messages" id="chatMessages">
+      <div class="chat-msg">
+        <div class="chat-avatar ai">🤖</div>
+        <div class="chat-bubble">Olá! O relatório foi carregado. Pode me perguntar qualquer coisa sobre este FII — inquilinos, contratos, distribuição, riscos, alavancagem, etc.</div>
+      </div>
+    </div>
+    <div class="chat-input-row">
+      <textarea class="chat-textarea" id="chatInput" placeholder="Ex: Qual o maior inquilino? Qual a vacância física? O fundo está alavancado?" rows="1"></textarea>
+      <button class="btn-chat-send" id="btnChatSend" title="Enviar (Enter)">➤</button>
+    </div>
   </div>
 
 </main>
@@ -228,6 +293,7 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
 let debugContent = [];
+let textoPDFGlobal = '';  // guarda o texto do PDF para o chat
 
 function dbg(txt) {
   debugContent.push(txt);
@@ -283,6 +349,35 @@ document.getElementById('apiEye').addEventListener('click', () => {
 
 updateApiStatusUI();
 
+// ==== DRAG & DROP ====
+const dropZone = document.getElementById('dropZone');
+const filePdfInput = document.getElementById('filePdf');
+
+['dragenter', 'dragover'].forEach(evt => {
+  dropZone.addEventListener(evt, (e) => {
+    e.preventDefault();
+    dropZone.classList.add('drag-over');
+  });
+});
+['dragleave', 'drop'].forEach(evt => {
+  dropZone.addEventListener(evt, (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+  });
+});
+dropZone.addEventListener('drop', (e) => {
+  const files = e.dataTransfer.files;
+  if (files.length > 0 && files[0].type === 'application/pdf') {
+    // Atribui o arquivo ao input via DataTransfer
+    const dt = new DataTransfer();
+    dt.items.add(files[0]);
+    filePdfInput.files = dt.files;
+    document.getElementById('fileName').textContent = files[0].name;
+  } else {
+    setStatus('⚠️ Apenas arquivos PDF são aceitos.', 'err');
+  }
+});
+
 // ==== EXTRAÇÃO DE TEXTO DO PDF ====
 function normalizarTexto(texto) {
   return texto.replace(/[\n\r\t]+/g, ' ').replace(/\s+/g, ' ').trim();
@@ -309,13 +404,53 @@ async function extrairTextoPDF(file) {
   return normalizado;
 }
 
-// ==== ANÁLISE COM GEMINI (com retry automático) ====
+// ==== SLEEP ====
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
+// ==== CHAMADA GEMINI GENÉRICA (com retry) ====
+async function chamarGemini(prompt, apiKey, maxTokens = 2048) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+  const body = {
+    contents: [{ parts: [{ text: prompt }] }],
+    generationConfig: { temperature: 0.1, maxOutputTokens: maxTokens }
+  };
+
+  const MAX_TENTATIVAS = 4;
+  const ESPERAS = [10000, 20000, 40000];
+
+  for (let tentativa = 1; tentativa <= MAX_TENTATIVAS; tentativa++) {
+    if (tentativa > 1) {
+      const espera = ESPERAS[tentativa - 2];
+      dbg(`⏳ Tentativa ${tentativa}/${MAX_TENTATIVAS} — aguardando ${espera/1000}s...`);
+      await sleep(espera);
+    }
+
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    if (!resp.ok) {
+      const errText = await resp.text();
+      dbg(`❌ Tentativa ${tentativa} — Erro ${resp.status}: ${errText.substring(0, 300)}`);
+      const retryCodes = [429, 503, 502, 500];
+      if (retryCodes.includes(resp.status) && tentativa < MAX_TENTATIVAS) continue;
+      throw new Error(`Erro na API Gemini (${resp.status}): verifique sua chave ou tente novamente.`);
+    }
+
+    const data = await resp.json();
+    dbg(`✅ Resposta recebida na tentativa ${tentativa}.`);
+    return data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  }
+
+  throw new Error('Todas as tentativas falharam. O servidor Gemini está instável. Tente em alguns minutos.');
+}
+
+// ==== ANÁLISE PRINCIPAL COM GEMINI ====
 async function analisarComGemini(textoPDF, apiKey) {
   dbg("🤖 Enviando para Gemini AI...");
 
-  // Limita o texto para não exceder o limite da API (1M tokens, mas vamos ser conservadores)
   const textoLimitado = textoPDF.substring(0, 80000);
 
   const prompt = `Você é um analista especialista em Fundos de Investimento Imobiliário (FIIs) do Brasil.
@@ -355,76 +490,84 @@ Analise o relatório gerencial abaixo e retorne um JSON com EXATAMENTE esta estr
 IMPORTANTE:
 - Retorne APENAS o JSON, sem texto antes ou depois, sem blocos de código markdown.
 - Se um dado não estiver no relatório, use null.
-- No resumo_analista, seja direto e crítico: mencione se a vacância está alta, se a distribuição caiu, se há riscos relevantes de dívida, se o fundo está bem gerido.
+- No resumo_analista, seja direto e crítico.
 
 RELATÓRIO:
 ${textoLimitado}`;
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+  const rawText = await chamarGemini(prompt, apiKey, 2048);
+  dbg(`📦 Resposta bruta (primeiros 500 chars):\n${rawText.substring(0, 500)}`);
 
-  const body = {
-    contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: {
-      temperature: 0.1,
-      maxOutputTokens: 8192
-    }
-  };
+  let jsonStr = rawText.trim()
+    .replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
 
-  const MAX_TENTATIVAS = 4;
-  const ESPERAS = [10000, 20000, 40000]; // 10s, 20s, 40s entre tentativas
-
-  for (let tentativa = 1; tentativa <= MAX_TENTATIVAS; tentativa++) {
-    if (tentativa > 1) {
-      const espera = ESPERAS[tentativa - 2];
-      dbg(`⏳ Tentativa ${tentativa}/${MAX_TENTATIVAS} — aguardando ${espera/1000}s antes de tentar novamente...`);
-      setOverlay(true, `Servidor ocupado. Tentativa ${tentativa}/${MAX_TENTATIVAS} em ${espera/1000}s...`);
-      await sleep(espera);
-      setOverlay(true, `Tentativa ${tentativa}/${MAX_TENTATIVAS} — enviando para Gemini AI...`);
-    }
-
-    const resp = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-
-    if (!resp.ok) {
-      const errText = await resp.text();
-      dbg(`❌ Tentativa ${tentativa} — Erro ${resp.status}: ${errText.substring(0, 300)}`);
-
-      const retryCodes = [429, 503, 502, 500];
-      if (retryCodes.includes(resp.status) && tentativa < MAX_TENTATIVAS) {
-        continue;
-      }
-      throw new Error(`Erro na API Gemini (${resp.status}): verifique sua chave ou tente novamente.`);
-    }
-
-    const data = await resp.json();
-    dbg(`✅ Resposta recebida na tentativa ${tentativa}.`);
-
-    const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    dbg(`📦 Resposta bruta (primeiros 1000 chars):\n${rawText.substring(0, 1000)}`);
-
-    let jsonStr = rawText.trim()
-      .replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
-
-    try {
-      const parsed = JSON.parse(jsonStr);
-      dbg("✅ JSON parseado com sucesso.");
-      return parsed;
-    } catch (e) {
-      dbg(`⚠️ Falha ao parsear JSON: ${e.message}\nTexto recebido:\n${rawText}`);
-      throw new Error('O modelo retornou um formato inesperado. Tente novamente.');
-    }
+  try {
+    const parsed = JSON.parse(jsonStr);
+    dbg("✅ JSON parseado com sucesso.");
+    return parsed;
+  } catch (e) {
+    dbg(`⚠️ Falha ao parsear JSON: ${e.message}\nTexto recebido:\n${rawText}`);
+    throw new Error('O modelo retornou um formato inesperado. Tente novamente.');
   }
-
-  throw new Error('Todas as tentativas falharam. O servidor Gemini está instável. Tente em alguns minutos.');
 }
 
-// ==== RENDER ====
+// ==== RED FLAGS ====
+function verificarRedFlags(d) {
+  const flags = [];
+
+  const parseNum = (val) => {
+    if (!val) return null;
+    const n = parseFloat(String(val).replace(',', '.').replace(/[^0-9.]/g, ''));
+    return isNaN(n) ? null : n;
+  };
+
+  const vf = parseNum(d.vacancia_fisica);
+  if (vf !== null && vf > 10) flags.push({ icon: '🏚️', msg: `Vacância física elevada: <strong>${d.vacancia_fisica}</strong> (acima de 10%)` });
+
+  const vfin = parseNum(d.vacancia_financeira);
+  if (vfin !== null && vfin > 10) flags.push({ icon: '💸', msg: `Vacância financeira elevada: <strong>${d.vacancia_financeira}</strong> (acima de 10%)` });
+
+  const ltv = parseNum(d.ltv);
+  if (ltv !== null && ltv > 60) flags.push({ icon: '🏦', msg: `LTV alto: <strong>${d.ltv}</strong> (acima de 60% — risco de alavancagem)` });
+
+  const divPL = parseNum(d.divida_pl);
+  if (divPL !== null && divPL > 50) flags.push({ icon: '📊', msg: `Dívida/PL elevada: <strong>${d.divida_pl}</strong> (acima de 50%)` });
+
+  // Distribuição acima do resultado distribuível
+  const dist = parseNum(d.distribuicao);
+  const res = parseNum(d.resultado_distribuivel);
+  if (dist !== null && res !== null && dist > res * 1.05) {
+    flags.push({ icon: '⚠️', msg: `Distribuição (<strong>${d.distribuicao}</strong>) acima do resultado distribuível (<strong>${d.resultado_distribuivel}</strong>) — pode estar usando reservas` });
+  }
+
+  if (d.saida_inquilino) flags.push({ icon: '🚪', msg: `Saída de inquilino registrada: <strong>${d.saida_inquilino}</strong>` });
+
+  const inad = parseNum(d.inadimplencia);
+  if (inad !== null && inad > 0) flags.push({ icon: '❗', msg: `Inadimplência registrada: <strong>${d.inadimplencia}</strong>` });
+
+  return flags;
+}
+
+function renderRedFlags(flags) {
+  const box = document.getElementById('redFlagsBox');
+  const list = document.getElementById('redFlagsList');
+  if (flags.length === 0) {
+    box.classList.remove('show');
+    return;
+  }
+  list.innerHTML = flags.map(f => `
+    <div class="red-flag-item">
+      <span class="red-flag-icon">${f.icon}</span>
+      <span>${f.msg}</span>
+    </div>
+  `).join('');
+  box.classList.add('show');
+}
+
+// ==== RENDER RESULTADOS ====
 function colorVacancia(val) {
   if (!val) return '';
-  const num = parseFloat(val.replace(',', '.'));
+  const num = parseFloat(String(val).replace(',', '.'));
   if (num === 0) return 'ok';
   if (num <= 5) return 'neutro';
   return 'alerta';
@@ -440,14 +583,20 @@ function renderResultados(d) {
     ${d.periodo_referencia ? `<span style="font-size:11px;color:var(--text3);margin-left:6px">${d.periodo_referencia}</span>` : ''}
   `;
 
+  // Red flags
+  const flags = verificarRedFlags(d);
+  renderRedFlags(flags);
+
   let html = '';
 
-  // Cards de indicadores
   const indicadores = [
     { label: '📊 Vacância Física', val: d.vacancia_fisica, cor: colorVacancia(d.vacancia_fisica) },
     { label: '💰 Vacância Financeira', val: d.vacancia_financeira, cor: colorVacancia(d.vacancia_financeira) },
     { label: '⚠️ Inadimplência', val: d.inadimplencia, cor: d.inadimplencia && d.inadimplencia !== '0%' && d.inadimplencia !== 'R$ 0,00' ? 'alerta' : 'ok' },
     { label: '🏦 LTV (Loan to Value)', val: d.ltv, cor: '' },
+    { label: '📊 Dívida / PL', val: d.divida_pl, cor: '' },
+    { label: '💵 Custo da Dívida', val: d.custo_divida, cor: '' },
+    { label: '📅 Prazo Médio da Dívida', val: d.prazo_medio_divida, cor: '' },
     { label: '💰 Distribuição (R$/cota)', val: d.distribuicao, cor: '' },
     { label: '📈 Resultado Distribuível', val: d.resultado_distribuivel, cor: '' },
     { label: '📊 Receita Total', val: d.receita_total, cor: '' },
@@ -473,7 +622,6 @@ function renderResultados(d) {
     `;
   });
 
-  // Resumo do analista
   if (d.resumo_analista) {
     html += `
       <div class="resumo-box">
@@ -483,7 +631,6 @@ function renderResultados(d) {
     `;
   }
 
-  // Pontos positivos
   if (d.pontos_positivos) {
     const itens = d.pontos_positivos.split('|').map(s => s.trim()).filter(Boolean);
     html += `
@@ -496,7 +643,6 @@ function renderResultados(d) {
     `;
   }
 
-  // Riscos
   if (d.principais_riscos) {
     const itens = d.principais_riscos.split('|').map(s => s.trim()).filter(Boolean);
     html += `
@@ -509,7 +655,6 @@ function renderResultados(d) {
     `;
   }
 
-  // Comentário do gestor
   if (d.comentario_gestor) {
     html += `
       <div class="comentario-box">
@@ -523,47 +668,111 @@ function renderResultados(d) {
   document.getElementById('resultArea').style.display = 'block';
 }
 
-// ==== EVENTOS ====
+// ==== CHAT ====
+function adicionarMensagemChat(texto, tipo) {
+  const msgs = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = `chat-msg ${tipo}`;
+  div.innerHTML = `
+    <div class="chat-avatar ${tipo === 'user' ? 'user' : 'ai'}">${tipo === 'user' ? '👤' : '🤖'}</div>
+    <div class="chat-bubble">${texto.replace(/\n/g, '<br>')}</div>
+  `;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return div;
+}
+
+function mostrarTyping() {
+  const msgs = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = 'chat-msg';
+  div.id = 'chatTyping';
+  div.innerHTML = `
+    <div class="chat-avatar ai">🤖</div>
+    <div class="chat-bubble">
+      <div class="chat-typing"><span></span><span></span><span></span></div>
+    </div>
+  `;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function removerTyping() {
+  const el = document.getElementById('chatTyping');
+  if (el) el.remove();
+}
+
+async function enviarPergunta(pergunta) {
+  if (!pergunta.trim()) return;
+  if (!textoPDFGlobal) {
+    adicionarMensagemChat('⚠️ Nenhum relatório carregado ainda. Faça o upload e análise de um PDF primeiro.', 'ai');
+    return;
+  }
+
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    adicionarMensagemChat('🔑 Configure sua chave da API Gemini primeiro.', 'ai');
+    return;
+  }
+
+  adicionarMensagemChat(pergunta, 'user');
+  document.getElementById('chatInput').value = '';
+  document.getElementById('btnChatSend').disabled = true;
+  mostrarTyping();
+
+  try {
+    const textoLimitado = textoPDFGlobal.substring(0, 60000);
+    const prompt = `Você é um analista especialista em FIIs (Fundos de Investimento Imobiliário) do Brasil.
+
+Com base EXCLUSIVAMENTE no relatório gerencial abaixo, responda a pergunta do analista de forma clara, objetiva e precisa.
+Se a informação não estiver no relatório, diga explicitamente que não encontrou essa informação no documento.
+Não invente dados. Seja direto.
+
+PERGUNTA: ${pergunta}
+
+RELATÓRIO:
+${textoLimitado}`;
+
+    const resposta = await chamarGemini(prompt, apiKey, 1024);
+    removerTyping();
+    adicionarMensagemChat(resposta.trim(), 'ai');
+  } catch (e) {
+    removerTyping();
+    adicionarMensagemChat('❌ Erro ao consultar o Gemini: ' + e.message, 'ai');
+  } finally {
+    document.getElementById('btnChatSend').disabled = false;
+  }
+}
+
+function enviarPerguntaRapida(pergunta) {
+  enviarPergunta(pergunta);
+}
+
+document.getElementById('btnChatSend').addEventListener('click', () => {
+  enviarPergunta(document.getElementById('chatInput').value);
+});
+
+document.getElementById('chatInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    enviarPergunta(document.getElementById('chatInput').value);
+  }
+});
+
+// Auto-resize textarea
+document.getElementById('chatInput').addEventListener('input', function() {
+  this.style.height = 'auto';
+  this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+});
+
+// ==== EVENTOS PRINCIPAIS ====
 document.getElementById('btnToggleDebug').addEventListener('click', () => {
   document.getElementById('debugBox').classList.toggle('show');
   document.getElementById('debugArrow').classList.toggle('rotated');
 });
 
-// ==== DRAG & DROP + CLICK NA DROP ZONE ====
-const dropZone = document.getElementById('dropZone');
-const filePdfInput = document.getElementById('filePdf');
-
-function setArquivoSelecionado(file) {
-  if (!file || file.type !== 'application/pdf') {
-    alert('Por favor, selecione um arquivo PDF válido.');
-    return;
-  }
-  // Injeta o arquivo no input via DataTransfer
-  const dt = new DataTransfer();
-  dt.items.add(file);
-  filePdfInput.files = dt.files;
-
-  document.getElementById('fileName').innerHTML = `📄 <strong>${file.name}</strong>`;
-  dropZone.classList.add('has-file');
-  dropZone.querySelector('.drop-hint').textContent = `${(file.size / 1024).toFixed(0)} KB · Pronto para analisar`;
-}
-
-dropZone.addEventListener('click', () => filePdfInput.click());
-
-dropZone.addEventListener('dragover', (e) => {
-  e.preventDefault();
-  dropZone.classList.add('dragover');
-});
-dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-dropZone.addEventListener('drop', (e) => {
-  e.preventDefault();
-  dropZone.classList.remove('dragover');
-  const file = e.dataTransfer.files[0];
-  setArquivoSelecionado(file);
-});
-
-filePdfInput.addEventListener('change', function () {
-  if (this.files[0]) setArquivoSelecionado(this.files[0]);
+document.getElementById('filePdf').addEventListener('change', function () {
+  document.getElementById('fileName').textContent = this.files[0]?.name || 'Selecionar ou arrastar PDF aqui...';
 });
 
 document.getElementById('btnImportar').addEventListener('click', async () => {
@@ -581,10 +790,13 @@ document.getElementById('btnImportar').addEventListener('click', async () => {
   document.getElementById('debugBox').classList.remove('show');
   document.getElementById('debugArrow').classList.remove('rotated');
   document.getElementById('resultArea').style.display = 'none';
+  document.getElementById('chatCard').classList.remove('show');
+  document.getElementById('redFlagsBox').classList.remove('show');
   setOverlay(true, 'Lendo o PDF...');
 
   try {
     const textoPDF = await extrairTextoPDF(file);
+    textoPDFGlobal = textoPDF; // salva para o chat
 
     if (textoPDF.length < 100) {
       throw new Error('O PDF parece não ter texto selecionável (pode ser escaneado/imagem). Tente um PDF com texto nativo.');
@@ -595,6 +807,15 @@ document.getElementById('btnImportar').addEventListener('click', async () => {
 
     renderResultados(dados);
     setStatus(`✅ Análise concluída! Fundo: ${dados.ticker || 'identificado'} · Gestora: ${dados.gestora || 'identificada'}`, 'ok');
+
+    // Abre o chat
+    document.getElementById('chatCard').classList.add('show');
+    document.getElementById('chatMessages').innerHTML = `
+      <div class="chat-msg">
+        <div class="chat-avatar ai">🤖</div>
+        <div class="chat-bubble">Relatório do <strong>${dados.ticker || 'fundo'}</strong> carregado! Pode me perguntar qualquer coisa sobre este FII — inquilinos, contratos, distribuição, riscos, alavancagem, etc.</div>
+      </div>
+    `;
 
   } catch (e) {
     setStatus('❌ ' + e.message, 'err');
@@ -608,9 +829,12 @@ document.getElementById('btnImportar').addEventListener('click', async () => {
 
 document.getElementById('btnLimpar').addEventListener('click', () => {
   document.getElementById('filePdf').value = '';
-  document.getElementById('fileName').textContent = 'Selecionar arquivo PDF...';
+  document.getElementById('fileName').textContent = 'Selecionar ou arrastar PDF aqui...';
   document.getElementById('resultArea').style.display = 'none';
+  document.getElementById('chatCard').classList.remove('show');
+  document.getElementById('redFlagsBox').classList.remove('show');
   document.getElementById('status').classList.remove('show');
+  textoPDFGlobal = '';
   clearDebug();
   document.getElementById('debugBox').classList.remove('show');
   document.getElementById('debugArrow').classList.remove('rotated');
@@ -630,65 +854,14 @@ document.getElementById('themeToggle').addEventListener('click', () => {
   }
 });
 
+document.getElementById('hDate').textContent = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+
 function atualizarRelogio() {
   const agora = new Date();
-  const data = agora.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
-  const hora = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-  document.getElementById('hDate').textContent = `${data} · ${hora}`;
+  document.getElementById('hClock').textContent = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 }
 atualizarRelogio();
 setInterval(atualizarRelogio, 1000);
-
-// ==== EXPORTAR PDF (fiel ao tema atual) ====
-document.getElementById('btnExportarPDF').addEventListener('click', async () => {
-  const area = document.getElementById('resultArea');
-  const btn = document.getElementById('btnExportarPDF');
-  btn.textContent = '⏳ Gerando PDF...';
-  btn.disabled = true;
-
-  try {
-    const canvas = await html2canvas(area, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: getComputedStyle(document.body).getPropertyValue('--card-bg').trim() || null,
-      logging: false
-    });
-
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-
-    const pageW = pdf.internal.pageSize.getWidth();
-    const pageH = pdf.internal.pageSize.getHeight();
-    const imgW = pageW;
-    const imgH = (canvas.height * imgW) / canvas.width;
-
-    let posY = 0;
-    let remaining = imgH;
-
-    while (remaining > 0) {
-      const sliceH = Math.min(pageH, remaining);
-      const sliceCanvas = document.createElement('canvas');
-      sliceCanvas.width = canvas.width;
-      sliceCanvas.height = (sliceH / imgH) * canvas.height;
-      const ctx = sliceCanvas.getContext('2d');
-      ctx.drawImage(canvas, 0, posY * (canvas.height / imgH), canvas.width, sliceCanvas.height, 0, 0, canvas.width, sliceCanvas.height);
-      const imgData = sliceCanvas.toDataURL('image/png');
-      if (posY > 0) pdf.addPage();
-      pdf.addImage(imgData, 'PNG', 0, 0, imgW, sliceH);
-      posY += sliceH;
-      remaining -= sliceH;
-    }
-
-    const ticker = document.querySelector('.fundo-ticker')?.textContent || 'FII';
-    const data = new Date().toISOString().slice(0, 10);
-    pdf.save(`Analise_${ticker}_${data}.pdf`);
-  } catch (e) {
-    alert('Erro ao gerar PDF: ' + e.message);
-  } finally {
-    btn.textContent = '📄 Exportar PDF';
-    btn.disabled = false;
-  }
-});
 
 const savedTheme = localStorage.getItem('theme');
 if (savedTheme === 'light') {

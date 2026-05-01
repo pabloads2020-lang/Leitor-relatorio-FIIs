@@ -151,6 +151,80 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
 
 .btn-export { background: transparent; border: 1px solid var(--border2); color: var(--text2); border-radius: 8px; padding: 7px 14px; font-size: 13px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
 .btn-export:hover { border-color: var(--gold); color: var(--gold); background: rgba(245,200,66,0.08); }
+
+/* Estilos para o card de dívida aprimorado */
+.divida-card {
+    grid-column: 1 / -1;
+    background: var(--result-item-bg);
+    border-radius: 10px;
+    padding: 1.25rem;
+    border: 1px solid var(--border);
+    margin-top: 0.5rem;
+    transition: all 0.3s ease;
+}
+.divida-card.alerta-divida {
+    border-color: rgba(231,76,60,0.4);
+    background: rgba(231,76,60,0.05);
+    box-shadow: 0 0 0 1px rgba(231,76,60,0.1);
+}
+.divida-card.ok-divida {
+    border-color: rgba(46,204,113,0.3);
+    background: rgba(46,204,113,0.02);
+}
+.divida-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+    margin-top: 0.75rem;
+}
+.divida-item {
+    text-align: center;
+    padding: 0.5rem;
+    border-radius: 8px;
+    background: var(--bg3);
+}
+.divida-item-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text3);
+    margin-bottom: 4px;
+}
+.divida-item-val {
+    font-size: 16px;
+    font-weight: 700;
+    font-family: 'Atkinson Hyperlegible', monospace;
+}
+.divida-item-val.ok { color: var(--green); }
+.divida-item-val.neutro { color: var(--amber); }
+.divida-item-val.alerta { color: var(--red); }
+.divida-alerta-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--red-bg);
+    color: var(--red);
+    border: 1px solid rgba(231,76,60,0.3);
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-left: 8px;
+}
+.divida-ok-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--green-bg);
+    color: var(--green);
+    border: 1px solid rgba(46,204,113,0.3);
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-left: 8px;
+}
+
 @media print {
   .header, .card:not(#resultArea), .footer, #btnExportarPDF, .btn-export, .debug-wrapper { display: none !important; }
   body { background: #fff !important; color: #000 !important; }
@@ -247,7 +321,7 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
 </main>
 
 <footer class="footer">
-  Análise inteligente de FIIs com Gemini AI · Ferramenta de Triagem Profissional · v3 Robusta
+  Análise inteligente de FIIs com Gemini AI · Ferramenta de Triagem Profissional · v3 Robusta com Card de Dívida Aprimorado
 </footer>
 
 <script>
@@ -323,7 +397,47 @@ function extrairNumero(val) {
     return isNaN(n) ? null : n;
 }
 
-// ==================== CORREÇÃO #4: SEMÁFORO COM % REAL ====================
+// ==================== FUNÇÃO DE CORES DOS SEMÁFOROS ====================
+function colorVacancia(val) {
+    const n = extrairNumero(val);
+    if (n === null) return '';
+    return n <= 5 ? 'ok' : (n <= 20 ? 'neutro' : 'alerta');
+}
+
+function colorLTV(val, tipoFii) {
+    const n = extrairNumero(val);
+    if (n === null) return '';
+    const isCRI = (tipoFii||'').toLowerCase().match(/cri|papel|receb/);
+    if (isCRI) return n <= 50 ? 'ok' : (n <= 70 ? 'neutro' : 'alerta');
+    return n <= 10 ? 'ok' : (n <= 20 ? 'neutro' : 'alerta');
+}
+
+function colorInadimplencia(val) {
+    const n = extrairNumero(val);
+    if (n === null || n === 0) return 'ok';
+    return n <= 10 ? 'ok' : (n <= 20 ? 'neutro' : 'alerta');
+}
+
+// NOVA FUNÇÃO: Avaliação da Dívida/PL
+function colorDividaPL(val) {
+    const n = extrairNumero(val);
+    if (n === null) return 'ok';
+    // Dívida/PL saudável < 0.5 (50%), alerta > 1.0 (100%)
+    return n <= 0.5 ? 'ok' : (n <= 1.0 ? 'neutro' : 'alerta');
+}
+
+// NOVA FUNÇÃO: Avaliação do Custo da Dívida
+function colorCustoDivida(val) {
+    const n = extrairNumero(val);
+    if (n === null) return null;
+    // Custo real (CDI+% ou percentual anual) - saudável < CDI+2%, alerta > CDI+4%
+    if (typeof n === 'number') {
+        return n <= 2 ? 'ok' : (n <= 4 ? 'neutro' : 'alerta');
+    }
+    return null;
+}
+
+// ==================== FUNÇÃO DO SEMÁFORO COM % REAL ====================
 function getPercentByMetric(titulo, valor, cor) {
     const num = extrairNumero(valor);
     if (num === null) return '50%';
@@ -343,19 +457,89 @@ function getPercentByMetric(titulo, valor, cor) {
     return '50%';
 }
 
-// ==================== CORREÇÃO #9: NORMALIZAÇÃO DE DADOS IA ====================
+// ==================== CARD DE DÍVIDA MELHORADO (NOVO) ====================
+function renderCardDividaMelhorado(d) {
+    const temDivida = d.ltv || d.divida_pl || d.custo_divida || d.prazo_medio_divida;
+    if (!temDivida) return '';
+    
+    // Avaliar cada métrica
+    const corLTV = colorLTV(d.ltv, d.tipo_fii) || 'ok';
+    const corDividaPL = colorDividaPL(d.divida_pl) || 'ok';
+    const corCusto = colorCustoDivida(d.custo_divida) || 'ok';
+    
+    // Avaliar prazo médio como fator de alívio
+    const prazoMedio = extrairNumero(d.prazo_medio_divida);
+    const temPrazoLongo = prazoMedio && prazoMedio > 5; // >5 anos é bom
+    
+    // Matriz de severidade
+    const severityOrder = { 'ok': 0, 'neutro': 1, 'alerta': 2 };
+    let maiorSeveridade = 'ok';
+    
+    [corLTV, corDividaPL, corCusto].forEach(cor => {
+        if (severityOrder[cor] > severityOrder[maiorSeveridade]) {
+            maiorSeveridade = cor;
+        }
+    });
+    
+    // Prazo longo pode amenizar (neutro vira ok, alerta vira neutro)
+    if (temPrazoLongo && maiorSeveridade === 'neutro') {
+        maiorSeveridade = 'ok';
+    } else if (temPrazoLongo && maiorSeveridade === 'alerta') {
+        maiorSeveridade = 'neutro';
+    }
+    
+    let classeCard = 'divida-card ok-divida';
+    let badge = '';
+    let mensagem = '';
+    
+    switch(maiorSeveridade) {
+        case 'ok':
+            badge = `<span class="divida-ok-badge">✅ ALAVANCAGEM CONTROLADA</span>`;
+            mensagem = temPrazoLongo ? 'Dívida alongada e bem estruturada' : 'Endividamento dentro dos limites saudáveis';
+            break;
+        case 'neutro':
+            classeCard = 'divida-card';
+            badge = `<span class="divida-ok-badge" style="background:var(--amber-bg); color:var(--amber); border-color:rgba(243,156,18,0.2)">⚠️ ALAVANCAGEM EM ATENÇÃO</span>`;
+            mensagem = 'Monitorar evolução dos indicadores de endividamento';
+            break;
+        case 'alerta':
+            classeCard = 'divida-card alerta-divida';
+            badge = `<span class="divida-alerta-badge">🔴 ALAVANCAGEM ELEVADA</span>`;
+            mensagem = 'Endividamento acima do recomendado - requer análise cautelosa';
+            break;
+    }
+    
+    return `
+        <div class="${classeCard}">
+            <div class="result-label" style="display: flex; justify-content: space-between; align-items: center;">
+                <span>🏦 ENDIVIDAMENTO & ALAVANCAGEM</span>
+                ${badge}
+            </div>
+            <div class="divida-grid">
+                ${d.ltv ? `<div class="divida-item"><div class="divida-item-label">LTV</div><div class="divida-item-val ${corLTV}">${d.ltv}</div></div>` : ''}
+                ${d.divida_pl ? `<div class="divida-item"><div class="divida-item-label">Dívida / PL</div><div class="divida-item-val ${corDividaPL}">${d.divida_pl}</div></div>` : ''}
+                ${d.custo_divida ? `<div class="divida-item"><div class="divida-item-label">Custo da Dívida</div><div class="divida-item-val ${corCusto}">${d.custo_divida}</div></div>` : ''}
+                ${d.prazo_medio_divida ? `<div class="divida-item"><div class="divida-item-label">Prazo Médio</div><div class="divida-item-val">${d.prazo_medio_divida}</div></div>` : ''}
+            </div>
+            <div style="font-size: 11px; color: var(--text3); margin-top: 8px; text-align: center;">
+                ${mensagem}
+            </div>
+        </div>
+    `;
+}
+
+// ==================== NORMALIZAÇÃO DE DADOS IA ====================
 function normalizarDadosIA(dados) {
-    // Garantir que temos um objeto
     if (!dados || typeof dados !== 'object') {
         console.error('Dados inválidos para normalização:', dados);
         return {};
     }
     
-    // Campos que devem ser string
     const camposString = ['ticker', 'gestora', 'tipo_fii', 'periodo_referencia', 
                           'vacancia_fisica', 'vacancia_financeira', 'inadimplencia', 'ltv',
                           'distribuicao', 'resultado_distribuivel', 'origem_distribuicao',
-                          'vencimentos_divida', 'media_dividendos_12m'];
+                          'vencimentos_divida', 'media_dividendos_12m', 'divida_pl', 
+                          'custo_divida', 'prazo_medio_divida'];
     
     camposString.forEach(campo => {
         if (dados[campo] !== undefined && dados[campo] !== null && typeof dados[campo] !== 'string') {
@@ -363,7 +547,6 @@ function normalizarDadosIA(dados) {
         }
     });
     
-    // Processar riscos se veio como array
     if (Array.isArray(dados.principais_riscos)) {
         dados.principais_riscos = dados.principais_riscos.join(' | ');
     }
@@ -374,14 +557,13 @@ function normalizarDadosIA(dados) {
     return dados;
 }
 
-// ==================== CORREÇÃO #1: CACHE ROBUSTO ====================
+// ==================== CACHE ROBUSTO ====================
 async function loadFromCache(hash) {
     const cached = localStorage.getItem('cache_' + hash);
     if (!cached) return null;
     
     try {
         const data = JSON.parse(cached);
-        // Validação mínima
         if (data && typeof data === 'object' && (data.ticker || data.gestora)) {
             dbg('✅ Cache válido encontrado para: ' + (data.ticker || 'desconhecido'));
             return data;
@@ -405,30 +587,8 @@ async function saveToCache(hash, data) {
     }
 }
 
-// ==================== FUNÇÕES DE CORES DOS SEMÁFOROS ====================
-function colorVacancia(val) {
-    const n = extrairNumero(val);
-    if (n === null) return '';
-    return n <= 5 ? 'ok' : (n <= 20 ? 'neutro' : 'alerta');
-}
-
-function colorLTV(val, tipoFii) {
-    const n = extrairNumero(val);
-    if (n === null) return '';
-    const isCRI = (tipoFii||'').toLowerCase().match(/cri|papel|receb/);
-    if (isCRI) return n <= 50 ? 'ok' : (n <= 70 ? 'neutro' : 'alerta');
-    return n <= 10 ? 'ok' : (n <= 20 ? 'neutro' : 'alerta');
-}
-
-function colorInadimplencia(val) {
-    const n = extrairNumero(val);
-    if (n === null || n === 0) return 'ok';
-    return n <= 10 ? 'ok' : (n <= 20 ? 'neutro' : 'alerta');
-}
-
 // ==================== FUNÇÕES DE RENDERIZAÇÃO ====================
 function renderCardSemaforo(tit, val, cor) {
-    // CORREÇÃO #2: Validar antes de renderizar
     if(!val || val === 'null' || val === 'undefined' || val === '') return '';
     
     const labels = {ok:'SAUDÁVEL', neutro:'ATENÇÃO', alerta:'CRÍTICO'};
@@ -465,11 +625,15 @@ function renderResultados(d) {
 
     let html = '';
     
+    // Cards de semáforo existentes
     html += renderCardSemaforo('📊 Vacancia Física', d.vacancia_fisica, colorVacancia(d.vacancia_fisica));
     html += renderCardSemaforo('💰 Vacancia Financeira', d.vacancia_financeira, colorVacancia(d.vacancia_financeira));
     html += renderCardSemaforo('⚠️ Inadimplência', d.inadimplencia, colorInadimplencia(d.inadimplencia));
     html += renderCardSemaforo('🏦 LTV', d.ltv, colorLTV(d.ltv, d.tipo_fii));
-
+    
+    // NOVO CARD DE DÍVIDA MELHORADO (adicionado sem remover nada)
+    html += renderCardDividaMelhorado(d);
+    
     if (d.origem_distribuicao) {
         const corDRE = d.origem_distribuicao.includes('Caixa') ? 'neutro' : 'ok';
         html += `
@@ -502,7 +666,6 @@ function renderResultados(d) {
 
     const campos = [
         {l:'Rendimento', v:d.distribuicao}, {l:'Res. Distribuível', v:d.resultado_distribuivel},
-        {l:'Dívida/PL', v:d.divida_pl}, {l:'Custo Dívida', v:d.custo_divida},
         {l:'Saldo Caixa', v:d.saldo_caixa}, {l:'Inquilinos', v:d.num_inquilinos}
     ];
     campos.forEach(c => { if(c.v && c.v !== 'null' && c.v !== 'undefined') html += `<div class="result-card"><div class="result-label">${c.l}</div><div class="result-value small">${c.v}</div></div>`; });
@@ -515,12 +678,11 @@ function renderResultados(d) {
     resultArea.style.display = 'block';
 }
 
-// ==================== EXTRAÇÃO DE TEXTO DO PDF (CORREÇÃO #7) ====================
+// ==================== EXTRAÇÃO DE TEXTO DO PDF ====================
 async function extrairTextoPDF(file) {
     clearDebug();
     dbg('📄 Iniciando extração de texto do PDF...');
     
-    // Validação inicial do arquivo
     if (!file) {
         throw new Error('Nenhum arquivo selecionado');
     }
@@ -569,7 +731,7 @@ async function extrairTextoPDF(file) {
     }
 }
 
-// ==================== CHAMADA À API GEMINI (COM LOG PARCIAL) ====================
+// ==================== CHAMADA À API GEMINI ====================
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 async function analisarComGemini(textoPDF, apiKey) {
@@ -599,7 +761,6 @@ RELATÓRIO: ${textoPDF.substring(0, 80000)}`;
     const maxRetries = 4;
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
         try {
-            // CORREÇÃO #8: Log parcial da chave
             dbg(`🤖 API Gemini: tentativa ${attempt+1}/${maxRetries+1} - Chave: ${apiKey.substring(0,8)}...`);
             const resp = await fetch(url, {
                 method: 'POST',
@@ -661,9 +822,8 @@ async function hashArquivo(f) {
     return Array.from(new Uint8Array(h)).map(b=>b.toString(16).padStart(2,'0')).join(''); 
 }
 
-// ==================== EVENTO PRINCIPAL DE IMPORTAÇÃO (COM TODAS AS CORREÇÕES) ====================
+// ==================== EVENTO PRINCIPAL DE IMPORTAÇÃO ====================
 document.getElementById('btnImportar').addEventListener('click', async () => {
-    // CORREÇÃO #10: Evitar duplo clique
     if (isProcessing) {
         setStatus('⏳ Já estou processando um arquivo, aguarde...', 'warn');
         return;
@@ -686,15 +846,11 @@ document.getElementById('btnImportar').addEventListener('click', async () => {
     
     try {
         setOverlay(true, '📄 Lendo PDF...');
-        
-        // CORREÇÃO #5: Limpar debug antes de começar
         clearDebug();
         
-        // Calcular hash e tentar cache
         const hash = await hashArquivo(file);
         dbg(`🔐 Hash do arquivo: ${hash.substring(0,16)}...`);
         
-        // CORREÇÃO #1: Usar cache robusto
         const cachedData = await loadFromCache(hash);
         if (cachedData) {
             setOverlay(false);
@@ -707,17 +863,14 @@ document.getElementById('btnImportar').addEventListener('click', async () => {
             }
         }
         
-        // Processar normalmente
         setOverlay(true, '🤖 Extraindo texto do PDF...');
         const textoExtraido = await extrairTextoPDF(file);
         
         setOverlay(true, '🧠 Analisando com Gemini AI...');
         const dadosBrutos = await analisarComGemini(textoExtraido, apiKey);
         
-        // CORREÇÃO #9: Normalizar dados
         const dadosNormalizados = normalizarDadosIA(dadosBrutos);
         
-        // Salvar no cache
         await saveToCache(hash, dadosNormalizados);
         
         renderResultados(dadosNormalizados);
@@ -728,7 +881,6 @@ document.getElementById('btnImportar').addEventListener('click', async () => {
         console.error('Erro detalhado:', error);
         setStatus(`❌ ${error.message || 'Erro desconhecido'}`, 'err');
     } finally {
-        // CORREÇÃO #11: Garantir que overlay sempre fecha
         setOverlay(false);
         isProcessing = false;
     }
@@ -753,7 +905,6 @@ document.getElementById('apiEye').addEventListener('click', () => {
     else inp.type = 'password';
 });
 
-// Drag & drop
 const dropZone = document.getElementById('dropZone');
 if (dropZone) {
     dropZone.ondragover = e => { e.preventDefault(); dropZone.classList.add('drag-over'); };
@@ -792,15 +943,13 @@ document.getElementById('btnLimpar').onclick = () => {
     }
 };
 
-// Tema claro/escuro
 document.getElementById('themeToggle').onclick = () => { 
     document.body.classList.toggle('light'); 
     localStorage.setItem('theme', document.body.classList.contains('light') ? 'light' : 'dark'); 
 };
 if (localStorage.getItem('theme') === 'light') document.body.classList.add('light');
 
-// CORREÇÃO #3: Debug toggle com retry
-(function registerDebugToggle(){
+function registerDebugToggle(){
     const btn = document.getElementById('btnToggleDebug');
     const dbgBox = document.getElementById('debugBox');
     const arrow = document.getElementById('debugArrow');
@@ -815,7 +964,8 @@ if (localStorage.getItem('theme') === 'light') document.body.classList.add('ligh
         dbgBox.classList.toggle('show');
         arrow.classList.toggle('rotated');
     });
-})();
+}
+registerDebugToggle();
 
 updateApiStatusUI();
 

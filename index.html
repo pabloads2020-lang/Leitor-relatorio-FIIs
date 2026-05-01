@@ -83,16 +83,30 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
 .status-err { background: var(--red-bg); color: var(--red); border: 1px solid rgba(231,76,60,0.25); }
 .status-warn { background: var(--amber-bg); color: var(--amber); border: 1px solid rgba(243,156,18,0.25); }
 
+.ai-badge { display: inline-flex; align-items: center; gap: 5px; background: var(--blue-bg); color: var(--blue); border: 1px solid rgba(52,152,219,0.25); border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 600; }
 .resultados-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-top: 1rem; }
 .result-card { background: var(--result-item-bg); border-radius: 10px; padding: 1rem; border: 1px solid var(--border); }
 .result-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text3); margin-bottom: 8px; }
 .result-value { font-size: 18px; font-weight: 700; font-family: 'Atkinson Hyperlegible', monospace; word-break: break-word; line-height: 1.3; }
 .result-value.small { font-size: 14px; font-weight: 400; }
+.result-value.alerta { color: var(--red); }
+.result-value.ok { color: var(--green); }
+.result-value.neutro { color: var(--amber); }
+
+.semaphore-line { display:flex; align-items:center; gap:10px; margin-top:10px; }
+.semaphore-dot { width:12px; height:12px; border-radius:50%; background:var(--border); box-shadow: 0 0 0 4px rgba(0,0,0,0.04) inset; }
+.semaphore-dot.green { background: var(--green); }
+.semaphore-dot.amber { background: var(--amber); }
+.semaphore-dot.red { background: var(--red); }
+.semaphore-text { font-size:12px; color:var(--text2); font-weight:600; }
 
 .semaphore-pill { display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border-radius:18px; font-size:13px; font-weight:700; margin-top:10px; }
 .semaphore-pill.green { background: rgba(46,204,113,0.12); color: var(--green); border: 1px solid rgba(46,204,113,0.18); }
 .semaphore-pill.amber { background: rgba(243,156,18,0.10); color: var(--amber); border: 1px solid rgba(243,156,18,0.12); }
 .semaphore-pill.red { background: rgba(231,76,60,0.10); color: var(--red); border: 1px solid rgba(231,76,60,0.12); }
+
+.semaforo-config { display:flex; align-items:center; gap:8px; }
+.semaforo-config select { background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text); padding:6px 10px; border-radius:8px; }
 
 .resumo-box { grid-column: 1 / -1; background: var(--result-item-bg); border-radius: 10px; padding: 1.25rem; border-left: 3px solid var(--blue); margin-top: 0.5rem; }
 .resumo-texto { font-size: 14px; line-height: 1.7; color: var(--text2); margin-top: 8px; white-space: pre-wrap; }
@@ -102,202 +116,430 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
 .comentario-box { grid-column: 1 / -1; background: var(--result-item-bg); border-radius: 10px; padding: 1rem; border-left: 3px solid var(--gold); margin-top: 0.5rem; }
 .comentario-texto { font-size: 14px; line-height: 1.5; color: var(--text2); margin-top: 6px; max-height: 250px; overflow-y: auto; }
 
+.debug-wrapper { margin-top: 0.75rem; }
+.debug-header { display: flex; align-items: center; justify-content: flex-end; margin-bottom: 0.5rem; }
+.btn-debug { background: transparent; border: 1px solid var(--border2); border-radius: 20px; padding: 4px 12px; font-size: 11px; font-weight: 500; cursor: pointer; color: var(--text2); display: flex; align-items: center; gap: 6px; }
+.btn-debug:hover { border-color: var(--gold); color: var(--gold); background: rgba(245,200,66,0.1); }
+.debug-box { display: none; background: var(--debug-bg); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem; font-size: 12px; max-height: 300px; overflow-y: auto; white-space: pre-wrap; line-height: 1.7; font-family: monospace; }
+.debug-box.show { display: block; }
+
 .overlay { display: none; position: fixed; inset: 0; background: var(--overlay-bg); z-index: 200; align-items: center; justify-content: center; flex-direction: column; gap: 1rem; }
 .overlay.show { display: flex; }
 .spin { width: 40px; height: 40px; border: 3px solid var(--border2); border-top-color: var(--gold); border-radius: 50%; animation: rot 0.8s linear infinite; }
+.spin-text { font-size: 14px; color: var(--text2); }
 @keyframes rot { to { transform: rotate(360deg); } }
 
-.debug-box { display: none; background: var(--debug-bg); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem; font-size: 12px; max-height: 300px; overflow-y: auto; white-space: pre-wrap; font-family: monospace; margin-top: 10px; }
-.debug-box.show { display: block; }
-
 .footer { text-align: center; font-size: 12px; color: var(--text3); padding: 2rem; border-top: 1px solid var(--footer-border); margin-top: 1rem; }
+.arrow { transition: transform 0.2s ease; display: inline-block; }
+.arrow.rotated { transform: rotate(90deg); }
 .fundo-ticker { display: inline-block; background: var(--gold); color: #000; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 700; margin-bottom: 12px; }
+
+.info-box { background: var(--blue-bg); border: 1px solid rgba(52,152,219,0.2); border-radius: 8px; padding: 10px 14px; font-size: 13px; color: var(--blue); margin-bottom: 0.75rem; line-height: 1.5; }
 </style>
 </head>
-<body class="dark">
+<body>
 
 <div class="overlay" id="overlay">
   <div class="spin"></div>
-  <div class="spin-text" id="overlayText">Processando...</div>
+  <div class="spin-text" id="overlayText">Processando PDF...</div>
 </div>
 
 <header class="header">
-  <div class="header-logo"><div class="dot">FII</div> Leitor de Relatórios</div>
+  <div class="header-logo">
+    <div class="dot">FII</div>
+    Leitor de Relatórios Gerenciais
+  </div>
   <div class="header-right">
     <div class="header-date" id="hDate"></div>
-    <button class="theme-toggle" id="themeToggle">🌙</button>
+    <button class="theme-toggle" id="themeToggle" title="Alternar modo claro/escuro">🌙</button>
   </div>
 </header>
 
 <main class="main">
+
   <div class="card">
-    <div class="card-title">🔑 API GEMINI <span>Chave salva localmente</span></div>
+    <div class="card-title">
+      🔑 Configuração da API Gemini (Google AI)
+      <span>Gratuita · Chave salva localmente no seu navegador</span>
+    </div>
+    <div class="info-box">
+      💡 A chave fica salva <strong>só no seu navegador</strong> (localStorage). Nunca é enviada para nenhum servidor nosso. Cada analista usa a própria chave gratuita.
+    </div>
     <div class="api-row">
       <div class="api-input-wrap">
-        <input type="password" id="apiKeyInput" class="api-input" placeholder="AIza...">
-        <button class="api-eye" id="apiEye">👁️</button>
+        <input type="password" id="apiKeyInput" class="api-input" placeholder="Cole aqui sua chave: AIza...">
+        <button class="api-eye" id="apiEye" title="Mostrar/ocultar chave">👁️</button>
       </div>
-      <button class="btn btn-gold" id="btnSalvarKey">Salvar</button>
-      <a href="https://aistudio.google.com/app/apikey" target="_blank" class="btn-key">Gerar Chave ↗</a>
+      <button class="btn btn-gold" id="btnSalvarKey">💾 Salvar chave</button>
+      <a href="https://aistudio.google.com/app/apikey" target="_blank" class="btn-key">🔑 Gerar chave gratuita no Google AI Studio ↗</a>
     </div>
     <div class="api-status" id="apiStatus"></div>
   </div>
 
   <div class="card">
-    <div class="card-title">📄 UPLOAD PDF</div>
+    <div class="card-title">
+      📄 Importar relatório gerencial de FII (PDF)
+      <span>Análise inteligente com Gemini AI · Vacância · Inadimplência · LTV · Rendimentos</span>
+    </div>
     <div class="upload-row">
-      <label class="file-label" for="filePdf"><span id="fileName">Selecionar arquivo...</span></label>
+      <label class="file-label" for="filePdf">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+          <path d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
+        <span id="fileName">Selecionar arquivo PDF...</span>
+      </label>
       <input type="file" id="filePdf" accept=".pdf">
-      <button class="btn btn-gold" id="btnImportar">🤖 Analisar</button>
+      <button class="btn btn-gold" id="btnImportar">🤖 Analisar com IA</button>
       <button class="btn btn-ghost" id="btnLimpar">Limpar</button>
     </div>
     <div id="status" class="status"></div>
-    <button class="btn-debug" id="btnToggleDebug" style="background:none;border:none;color:var(--text3);font-size:11px;cursor:pointer;margin-top:10px">📋 Ver Logs</button>
-    <div id="debugBox" class="debug-box"></div>
+    <div class="debug-wrapper">
+      <div class="debug-header">
+        <button class="btn-debug" id="btnToggleDebug">
+          <span class="arrow" id="debugArrow">▶</span>
+          📋 Detalhes da leitura do PDF
+        </button>
+      </div>
+      <div id="debugBox" class="debug-box"></div>
+    </div>
   </div>
 
   <div id="resultArea" class="card" style="display:none">
-    <div class="card-title">📊 RESULTADOS <span id="fundoIdentificado"></span></div>
+    <div class="card-title">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <div>📊 Análise do Relatório Gerencial</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span id="fundoIdentificado" style="color:var(--gold)"></span>
+          <span class="ai-badge">✨ Gemini AI</span>
+        </div>
+      </div>
+      <div class="semaforo-config">
+        <label style="font-size:11px;color:var(--text3);font-weight:600">Estilo Semáforo:</label>
+        <select id="semaforoStyleSelect">
+          <option value="pill">Pill (checkbox)</option>
+          <option value="line">Linha (dot + label)</option>
+        </select>
+      </div>
+    </div>
     <div id="resultadosConteudo" class="resultados-grid"></div>
   </div>
+
 </main>
+
+<footer class="footer">
+  Análise inteligente de FIIs com Gemini AI · Chave armazenada localmente · Compatível com múltiplas gestoras
+</footer>
 
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-const dbg = txt => { 
-  const box = document.getElementById('debugBox');
-  box.textContent += `\n[${new Date().toLocaleTimeString()}] ${txt}`;
-};
+let debugContent = [];
 
-const setOverlay = (show, txt) => {
+function dbg(txt) {
+  debugContent.push(txt);
+  document.getElementById('debugBox').textContent = debugContent.join('\n');
+}
+function clearDebug() {
+  debugContent = [];
+  document.getElementById('debugBox').textContent = '';
+}
+function setStatus(msg, tipo) {
+  const el = document.getElementById('status');
+  el.innerHTML = msg;
+  el.className = `status show status-${tipo}`;
+  if (tipo === 'ok') setTimeout(() => el.classList.remove('show'), 6000);
+}
+function setOverlay(show, txt) {
   document.getElementById('overlay').classList.toggle('show', show);
-  if(txt) document.getElementById('overlayText').textContent = txt;
-};
-
-// --- CACHE & HASH ---
-async function getHash(file) {
-  const buffer = await file.arrayBuffer();
-  const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
-  return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+  if (txt) document.getElementById('overlayText').textContent = txt;
 }
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-// --- REDUÇÃO DE PAYLOAD ---
-function extractSnippets(text) {
-  const keywords = ['vacância', 'física', 'financeira', 'ltv', 'alavancagem', 'distribuição', 'rendimento', 'inadimplência', 'imóveis', 'inquilinos', 'gestor', 'risco'];
-  const textLower = text.toLowerCase();
-  const chunks = [];
-  keywords.forEach(kw => {
-    let idx = -1;
-    while((idx = textLower.indexOf(kw, idx + 1)) !== -1) {
-      chunks.push(text.substring(Math.max(0, idx - 500), Math.min(text.length, idx + 500)));
-    }
-  });
-  return chunks.length > 0 ? chunks.join('\n[...]\n').substring(0, 30000) : text.substring(0, 30000);
+function getApiKey() {
+  return localStorage.getItem('gemini_api_key') || '';
 }
-
-// --- API ---
-async function callGemini(text, key) {
-  const prompt = `Analise este relatório de FII e retorne APENAS um JSON:
-  { "ticker": "AAA", "gestora": "BBB", "vacancia_fisica": "%", "ltv": "%", "distribuicao": "R$", "principais_riscos": "item1|item2", "pontos_positivos": "item1|item2", "resumo_analista": "texto", "comentario_gestor": "texto" }
-  TEXTO: ${text}`;
-
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`;
-
-  for(let i=0; i<3; i++) { // Retry automático
-    try {
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-      });
-      if(res.status === 429) {
-        dbg(`Cota excedida (429). Tentativa ${i+1}/3. Aguardando...`);
-        await new Promise(r => setTimeout(r, 5000 * (i+1)));
-        continue;
-      }
-      if(!res.ok) throw new Error(`Erro API: ${res.status}`);
-      const data = await res.json();
-      return JSON.parse(data.candidates[0].content.parts[0].text.replace(/```json|```/g, ''));
-    } catch(e) { if(i === 2) throw e; }
+function updateApiStatusUI() {
+  const key = getApiKey();
+  const el = document.getElementById('apiStatus');
+  if (key && key.startsWith('AIza') && key.length > 20) {
+    el.textContent = '✅ Chave salva e pronta para uso.';
+    el.className = 'api-status valid';
+    document.getElementById('apiKeyInput').value = key;
+  } else if (key) {
+    el.textContent = '⚠️ Chave salva, mas parece inválida. Verifique.';
+    el.className = 'api-status invalid';
+    document.getElementById('apiKeyInput').value = key;
+  } else {
+    el.textContent = 'Nenhuma chave salva. Gere uma gratuitamente no Google AI Studio.';
+    el.className = 'api-status';
   }
 }
 
-// --- LOGICA PRINCIPAL ---
+document.getElementById('btnSalvarKey').addEventListener('click', () => {
+  const val = document.getElementById('apiKeyInput').value.trim();
+  if (!val) { alert('Cole sua chave antes de salvar.'); return; }
+  localStorage.setItem('gemini_api_key', val);
+  updateApiStatusUI();
+});
+
+document.getElementById('apiEye').addEventListener('click', () => {
+  const inp = document.getElementById('apiKeyInput');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+});
+
+updateApiStatusUI();
+
+function normalizarTexto(texto) {
+  return texto.replace(/[\n\r\t]+/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+async function extrairTextoPDF(file) {
+  dbg("📄 Iniciando extração do PDF...");
+  const ab = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
+  dbg(`📑 Total de páginas: ${pdf.numPages}`);
+
+  let textoCompleto = '';
+  for (let p = 1; p <= pdf.numPages; p++) {
+    const page = await pdf.getPage(p);
+    const tc = await page.getTextContent();
+    const pageText = tc.items.map(item => item.str).join(' ');
+    textoCompleto += pageText + ' ';
+    dbg(`✅ Página ${p}: ${pageText.length} caracteres`);
+  }
+
+  const normalizado = normalizarTexto(textoCompleto);
+  dbg(`\n📊 Total extraído: ${normalizado.length} caracteres`);
+  return normalizado;
+}
+
+async function analisarComGemini(textoPDF, apiKey) {
+  dbg("🤖 Enviando para Gemini AI...");
+  const textoLimitado = textoPDF.substring(0, 80000);
+
+  const prompt = `Você é um analista especialista em Fundos de Investimento Imobiliário (FIIs) do Brasil.
+Analise o relatório gerencial abaixo e retorne um JSON com EXATAMENTE esta estrutura:
+{
+  "ticker": "código ex: ABCD11 ou null",
+  "gestora": "nome gestora ou null",
+  "tipo_fii": "tipo ou null",
+  "periodo_referencia": "mês/ano ou null",
+  "vacancia_fisica": "% ou null",
+  "vacancia_financeira": "% ou null",
+  "inadimplencia": "R$ ou % ou null",
+  "ltv": "% ou null",
+  "divida_pl": "% ou null",
+  "custo_divida": "ex: IPCA+6,5% ou null",
+  "prazo_medio_divida": "anos ou null",
+  "distribuicao": "R$/cota ou null",
+  "resultado_distribuivel": "R$/cota ou null",
+  "receita_total": "valor ou null",
+  "despesas_totais": "valor ou null",
+  "saldo_caixa": "valor ou null",
+  "num_imoveis": "número ou null",
+  "num_inquilinos": "número ou null",
+  "abl_total": "valor ou null",
+  "saida_inquilino": "descrição ou null",
+  "entrada_inquilino": "descrição ou null",
+  "reajustes": "descrição ou null",
+  "parcelas_pagar": "valor ou null",
+  "principais_riscos": "3 riscos separados por | ou null",
+  "pontos_positivos": "3 pontos separados por | ou null",
+  "resumo_analista": "resumo crítico direto (4-6 frases)",
+  "comentario_gestor": "máx 600 caracteres ou null"
+}
+RELATÓRIO:
+${textoLimitado}`;
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+  const body = {
+    contents: [{ parts: [{ text: prompt }] }],
+    generationConfig: { temperature: 0.1, maxOutputTokens: 2048 }
+  };
+
+  const MAX_TENTATIVAS = 4;
+  const ESPERAS = [10000, 20000, 40000]; 
+
+  for (let tentativa = 1; tentativa <= MAX_TENTATIVAS; tentativa++) {
+    if (tentativa > 1) {
+      const espera = ESPERAS[tentativa - 2];
+      dbg(`⏳ Tentativa ${tentativa}/${MAX_TENTATIVAS} — aguardando ${espera/1000}s...`);
+      setOverlay(true, `Tentativa ${tentativa}/${MAX_TENTATIVAS} em ${espera/1000}s...`);
+      await sleep(espera);
+    }
+
+    try {
+      const resp = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+
+      if (!resp.ok) {
+        const errText = await resp.text();
+        dbg(`❌ Tentativa ${tentativa} — Erro ${resp.status}: ${errText.substring(0, 100)}`);
+        if ([429, 503, 502, 500].includes(resp.status) && tentativa < MAX_TENTATIVAS) continue;
+        throw new Error(`Erro API (${resp.status}): ${errText.substring(0, 50)}`);
+      }
+
+      const data = await resp.json();
+      const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      let jsonStr = rawText.trim().replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
+
+      const parsed = JSON.parse(jsonStr);
+      dbg("✅ JSON parseado com sucesso.");
+      return parsed;
+
+    } catch (e) {
+      if (tentativa === MAX_TENTATIVAS) throw e;
+      dbg(`⚠️ Erro na tentativa ${tentativa}: ${e.message}`);
+    }
+  }
+}
+
+function parsePct(str) {
+  if (!str && str !== 0) return null;
+  const m = String(str).replace(/\s/g,'').match(/-?[\d,.]+/);
+  return m ? parseFloat(m[0].replace(/,/g, '.')) : null;
+}
+
+function getSemaphoreVacancia(val) {
+  const num = parsePct(val);
+  if (num === null) return null;
+  if (num <= 5) return { level: 'green', text: 'SAUDÁVEL' };
+  if (num <= 20) return { level: 'amber', text: 'ATENÇÃO' };
+  return { level: 'red', text: 'CRÍTICO' };
+}
+
+function getSemaphoreLtv(val) {
+  const num = parsePct(val);
+  if (num === null) return null;
+  if (num <= 10) return { level: 'green', text: 'ALAVANCAGEM BAIXA' };
+  if (num <= 20) return { level: 'amber', text: 'ALAVANCAGEM MODERADA' };
+  return { level: 'red', text: 'ALAVANCAGEM ALTA' };
+}
+
+function renderSemaphoreHtml(obj, style) {
+  if (!obj) return '';
+  return style === 'line' 
+    ? `<div class="semaphore-line"><div class="semaphore-dot ${obj.level}"></div><div class="semaphore-text">${obj.text}</div></div>`
+    : `<div class="semaphore-pill ${obj.level}">✔ ${obj.text}</div>`;
+}
+
+function renderResultados(d) {
+  const container = document.getElementById('resultadosConteudo');
+  const fundoLabel = document.getElementById('fundoIdentificado');
+  const style = localStorage.getItem('semaforo_style') || 'pill';
+
+  fundoLabel.innerHTML = `
+    ${d.ticker ? `<span class="fundo-ticker">${d.ticker}</span>` : ''}
+    <span style="font-size:12px">${d.gestora || ''}</span>
+    ${d.periodo_referencia ? `<span style="font-size:11px;color:var(--text3);margin-left:6px">${d.periodo_referencia}</span>` : ''}
+  `;
+
+  let html = '';
+  const indicadores = [
+    { key: 'vacancia_fisica', label: '📊 Vacância Física', val: d.vacancia_fisica, tipo: 'vac' },
+    { key: 'vacancia_financeira', label: '💰 Vacância Financeira', val: d.vacancia_financeira, tipo: 'vac' },
+    { key: 'inadimplencia', label: '⚠️ Inadimplência', val: d.inadimplencia },
+    { key: 'ltv', label: '🏦 LTV', val: d.ltv, tipo: 'ltv' },
+    { key: 'divida_pl', label: '🏦 Dívida / PL', val: d.divida_pl, tipo: 'ltv' },
+    { key: 'distribuicao', label: '💰 Distribuição', val: d.distribuicao },
+    { key: 'resultado_distribuivel', label: '📈 Resultado', val: d.resultado_distribuivel },
+    { key: 'receita_total', label: '📊 Receita', val: d.receita_total },
+    { key: 'despesas_totais', label: '📉 Despesas', val: d.despesas_totais },
+    { key: 'num_imoveis', label: '🏢 Imóveis', val: d.num_imoveis },
+    { key: 'num_inquilinos', label: '👥 Inquilinos', val: d.num_inquilinos },
+    { key: 'abl_total', label: '📐 ABL', val: d.abl_total },
+    { key: 'tipo_fii', label: '🏷️ Tipo', val: d.tipo_fii },
+    { key: 'saida_inquilino', label: '🚪 Saída', val: d.saida_inquilino },
+    { key: 'entrada_inquilino', label: '🏠 Entrada', val: d.entrada_inquilino },
+    { key: 'reajustes', label: '📅 Reajustes', val: d.reajustes },
+  ];
+
+  indicadores.forEach(({ label, val, tipo }) => {
+    if (!val && val !== 0) return;
+    let semHtml = '';
+    if (tipo === 'vac') semHtml = renderSemaphoreHtml(getSemaphoreVacancia(val), style);
+    else if (tipo === 'ltv') semHtml = renderSemaphoreHtml(getSemaphoreLtv(val), style);
+
+    html += `<div class="result-card"><div class="result-label">${label}</div><div class="result-value small">${val}</div>${semHtml}</div>`;
+  });
+
+  if (d.resumo_analista) html += `<div class="resumo-box"><div class="result-label">🤖 ANÁLISE (Gemini)</div><div class="resumo-texto">${d.resumo_analista}</div></div>`;
+  if (d.pontos_positivos) html += `<div class="positivos-box"><div class="result-label">✅ PONTOS POSITIVOS</div><ul style="margin-top:8px;padding-left:18px;font-size:14px;color:var(--text2);line-height:1.8">${d.pontos_positivos.split('|').map(i => `<li>${i.trim()}</li>`).join('')}</ul></div>`;
+  if (d.principais_riscos) html += `<div class="riscos-box"><div class="result-label">⚠️ RISCOS</div><ul style="margin-top:8px;padding-left:18px;font-size:14px;color:var(--text2);line-height:1.8">${d.principais_riscos.split('|').map(i => `<li>${i.trim()}</li>`).join('')}</ul></div>`;
+  if (d.comentario_gestor) html += `<div class="comentario-box"><div class="result-label">💬 GESTOR</div><div class="comentario-texto">${d.comentario_gestor}</div></div>`;
+
+  container.innerHTML = html;
+  document.getElementById('resultArea').style.display = 'block';
+}
+
+document.getElementById('btnToggleDebug').addEventListener('click', () => {
+  document.getElementById('debugBox').classList.toggle('show');
+  document.getElementById('debugArrow').classList.toggle('rotated');
+});
+
+document.getElementById('filePdf').addEventListener('change', function () {
+  document.getElementById('fileName').textContent = this.files[0]?.name || 'Selecionar arquivo...';
+});
+
 document.getElementById('btnImportar').addEventListener('click', async () => {
   const file = document.getElementById('filePdf').files[0];
-  const key = localStorage.getItem('gemini_api_key');
-  if(!file || !key) return alert('Selecione arquivo e salve a chave!');
+  if (!file) { setStatus('⚠️ Selecione um PDF.', 'err'); return; }
+  const apiKey = getApiKey();
+  if (!apiKey) { setStatus('🔑 Configure a chave.', 'err'); return; }
 
-  setOverlay(true, 'Verificando cache...');
-  const hash = await getHash(file);
-  const cache = localStorage.getItem('fii_cache_' + hash);
-
-  if(cache) {
-    dbg('🚀 Resultado carregado do cache local (Cota Zero gasta)!');
-    render(JSON.parse(cache));
-    setOverlay(false);
-    return;
-  }
-
+  clearDebug();
+  document.getElementById('resultArea').style.display = 'none';
   setOverlay(true, 'Lendo PDF...');
-  try {
-    const ab = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({data: ab}).promise;
-    let fullText = '';
-    for(let i=1; i<=pdf.numPages; i++) {
-      const page = await pdf.getPage(i);
-      const content = await page.getTextContent();
-      fullText += content.items.map(item => item.str).join(' ') + ' ';
-    }
 
-    setOverlay(true, 'Enviando para Gemini...');
-    const result = await callGemini(extractSnippets(fullText), key);
-    localStorage.setItem('fii_cache_' + hash, JSON.stringify(result));
-    render(result);
-  } catch(e) {
-    alert('Erro: ' + e.message);
+  try {
+    const textoPDF = await extrairTextoPDF(file);
+    setOverlay(true, 'Analisando com Gemini...');
+    const dados = await analisarComGemini(textoPDF, apiKey);
+    renderResultados(dados);
+    setStatus(`✅ Sucesso: ${dados.ticker || 'FII'}`, 'ok');
+  } catch (e) {
+    setStatus('❌ ' + e.message, 'err');
+    dbg('ERRO: ' + e.message);
   } finally {
     setOverlay(false);
   }
 });
 
-function render(d) {
-  const grid = document.getElementById('resultadosConteudo');
-  document.getElementById('fundoIdentificado').innerHTML = `<span class="fundo-ticker">${d.ticker}</span>`;
-
-  let html = '';
-  const fields = [
-    {l: 'Vacância', v: d.vacancia_fisica},
-    {l: 'LTV', v: d.ltv},
-    {l: 'Distribuição', v: d.distribuicao}
-  ];
-
-  fields.forEach(f => {
-    html += `<div class="result-card"><div class="result-label">${f.l}</div><div class="result-value">${f.v || 'N/A'}</div></div>`;
-  });
-
-  html += `<div class="resumo-box"><div class="resumo-texto">${d.resumo_analista}</div></div>`;
-  grid.innerHTML = html;
-  document.getElementById('resultArea').style.display = 'block';
-}
-
-// --- TEMA E UI ---
-document.getElementById('themeToggle').addEventListener('click', () => {
-  document.body.classList.toggle('light');
-  localStorage.setItem('fii_theme', document.body.classList.contains('light') ? 'light' : 'dark');
+document.getElementById('btnLimpar').addEventListener('click', () => {
+  document.getElementById('filePdf').value = '';
+  document.getElementById('fileName').textContent = 'Selecionar arquivo PDF...';
+  document.getElementById('resultArea').style.display = 'none';
+  document.getElementById('status').classList.remove('show');
 });
 
-if(localStorage.getItem('fii_theme') === 'light') document.body.classList.add('light');
+document.getElementById('themeToggle').addEventListener('click', () => {
+  const body = document.body;
+  const btn = document.getElementById('themeToggle');
+  body.classList.toggle('light');
+  const isLight = body.classList.contains('light');
+  localStorage.setItem('theme', isLight ? 'light' : 'dark');
+  btn.textContent = isLight ? '☀️' : '🌙';
+});
 
-setInterval(() => {
-  document.getElementById('hDate').textContent = new Date().toLocaleString();
-}, 1000);
+function atualizarRelogio() {
+  const agora = new Date();
+  const dias = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+  const meses = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  document.getElementById('hDate').textContent = `${dias[agora.getDay()]}, ${String(agora.getDate()).padStart(2,'0')} ${meses[agora.getMonth()]} ${agora.getFullYear()} · ${String(agora.getHours()).padStart(2,'0')}:${String(agora.getMinutes()).padStart(2,'0')}:${String(agora.getSeconds()).padStart(2,'0')}`;
+}
+setInterval(atualizarRelogio, 1000);
+atualizarRelogio();
 
-document.getElementById('btnSalvarKey').onclick = () => {
-  localStorage.setItem('gemini_api_key', document.getElementById('apiKeyInput').value);
-  alert('Chave Salva!');
-};
+if (localStorage.getItem('theme') === 'light') {
+  document.body.classList.add('light');
+  document.getElementById('themeToggle').textContent = '☀️';
+}
+document.getElementById('semaforoStyleSelect').value = localStorage.getItem('semaforo_style') || 'pill';
+document.getElementById('semaforoStyleSelect').addEventListener('change', (e) => localStorage.setItem('semaforo_style', e.target.value));
 </script>
 </body>
 </html>

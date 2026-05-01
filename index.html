@@ -122,6 +122,44 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
 .fundo-ticker { display: inline-block; background: var(--gold); color: #000; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 700; margin-bottom: 12px; }
 
 .info-box { background: var(--blue-bg); border: 1px solid rgba(52,152,219,0.2); border-radius: 8px; padding: 10px 14px; font-size: 13px; color: var(--blue); margin-bottom: 0.75rem; line-height: 1.5; }
+
+/* DRAG & DROP */
+.drop-zone { border: 2px dashed var(--border2); border-radius: 10px; padding: 1.5rem 1rem; text-align: center; color: var(--text3); font-size: 13px; margin-bottom: 0.75rem; transition: border-color 0.2s, background 0.2s; cursor: pointer; }
+.drop-zone.drag-over { border-color: var(--gold); background: rgba(245,200,66,0.06); color: var(--gold); }
+.drop-zone svg { margin-bottom: 6px; opacity: 0.5; }
+.drop-zone.drag-over svg { opacity: 1; }
+
+/* SEMÁFORO */
+.semaforo-bar { height: 5px; border-radius: 3px; margin-top: 8px; background: var(--border); overflow: hidden; }
+.semaforo-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+.semaforo-fill.ok { background: var(--green); }
+.semaforo-fill.neutro { background: var(--amber); }
+.semaforo-fill.alerta { background: var(--red); }
+.semaforo-label { font-size: 10px; margin-top: 4px; font-weight: 600; letter-spacing: 0.5px; }
+.semaforo-label.ok { color: var(--green); }
+.semaforo-label.neutro { color: var(--amber); }
+.semaforo-label.alerta { color: var(--red); }
+
+/* CARD DÍVIDA/ALAVANCAGEM */
+.divida-card { grid-column: 1 / -1; background: var(--result-item-bg); border-radius: 10px; padding: 1.25rem; border: 1px solid var(--border); margin-top: 0.5rem; }
+.divida-card.alerta-divida { border-color: rgba(231,76,60,0.4); background: rgba(231,76,60,0.05); }
+.divida-card.ok-divida { border-color: rgba(46,204,113,0.3); }
+.divida-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-top: 0.75rem; }
+.divida-item { text-align: center; }
+.divida-item-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text3); margin-bottom: 4px; }
+.divida-item-val { font-size: 16px; font-weight: 700; font-family: 'Atkinson Hyperlegible', monospace; }
+.divida-alerta-badge { display: inline-flex; align-items: center; gap: 5px; background: var(--red-bg); color: var(--red); border: 1px solid rgba(231,76,60,0.3); border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 600; margin-left: 8px; }
+.divida-ok-badge { display: inline-flex; align-items: center; gap: 5px; background: var(--green-bg); color: var(--green); border: 1px solid rgba(46,204,113,0.3); border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 600; margin-left: 8px; }
+
+/* BOTÃO EXPORTAR PDF */
+.btn-export { background: transparent; border: 1px solid var(--border2); color: var(--text2); border-radius: 8px; padding: 7px 14px; font-size: 13px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.btn-export:hover { border-color: var(--gold); color: var(--gold); background: rgba(245,200,66,0.08); }
+@media print {
+  .header, .card:not(#resultArea), .footer, #btnExportarPDF, .btn-export, .debug-wrapper { display: none !important; }
+  body { background: #fff !important; color: #000 !important; }
+  #resultArea { display: block !important; border: none !important; box-shadow: none !important; }
+  .result-card, .resumo-box, .riscos-box, .positivos-box, .comentario-box, .divida-card { break-inside: avoid; }
+}
 </style>
 </head>
 <body>
@@ -172,6 +210,15 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
       📄 Importar relatório gerencial de FII (PDF)
       <span>Análise inteligente com Gemini AI · Vacância · Inadimplência · LTV · Rendimentos</span>
     </div>
+
+    <!-- DRAG & DROP ZONE -->
+    <div class="drop-zone" id="dropZone">
+      <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="display:block;margin:0 auto 6px">
+        <path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+      </svg>
+      Arraste e solte o PDF aqui ou use o botão abaixo
+    </div>
+
     <div class="upload-row">
       <label class="file-label" for="filePdf">
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
@@ -203,6 +250,7 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
         <span id="fundoIdentificado" style="color:var(--gold)"></span>
         <span class="ai-badge">✨ Gemini AI</span>
+        <button class="btn-export" id="btnExportarPDF" onclick="window.print()">🖨️ Exportar / Imprimir</button>
       </div>
     </div>
     <div id="resultadosConteudo" class="resultados-grid"></div>
@@ -411,12 +459,58 @@ ${textoLimitado}`;
 }
 
 // ==== RENDER ====
+function extrairNumero(val) {
+  if (!val) return null;
+  const n = parseFloat(String(val).replace(/[^\d,.-]/g, '').replace(',', '.'));
+  return isNaN(n) ? null : n;
+}
+
 function colorVacancia(val) {
   if (!val) return '';
-  const num = parseFloat(val.replace(',', '.'));
+  const num = extrairNumero(val);
+  if (num === null) return '';
   if (num === 0) return 'ok';
   if (num <= 5) return 'neutro';
   return 'alerta';
+}
+
+function colorLTV(val) {
+  if (!val) return '';
+  const num = extrairNumero(val);
+  if (num === null) return '';
+  if (num <= 35) return 'ok';
+  if (num <= 50) return 'neutro';
+  return 'alerta';
+}
+
+function colorInadimplencia(val) {
+  if (!val || val === '0%' || val === 'R$ 0,00' || val === '0') return 'ok';
+  const num = extrairNumero(val);
+  if (num === null) return 'alerta';
+  if (num === 0) return 'ok';
+  if (num <= 2) return 'neutro';
+  return 'alerta';
+}
+
+function semaforoHTML(cor, pct) {
+  const labels = { ok: '✅ SAUDÁVEL', neutro: '⚠️ ATENÇÃO', alerta: '🔴 CRÍTICO' };
+  const largura = Math.min(Math.max(pct, 4), 100);
+  if (!cor) return '';
+  return `
+    <div class="semaforo-bar"><div class="semaforo-fill ${cor}" style="width:${largura}%"></div></div>
+    <div class="semaforo-label ${cor}">${labels[cor] || ''}</div>
+  `;
+}
+
+function cardComSemaforo(label, val, cor, pct) {
+  if (!val) return '';
+  return `
+    <div class="result-card">
+      <div class="result-label">${label}</div>
+      <div class="result-value small ${cor}">${val}</div>
+      ${semaforoHTML(cor, pct)}
+    </div>
+  `;
 }
 
 function renderResultados(d) {
@@ -431,36 +525,80 @@ function renderResultados(d) {
 
   let html = '';
 
-  const indicadores = [
-    { label: '📊 Vacância Física', val: d.vacancia_fisica, cor: colorVacancia(d.vacancia_fisica) },
-    { label: '💰 Vacância Financeira', val: d.vacancia_financeira, cor: colorVacancia(d.vacancia_financeira) },
-    { label: '⚠️ Inadimplência', val: d.inadimplencia, cor: d.inadimplencia && d.inadimplencia !== '0%' && d.inadimplencia !== 'R$ 0,00' ? 'alerta' : 'ok' },
-    { label: '🏦 LTV (Loan to Value)', val: d.ltv, cor: '' },
-    { label: '💰 Distribuição (R$/cota)', val: d.distribuicao, cor: '' },
-    { label: '📈 Resultado Distribuível', val: d.resultado_distribuivel, cor: '' },
-    { label: '📊 Receita Total', val: d.receita_total, cor: '' },
-    { label: '📉 Despesas Totais', val: d.despesas_totais, cor: '' },
-    { label: '💰 Saldo em Caixa', val: d.saldo_caixa, cor: '' },
-    { label: '🏢 Nº de Imóveis', val: d.num_imoveis, cor: '' },
-    { label: '👥 Nº de Inquilinos', val: d.num_inquilinos, cor: '' },
-    { label: '📐 ABL Total', val: d.abl_total, cor: '' },
-    { label: '🏷️ Tipo de FII', val: d.tipo_fii, cor: '' },
+  // --- Vacância Física com semáforo ---
+  const corVacFis = colorVacancia(d.vacancia_fisica);
+  const numVacFis = extrairNumero(d.vacancia_fisica) || 0;
+  html += cardComSemaforo('📊 Vacância Física', d.vacancia_fisica, corVacFis, numVacFis * 2);
+
+  // --- Vacância Financeira com semáforo ---
+  const corVacFin = colorVacancia(d.vacancia_financeira);
+  const numVacFin = extrairNumero(d.vacancia_financeira) || 0;
+  html += cardComSemaforo('💰 Vacância Financeira', d.vacancia_financeira, corVacFin, numVacFin * 2);
+
+  // --- Inadimplência com semáforo ---
+  const corInad = colorInadimplencia(d.inadimplencia);
+  const numInad = extrairNumero(d.inadimplencia) || 0;
+  html += cardComSemaforo('⚠️ Inadimplência', d.inadimplencia, corInad, numInad * 5);
+
+  // --- LTV com semáforo ---
+  const corLTV = colorLTV(d.ltv);
+  const numLTV = extrairNumero(d.ltv) || 0;
+  html += cardComSemaforo('🏦 LTV (Loan to Value)', d.ltv, corLTV, numLTV);
+
+  // --- Demais indicadores sem semáforo ---
+  const indicadoresSimples = [
+    { label: '💰 Distribuição (R$/cota)', val: d.distribuicao },
+    { label: '📈 Resultado Distribuível', val: d.resultado_distribuivel },
+    { label: '📊 Receita Total', val: d.receita_total },
+    { label: '📉 Despesas Totais', val: d.despesas_totais },
+    { label: '💰 Saldo em Caixa', val: d.saldo_caixa },
+    { label: '🏢 Nº de Imóveis', val: d.num_imoveis },
+    { label: '👥 Nº de Inquilinos', val: d.num_inquilinos },
+    { label: '📐 ABL Total', val: d.abl_total },
+    { label: '🏷️ Tipo de FII', val: d.tipo_fii },
     { label: '📋 Parcelas a Pagar', val: d.parcelas_pagar, cor: d.parcelas_pagar ? 'alerta' : '' },
     { label: '🚪 Saída de Inquilino', val: d.saida_inquilino, cor: d.saida_inquilino ? 'alerta' : '' },
     { label: '🏠 Entrada de Inquilino', val: d.entrada_inquilino, cor: d.entrada_inquilino ? 'ok' : '' },
-    { label: '📅 Reajustes', val: d.reajustes, cor: '' },
+    { label: '📅 Reajustes', val: d.reajustes },
   ];
 
-  indicadores.forEach(({ label, val, cor }) => {
+  indicadoresSimples.forEach(({ label, val, cor }) => {
     if (!val) return;
     html += `
       <div class="result-card">
         <div class="result-label">${label}</div>
-        <div class="result-value small ${cor}">${val}</div>
+        <div class="result-value small ${cor || ''}">${val}</div>
       </div>
     `;
   });
 
+  // --- CARD DÍVIDA / ALAVANCAGEM ---
+  const temDivida = d.ltv || d.divida_pl || d.custo_divida || d.prazo_medio_divida;
+  if (temDivida) {
+    const numLTVval = extrairNumero(d.ltv);
+    const numDividaPL = extrairNumero(d.divida_pl);
+    const estaAlavancado = (numLTVval !== null && numLTVval > 50) || (numDividaPL !== null && numDividaPL > 60);
+    const classeCard = estaAlavancado ? 'alerta-divida' : 'ok-divida';
+    const badge = estaAlavancado
+      ? `<span class="divida-alerta-badge">⚠️ ALAVANCAGEM ELEVADA</span>`
+      : `<span class="divida-ok-badge">✅ ALAVANCAGEM CONTROLADA</span>`;
+
+    html += `
+      <div class="divida-card ${classeCard}">
+        <div class="result-label" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+          🏦 ESTRUTURA DE DÍVIDA / ALAVANCAGEM ${badge}
+        </div>
+        <div class="divida-grid">
+          ${d.ltv ? `<div class="divida-item"><div class="divida-item-label">LTV</div><div class="divida-item-val ${corLTV}">${d.ltv}</div></div>` : ''}
+          ${d.divida_pl ? `<div class="divida-item"><div class="divida-item-label">Dívida / PL</div><div class="divida-item-val ${numDividaPL > 60 ? 'alerta' : numDividaPL > 40 ? 'neutro' : 'ok'}">${d.divida_pl}</div></div>` : ''}
+          ${d.custo_divida ? `<div class="divida-item"><div class="divida-item-label">Custo da Dívida</div><div class="divida-item-val">${d.custo_divida}</div></div>` : ''}
+          ${d.prazo_medio_divida ? `<div class="divida-item"><div class="divida-item-label">Prazo Médio</div><div class="divida-item-val">${d.prazo_medio_divida}</div></div>` : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  // --- Resumo analista ---
   if (d.resumo_analista) {
     html += `
       <div class="resumo-box">
@@ -470,6 +608,7 @@ function renderResultados(d) {
     `;
   }
 
+  // --- Pontos positivos ---
   if (d.pontos_positivos) {
     const itens = d.pontos_positivos.split('|').map(s => s.trim()).filter(Boolean);
     html += `
@@ -482,6 +621,7 @@ function renderResultados(d) {
     `;
   }
 
+  // --- Riscos ---
   if (d.principais_riscos) {
     const itens = d.principais_riscos.split('|').map(s => s.trim()).filter(Boolean);
     html += `
@@ -494,6 +634,7 @@ function renderResultados(d) {
     `;
   }
 
+  // --- Comentário do gestor ---
   if (d.comentario_gestor) {
     html += `
       <div class="comentario-box">
@@ -506,6 +647,31 @@ function renderResultados(d) {
   container.innerHTML = html;
   document.getElementById('resultArea').style.display = 'block';
 }
+
+// ==== DRAG & DROP ====
+function carregarArquivo(file) {
+  if (!file || file.type !== 'application/pdf') {
+    setStatus('⚠️ Apenas arquivos PDF são aceitos.', 'err');
+    return;
+  }
+  // Injeta o arquivo no input nativo
+  const dt = new DataTransfer();
+  dt.items.add(file);
+  document.getElementById('filePdf').files = dt.files;
+  document.getElementById('fileName').textContent = file.name;
+  setStatus(`📄 Arquivo carregado: ${file.name}`, 'ok');
+}
+
+const dropZone = document.getElementById('dropZone');
+dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  carregarArquivo(file);
+});
+dropZone.addEventListener('click', () => document.getElementById('filePdf').click());
 
 // ==== EVENTOS ====
 document.getElementById('btnToggleDebug').addEventListener('click', () => {

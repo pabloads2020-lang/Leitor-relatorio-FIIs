@@ -24,16 +24,16 @@
   --result-item-bg: #1c2333;
 }
 body.light {
-  --bg: #f5f7fa; --bg2: #ffffff; --bg3: #f0f2f5;
+  --bg: #f5f7fa; --bg2: #ffff; --bg3: #f0f2f5;
   --border: rgba(0,0,0,0.08); --border2: rgba(0,0,0,0.12);
   --gold: #d4a017; --gold2: #b8860b;
   --text: #1a1a2e; --text2: #4a5568; --text3: #718096;
   --green: #27ae60; --green-bg: rgba(39,174,96,0.1);
   --red: #e74c3c; --red-bg: rgba(231,76,60,0.1);
   --amber: #e67e22; --amber-bg: rgba(230,126,34,0.1);
-  --header-bg: #ffffff; --header-border: rgba(0,0,0,0.08);
-  --card-bg: #ffffff; --card-border: rgba(0,0,0,0.08);
-  --input-bg: #ffffff; --input-border: #e2e8f0;
+  --header-bg: #ffff; --header-border: rgba(0,0,0,0.08);
+  --card-bg: #ffff; --card-border: rgba(0,0,0,0.08);
+  --input-bg: #ffff; --input-border: #e2e8f0;
   --debug-bg: #f7fafc; --overlay-bg: rgba(255,255,255,.95);
   --footer-border: rgba(0,0,0,0.08);
   --result-item-bg: #f7fafc;
@@ -238,7 +238,7 @@ function setOverlay(show, txt) {
   if (txt) document.getElementById('overlayText').textContent = txt;
 }
 
-// ========== API KEY ==========
+// ==== API KEY ====
 function getApiKey() {
   return localStorage.getItem('gemini_api_key') || '';
 }
@@ -273,7 +273,7 @@ document.getElementById('apiEye').addEventListener('click', () => {
 
 updateApiStatusUI();
 
-// ========== EXTRAÇÃO DE TEXTO DO PDF ==========
+// ==== EXTRAÇÃO DE TEXTO DO PDF ====
 function normalizarTexto(texto) {
   return texto.replace(/[\n\r\t]+/g, ' ').replace(/\s+/g, ' ').trim();
 }
@@ -299,13 +299,12 @@ async function extrairTextoPDF(file) {
   return normalizado;
 }
 
-// ========== ANÁLISE COM GEMINI (com retry automático) ==========
+// ==== ANÁLISE COM GEMINI (com retry automático) ====
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 async function analisarComGemini(textoPDF, apiKey) {
   dbg("🤖 Enviando para Gemini AI...");
 
-  // Limita o texto para não exceder o limite da API (1M tokens, mas vamos ser conservadores)
   const textoLimitado = textoPDF.substring(0, 80000);
 
   const prompt = `Você é um analista especialista em Fundos de Investimento Imobiliário (FIIs) do Brasil.
@@ -361,7 +360,7 @@ ${textoLimitado}`;
   };
 
   const MAX_TENTATIVAS = 4;
-  const ESPERAS = [10000, 20000, 40000]; // 10s, 20s, 40s entre tentativas
+  const ESPERAS = [10000, 20000, 40000];
 
   for (let tentativa = 1; tentativa <= MAX_TENTATIVAS; tentativa++) {
     if (tentativa > 1) {
@@ -411,7 +410,7 @@ ${textoLimitado}`;
   throw new Error('Todas as tentativas falharam. O servidor Gemini está instável. Tente em alguns minutos.');
 }
 
-// ========== RENDER ==========
+// ==== RENDER ====
 function colorVacancia(val) {
   if (!val) return '';
   const num = parseFloat(val.replace(',', '.'));
@@ -432,7 +431,6 @@ function renderResultados(d) {
 
   let html = '';
 
-  // Cards de indicadores
   const indicadores = [
     { label: '📊 Vacância Física', val: d.vacancia_fisica, cor: colorVacancia(d.vacancia_fisica) },
     { label: '💰 Vacância Financeira', val: d.vacancia_financeira, cor: colorVacancia(d.vacancia_financeira) },
@@ -463,7 +461,6 @@ function renderResultados(d) {
     `;
   });
 
-  // Resumo do analista
   if (d.resumo_analista) {
     html += `
       <div class="resumo-box">
@@ -473,7 +470,6 @@ function renderResultados(d) {
     `;
   }
 
-  // Pontos positivos
   if (d.pontos_positivos) {
     const itens = d.pontos_positivos.split('|').map(s => s.trim()).filter(Boolean);
     html += `
@@ -486,7 +482,6 @@ function renderResultados(d) {
     `;
   }
 
-  // Riscos
   if (d.principais_riscos) {
     const itens = d.principais_riscos.split('|').map(s => s.trim()).filter(Boolean);
     html += `
@@ -499,7 +494,6 @@ function renderResultados(d) {
     `;
   }
 
-  // Comentário do gestor
   if (d.comentario_gestor) {
     html += `
       <div class="comentario-box">
@@ -513,7 +507,7 @@ function renderResultados(d) {
   document.getElementById('resultArea').style.display = 'block';
 }
 
-// ========== EVENTOS ==========
+// ==== EVENTOS ====
 document.getElementById('btnToggleDebug').addEventListener('click', () => {
   document.getElementById('debugBox').classList.toggle('show');
   document.getElementById('debugArrow').classList.toggle('rotated');
@@ -587,7 +581,22 @@ document.getElementById('themeToggle').addEventListener('click', () => {
   }
 });
 
-document.getElementById('hDate').textContent = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+// Relógio em tempo real
+function atualizarRelogio() {
+  const agora = new Date();
+  const diasSemana = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+  const meses = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  const dia = diasSemana[agora.getDay()];
+  const d = String(agora.getDate()).padStart(2,'0');
+  const m = meses[agora.getMonth()];
+  const a = agora.getFullYear();
+  const h = String(agora.getHours()).padStart(2,'0');
+  const min = String(agora.getMinutes()).padStart(2,'0');
+  const s = String(agora.getSeconds()).padStart(2,'0');
+  document.getElementById('hDate').textContent = `${dia}, ${d} ${m} ${a} · ${h}:${min}:${s}`;
+}
+atualizarRelogio();
+setInterval(atualizarRelogio, 1000);
 
 const savedTheme = localStorage.getItem('theme');
 if (savedTheme === 'light') {

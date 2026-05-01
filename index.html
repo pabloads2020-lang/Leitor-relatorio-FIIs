@@ -1,3 +1,5 @@
+de toda forma vou te mandar meu ultimo codigo
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -495,11 +497,11 @@ IMPORTANTE:
 RELATÓRIO:
 ${textoLimitado}`;
 
-  const rawText = await chamarGemini(prompt, apiKey, 2048);
+  const rawText = await chamarGemini(prompt, apiKey, 8192);
   dbg(`📦 Resposta bruta (primeiros 500 chars):\n${rawText.substring(0, 500)}`);
 
   let jsonStr = rawText.trim()
-    .replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
+    .replace(/^json\s*/i, '').replace(/^\s*/i, '').replace(/\s*$/i, '').trim();
 
   try {
     const parsed = JSON.parse(jsonStr);

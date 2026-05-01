@@ -403,7 +403,7 @@ ${textoLimitado}`;
     contents: [{ parts: [{ text: prompt }] }],
     generationConfig: {
       temperature: 0.1,
-      maxOutputTokens: 2048
+      maxOutputTokens: 8192
     }
   };
 
@@ -445,12 +445,33 @@ ${textoLimitado}`;
     let jsonStr = rawText.trim()
       .replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
 
+    // Tenta parsear normalmente
     try {
       const parsed = JSON.parse(jsonStr);
       dbg("✅ JSON parseado com sucesso.");
       return parsed;
     } catch (e) {
-      dbg(`⚠️ Falha ao parsear JSON: ${e.message}\nTexto recebido:\n${rawText}`);
+      dbg(`⚠️ JSON incompleto detectado. Tentando recuperar... (${e.message})`);
+    }
+
+    // Recuperação: fecha o JSON truncado automaticamente
+    try {
+      // Remove última linha incompleta (string cortada no meio)
+      let fixado = jsonStr;
+
+      // Remove trailing vírgula ou chave incompleta no final
+      fixado = fixado.replace(/,\s*$/, '').replace(/:\s*"[^"]*$/, ': null');
+
+      // Conta chaves abertas e fecha as que faltam
+      const abertas = (fixado.match(/\{/g) || []).length;
+      const fechadas = (fixado.match(/\}/g) || []).length;
+      for (let i = 0; i < abertas - fechadas; i++) fixado += '}';
+
+      const parsed = JSON.parse(fixado);
+      dbg("✅ JSON recuperado com sucesso (resposta estava truncada — aumente maxOutputTokens se isso persistir).");
+      return parsed;
+    } catch (e2) {
+      dbg(`❌ Falha ao recuperar JSON: ${e2.message}\nTexto recebido:\n${rawText.substring(0, 800)}`);
       throw new Error('O modelo retornou um formato inesperado. Tente novamente.');
     }
   }

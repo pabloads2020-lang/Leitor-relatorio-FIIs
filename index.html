@@ -510,14 +510,30 @@ function colorLTV(val) {
   return 'alerta';
 }
 
+// ---------- ALTERAÇÃO SOLICITADA: Inadimplência com thresholds 10/20 ----------
 function colorInadimplencia(val) {
   if (!val || val === '0%' || val === 'R\$ 0,00' || val === '0') return 'ok';
   const num = extrairNumero(val);
   if (num === null) return 'alerta';
-  if (num === 0) return 'ok';
-  if (num <= 2) return 'neutro';
+  // Verde: até 10%
+  if (num <= 10) return 'ok';
+  // Amarelo: >10% e <=20%
+  if (num <= 20) return 'neutro';
+  // Vermelho: >20%
   return 'alerta';
 }
+// -------------------------------------------------------------------------
+
+// ---------- NOVA FUNÇÃO: Estrutura de dívida / alavancagem usando thresholds 10/20 ----------
+function colorEstruturaDivida(val) {
+  if (!val) return '';
+  const num = extrairNumero(val);
+  if (num === null) return '';
+  if (num <= 10) return 'ok';
+  if (num <= 20) return 'neutro';
+  return 'alerta';
+}
+// -------------------------------------------------------------------------
 
 function semaforoHTML(cor, pct) {
   const labels = { ok: '✅ SAUDÁVEL', neutro: '⚠️ ATENÇÃO', alerta: '🔴 CRÍTICO' };
@@ -562,10 +578,10 @@ function renderResultados(d) {
   const numVacFin = extrairNumero(d.vacancia_financeira) || 0;
   html += cardComSemaforo('💰 Vacância Financeira', d.vacancia_financeira, corVacFin, numVacFin * 2);
 
-  // --- Inadimplência com semáforo ---
+  // --- Inadimplência com semáforo (ATUALIZADO) ---
   const corInad = colorInadimplencia(d.inadimplencia);
   const numInad = extrairNumero(d.inadimplencia) || 0;
-  html += cardComSemaforo('⚠️ Inadimplência', d.inadimplencia, corInad, numInad * 5);
+  html += cardComSemaforo('⚠️ Inadimplência', d.inadimplencia, corInad, numInad * 2);
 
   // --- LTV com semáforo ---
   const corLTV = colorLTV(d.ltv);
@@ -599,16 +615,34 @@ function renderResultados(d) {
     `;
   });
 
-  // --- CARD DÍVIDA / ALAVANCAGEM ---
+  // --- CARD DÍVIDA / ALAVANCAGEM (USANDO OS THRESHOLDS 10/20) ---
   const temDivida = d.ltv || d.divida_pl || d.custo_divida || d.prazo_medio_divida;
   if (temDivida) {
     const numLTVval = extrairNumero(d.ltv);
     const numDividaPL = extrairNumero(d.divida_pl);
-    const estaAlavancado = (numLTVval !== null && numLTVval > 50) || (numDividaPL !== null && numDividaPL > 60);
-    const classeCard = estaAlavancado ? 'alerta-divida' : 'ok-divida';
-    const badge = estaAlavancado
-      ? `<span class="divida-alerta-badge">⚠️ ALAVANCAGEM ELEVADA</span>`
-      : `<span class="divida-ok-badge">✅ ALAVANCAGEM CONTROLADA</span>`;
+
+    // avalia cada métrica segundo as regras 10/20
+    const corLTVestr = colorEstruturaDivida(d.ltv);
+    const corDividaPL = colorEstruturaDivida(d.divida_pl);
+
+    // determina gravidade final: alerta > neutro > ok
+    const severityOrder = { 'ok': 0, 'neutro': 1, 'alerta': 2 };
+    const maior = [corLTVestr || 'ok', corDividaPL || 'ok'].reduce((acc, cur) => {
+      return severityOrder[cur] > severityOrder[acc] ? cur : acc;
+    }, 'ok');
+
+    let classeCard = 'ok-divida';
+    let badge = `<span class="divida-ok-badge">✅ ALAVANCAGEM CONTROLADA</span>`;
+    if (maior === 'neutro') {
+      classeCard = '';
+      badge = `<span class="divida-ok-badge" style="background:var(--amber-bg); color:var(--amber); border-color:rgba(243,156,18,0.2)">⚠️ REQUER ATENÇÃO</span>`;
+    } else if (maior === 'alerta') {
+      classeCard = 'alerta-divida';
+      badge = `<span class="divida-alerta-badge">⚠️ ALAVANCAGEM ELEVADA</span>`;
+    } else {
+      classeCard = 'ok-divida';
+      badge = `<span class="divida-ok-badge">✅ ALAVANCAGEM CONTROLADA</span>`;
+    }
 
     html += `
       <div class="divida-card ${classeCard}">
@@ -616,8 +650,8 @@ function renderResultados(d) {
           🏦 ESTRUTURA DE DÍVIDA / ALAVANCAGEM ${badge}
         </div>
         <div class="divida-grid">
-          ${d.ltv ? `<div class="divida-item"><div class="divida-item-label">LTV</div><div class="divida-item-val ${corLTV}">${d.ltv}</div></div>` : ''}
-          ${d.divida_pl ? `<div class="divida-item"><div class="divida-item-label">Dívida / PL</div><div class="divida-item-val ${numDividaPL > 60 ? 'alerta' : numDividaPL > 40 ? 'neutro' : 'ok'}">${d.divida_pl}</div></div>` : ''}
+          ${d.ltv ? `<div class="divida-item"><div class="divida-item-label">LTV</div><div class="divida-item-val ${corLTVestr}">${d.ltv}</div></div>` : ''}
+          ${d.divida_pl ? `<div class="divida-item"><div class="divida-item-label">Dívida / PL</div><div class="divida-item-val ${corDividaPL}">${d.divida_pl}</div></div>` : ''}
           ${d.custo_divida ? `<div class="divida-item"><div class="divida-item-label">Custo da Dívida</div><div class="divida-item-val">${d.custo_divida}</div></div>` : ''}
           ${d.prazo_medio_divida ? `<div class="divida-item"><div class="divida-item-label">Prazo Médio</div><div class="divida-item-val">${d.prazo_medio_divida}</div></div>` : ''}
         </div>

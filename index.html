@@ -457,6 +457,18 @@ document.getElementById('btnLimpar').onclick = () => location.reload();
 document.getElementById('themeToggle').onclick = () => { document.body.classList.toggle('light'); localStorage.setItem('theme', document.body.classList.contains('light')?'light':'dark'); };
 if(localStorage.getItem('theme')==='light') document.body.classList.add('light');
 
+// --- Listener do botão de Debug (fix permanente) ---
+(function registerDebugToggle(){
+  const btn = document.getElementById('btnToggleDebug');
+  const dbgBox = document.getElementById('debugBox');
+  const arrow = document.getElementById('debugArrow');
+  if (!btn || !dbgBox || !arrow) return console.warn('Debug elements missing');
+  btn.addEventListener('click', () => {
+    dbgBox.classList.toggle('show');
+    arrow.classList.toggle('rotated');
+  });
+})();
+
 function clock() { document.getElementById('hDate').textContent = new Date().toLocaleString(); }
 setInterval(clock, 1000); clock();
 </script>

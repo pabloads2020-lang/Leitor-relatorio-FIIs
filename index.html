@@ -1,3 +1,4 @@
+TESTE
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -152,7 +153,6 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
 .btn-export { background: transparent; border: 1px solid var(--border2); color: var(--text2); border-radius: 8px; padding: 7px 14px; font-size: 13px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
 .btn-export:hover { border-color: var(--gold); color: var(--gold); background: rgba(245,200,66,0.08); }
 
-/* Estilos para o card de dívida aprimorado */
 .divida-card {
     grid-column: 1 / -1;
     background: var(--result-item-bg);
@@ -321,7 +321,7 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
 </main>
 
 <footer class="footer">
-  Análise inteligente de FIIs com Gemini AI · Ferramenta de Triagem Profissional · v3 Robusta com Card de Dívida Aprimorado
+  Análise inteligente de FIIs com Gemini AI · Ferramenta de Triagem Profissional · v3 Robusta com Critérios de Alavancagem Ajustados
 </footer>
 
 <script>
@@ -397,40 +397,49 @@ function extrairNumero(val) {
     return isNaN(n) ? null : n;
 }
 
-// ==================== FUNÇÃO DE CORES DOS SEMÁFOROS ====================
+// ==================== FUNÇÕES DE CRITÉRIOS AJUSTADOS ====================
+
+// Vacância: igual (mantido)
 function colorVacancia(val) {
     const n = extrairNumero(val);
     if (n === null) return '';
     return n <= 5 ? 'ok' : (n <= 20 ? 'neutro' : 'alerta');
 }
 
+// LTV: NOVOS CRITÉRIOS - Tijolo vs Papel
 function colorLTV(val, tipoFii) {
     const n = extrairNumero(val);
     if (n === null) return '';
-    const isCRI = (tipoFii||'').toLowerCase().match(/cri|papel|receb/);
-    if (isCRI) return n <= 50 ? 'ok' : (n <= 70 ? 'neutro' : 'alerta');
-    return n <= 10 ? 'ok' : (n <= 20 ? 'neutro' : 'alerta');
+    
+    const isPapel = (tipoFii||'').toLowerCase().match(/cri|papel|receb|credito/i);
+    
+    if (isPapel) {
+        // FII de Papel/CRI: até 50% ok, 50-70% atenção, >70% alerta
+        return n <= 50 ? 'ok' : (n <= 70 ? 'neutro' : 'alerta');
+    } else {
+        // FII de Tijolo: até 10% ok, 10-20% atenção, >20% alerta
+        return n <= 10 ? 'ok' : (n <= 20 ? 'neutro' : 'alerta');
+    }
 }
 
+// Inadimplência: mantido
 function colorInadimplencia(val) {
     const n = extrairNumero(val);
     if (n === null || n === 0) return 'ok';
     return n <= 10 ? 'ok' : (n <= 20 ? 'neutro' : 'alerta');
 }
 
-// NOVA FUNÇÃO: Avaliação da Dívida/PL
+// Dívida/PL: NOVOS CRITÉRIOS - até 10% ok, 10-20% atenção, >20% alerta
 function colorDividaPL(val) {
     const n = extrairNumero(val);
     if (n === null) return 'ok';
-    // Dívida/PL saudável < 0.5 (50%), alerta > 1.0 (100%)
-    return n <= 0.5 ? 'ok' : (n <= 1.0 ? 'neutro' : 'alerta');
+    return n <= 10 ? 'ok' : (n <= 20 ? 'neutro' : 'alerta');
 }
 
-// NOVA FUNÇÃO: Avaliação do Custo da Dívida
+// Custo da Dívida: mantido
 function colorCustoDivida(val) {
     const n = extrairNumero(val);
     if (n === null) return null;
-    // Custo real (CDI+% ou percentual anual) - saudável < CDI+2%, alerta > CDI+4%
     if (typeof n === 'number') {
         return n <= 2 ? 'ok' : (n <= 4 ? 'neutro' : 'alerta');
     }
@@ -457,19 +466,19 @@ function getPercentByMetric(titulo, valor, cor) {
     return '50%';
 }
 
-// ==================== CARD DE DÍVIDA MELHORADO (NOVO) ====================
+// ==================== CARD DE DÍVIDA MELHORADO ====================
 function renderCardDividaMelhorado(d) {
     const temDivida = d.ltv || d.divida_pl || d.custo_divida || d.prazo_medio_divida;
     if (!temDivida) return '';
     
-    // Avaliar cada métrica
+    // Avaliar cada métrica com os NOVOS CRITÉRIOS
     const corLTV = colorLTV(d.ltv, d.tipo_fii) || 'ok';
     const corDividaPL = colorDividaPL(d.divida_pl) || 'ok';
     const corCusto = colorCustoDivida(d.custo_divida) || 'ok';
     
     // Avaliar prazo médio como fator de alívio
     const prazoMedio = extrairNumero(d.prazo_medio_divida);
-    const temPrazoLongo = prazoMedio && prazoMedio > 5; // >5 anos é bom
+    const temPrazoLongo = prazoMedio && prazoMedio > 5;
     
     // Matriz de severidade
     const severityOrder = { 'ok': 0, 'neutro': 1, 'alerta': 2 };
@@ -492,20 +501,25 @@ function renderCardDividaMelhorado(d) {
     let badge = '';
     let mensagem = '';
     
+    // Determinar o tipo de fundo para a mensagem
+    const isPapel = (d.tipo_fii||'').toLowerCase().match(/cri|papel|receb|credito/i);
+    const tipoAlavancagem = isPapel ? ' (Limites para FII de Papel: LTV até 50% ok, 50-70% atenção, >70% alerta)' : ' (Limites para FII de Tijolo: LTV até 10% ok, 10-20% atenção, >20% alerta)';
+    
     switch(maiorSeveridade) {
         case 'ok':
             badge = `<span class="divida-ok-badge">✅ ALAVANCAGEM CONTROLADA</span>`;
-            mensagem = temPrazoLongo ? 'Dívida alongada e bem estruturada' : 'Endividamento dentro dos limites saudáveis';
+            mensagem = `Endividamento dentro dos limites saudáveis${tipoAlavancagem}`;
+            if (temPrazoLongo) mensagem = 'Dívida alongada e bem estruturada - ' + mensagem;
             break;
         case 'neutro':
             classeCard = 'divida-card';
-            badge = `<span class="divida-ok-badge" style="background:var(--amber-bg); color:var(--amber); border-color:rgba(243,156,18,0.2)">⚠️ ALAVANCAGEM EM ATENÇÃO</span>`;
-            mensagem = 'Monitorar evolução dos indicadores de endividamento';
+            badge = `<span class="divida-ok-badge" style="background:var(--amber-bg); color:var(--amber); border-color:rgba(243,156,18,0.2)">⚠️ ALAVANCAGEM MODERADA</span>`;
+            mensagem = `Endividamento em nível moderado - requer monitoramento${tipoAlavancagem}`;
             break;
         case 'alerta':
             classeCard = 'divida-card alerta-divida';
             badge = `<span class="divida-alerta-badge">🔴 ALAVANCAGEM ELEVADA</span>`;
-            mensagem = 'Endividamento acima do recomendado - requer análise cautelosa';
+            mensagem = `Endividamento acima do recomendado - requer análise cautelosa${tipoAlavancagem}`;
             break;
     }
     
@@ -631,7 +645,7 @@ function renderResultados(d) {
     html += renderCardSemaforo('⚠️ Inadimplência', d.inadimplencia, colorInadimplencia(d.inadimplencia));
     html += renderCardSemaforo('🏦 LTV', d.ltv, colorLTV(d.ltv, d.tipo_fii));
     
-    // NOVO CARD DE DÍVIDA MELHORADO (adicionado sem remover nada)
+    // Card de dívida melhorado
     html += renderCardDividaMelhorado(d);
     
     if (d.origem_distribuicao) {

@@ -1,10 +1,9 @@
-TESTE 3
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Leitor de Relatórios Gerenciais · FIIs · v5</title>
+<title>Leitor de Relatórios Gerenciais · FIIs</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Atkinson+Hyperlegible:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
@@ -17,7 +16,6 @@ TESTE 3
   --red: #e74c3c; --red-bg: rgba(231,76,60,0.12);
   --amber: #f39c12; --amber-bg: rgba(243,156,18,0.12);
   --blue: #3498db; --blue-bg: rgba(52,152,219,0.12);
-  --purple: #9b59b6; --purple-bg: rgba(155,89,182,0.12);
   --header-bg: #161b25; --header-border: rgba(255,255,255,0.07);
   --card-bg: #161b25; --card-border: rgba(255,255,255,0.07);
   --input-bg: #1c2333; --input-border: rgba(255,255,255,0.13);
@@ -33,7 +31,6 @@ body.light {
   --green: #27ae60; --green-bg: rgba(39,174,96,0.1);
   --red: #e74c3c; --red-bg: rgba(231,76,60,0.1);
   --amber: #e67e22; --amber-bg: rgba(230,126,34,0.1);
-  --purple: #8e44ad; --purple-bg: rgba(142,68,173,0.1);
   --header-bg: #ffff; --header-border: rgba(0,0,0,0.08);
   --card-bg: #ffff; --card-border: rgba(0,0,0,0.08);
   --input-bg: #ffff; --input-border: #e2e8f0;
@@ -57,6 +54,7 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
 .card-title { font-size: 12px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; }
 .card-title span { font-size: 11px; font-weight: 400; letter-spacing: 0; text-transform: none; }
 
+/* API KEY SECTION */
 .api-row { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
 .api-input-wrap { position: relative; flex: 1; min-width: 220px; }
 .api-input { width: 100%; background: var(--input-bg); border: 1.5px solid var(--input-border); border-radius: 8px; padding: 9px 40px 9px 14px; font-size: 14px; color: var(--text); font-family: monospace; outline: none; }
@@ -86,6 +84,7 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
 .status-err { background: var(--red-bg); color: var(--red); border: 1px solid rgba(231,76,60,0.25); }
 .status-warn { background: var(--amber-bg); color: var(--amber); border: 1px solid rgba(243,156,18,0.25); }
 
+/* RESULTADO IA */
 .ai-badge { display: inline-flex; align-items: center; gap: 5px; background: var(--blue-bg); color: var(--blue); border: 1px solid rgba(52,152,219,0.25); border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 600; }
 .resultados-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-top: 1rem; }
 .result-card { background: var(--result-item-bg); border-radius: 10px; padding: 1rem; border: 1px solid var(--border); }
@@ -101,6 +100,8 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
 
 .riscos-box { grid-column: 1 / -1; background: var(--result-item-bg); border-radius: 10px; padding: 1.25rem; border-left: 3px solid var(--red); margin-top: 0.5rem; }
 .positivos-box { grid-column: 1 / -1; background: var(--result-item-bg); border-radius: 10px; padding: 1.25rem; border-left: 3px solid var(--green); margin-top: 0.5rem; }
+.comentario-box { grid-column: 1 / -1; background: var(--result-item-bg); border-radius: 10px; padding: 1rem; border-left: 3px solid var(--gold); margin-top: 0.5rem; }
+.comentario-texto { font-size: 14px; line-height: 1.5; color: var(--text2); margin-top: 6px; max-height: 250px; overflow-y: auto; }
 
 .debug-wrapper { margin-top: 0.75rem; }
 .debug-header { display: flex; align-items: center; justify-content: flex-end; margin-bottom: 0.5rem; }
@@ -122,11 +123,13 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
 
 .info-box { background: var(--blue-bg); border: 1px solid rgba(52,152,219,0.2); border-radius: 8px; padding: 10px 14px; font-size: 13px; color: var(--blue); margin-bottom: 0.75rem; line-height: 1.5; }
 
+/* DRAG & DROP */
 .drop-zone { border: 2px dashed var(--border2); border-radius: 10px; padding: 1.5rem 1rem; text-align: center; color: var(--text3); font-size: 13px; margin-bottom: 0.75rem; transition: border-color 0.2s, background 0.2s; cursor: pointer; }
 .drop-zone.drag-over { border-color: var(--gold); background: rgba(245,200,66,0.06); color: var(--gold); }
 .drop-zone svg { margin-bottom: 6px; opacity: 0.5; }
 .drop-zone.drag-over svg { opacity: 1; }
 
+/* SEMÁFORO */
 .semaforo-bar { height: 5px; border-radius: 3px; margin-top: 8px; background: var(--border); overflow: hidden; }
 .semaforo-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
 .semaforo-fill.ok { background: var(--green); }
@@ -137,74 +140,25 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
 .semaforo-label.neutro { color: var(--amber); }
 .semaforo-label.alerta { color: var(--red); }
 
-/* Cards de Composição - AGORA DO MESMO TAMANHO DOS OUTROS */
-.composicao-card { 
-    background: var(--result-item-bg); 
-    border-radius: 10px; 
-    padding: 1rem; 
-    border: 1px solid var(--border);
-    /* SEM grid-column: 1 / -1 - agora ocupa tamanho normal */
-}
-.composicao-titulo { 
-    font-size: 11px; 
-    text-transform: uppercase; 
-    letter-spacing: 1px; 
-    color: var(--text3); 
-    margin-bottom: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 4px;
-}
-.composicao-tipo-badge { 
-    display: inline-block; 
-    background: var(--purple-bg); 
-    color: var(--purple); 
-    border-radius: 20px; 
-    padding: 2px 8px; 
-    font-size: 9px; 
-    font-weight: 600; 
-}
-.composicao-valor { 
-    font-size: 22px; 
-    font-weight: 700; 
-    font-family: 'Atkinson Hyperlegible', monospace; 
-    color: var(--gold);
-    text-align: center;
-    margin: 8px 0;
-}
-.composicao-desc { 
-    font-size: 10px; 
-    color: var(--text3); 
-    text-align: center;
-}
-
-/* Cards de Dívida - ocupam largura total */
-.divida-card { grid-column: 1 / -1; background: var(--result-item-bg); border-radius: 10px; padding: 1.25rem; border: 1px solid var(--border); margin-top: 0.5rem; transition: all 0.3s ease; }
-.divida-card.alerta-divida { border-color: rgba(231,76,60,0.4); background: rgba(231,76,60,0.05); box-shadow: 0 0 0 1px rgba(231,76,60,0.1); }
-.divida-card.ok-divida { border-color: rgba(46,204,113,0.3); background: rgba(46,204,113,0.02); }
+/* CARD DÍVIDA/ALAVANCAGEM */
+.divida-card { grid-column: 1 / -1; background: var(--result-item-bg); border-radius: 10px; padding: 1.25rem; border: 1px solid var(--border); margin-top: 0.5rem; }
+.divida-card.alerta-divida { border-color: rgba(231,76,60,0.4); background: rgba(231,76,60,0.05); }
+.divida-card.ok-divida { border-color: rgba(46,204,113,0.3); }
 .divida-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-top: 0.75rem; }
-.divida-item { text-align: center; padding: 0.5rem; border-radius: 8px; background: var(--bg3); }
+.divida-item { text-align: center; }
 .divida-item-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text3); margin-bottom: 4px; }
 .divida-item-val { font-size: 16px; font-weight: 700; font-family: 'Atkinson Hyperlegible', monospace; }
-.divida-item-val.ok { color: var(--green); }
-.divida-item-val.neutro { color: var(--amber); }
-.divida-item-val.alerta { color: var(--red); }
 .divida-alerta-badge { display: inline-flex; align-items: center; gap: 5px; background: var(--red-bg); color: var(--red); border: 1px solid rgba(231,76,60,0.3); border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 600; margin-left: 8px; }
 .divida-ok-badge { display: inline-flex; align-items: center; gap: 5px; background: var(--green-bg); color: var(--green); border: 1px solid rgba(46,204,113,0.3); border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 600; margin-left: 8px; }
 
-.prof-card { border-top: 2px solid var(--gold); }
-.prof-badge { background: var(--gold); color: #000; padding: 2px 6px; border-radius: 4px; font-size: 9px; margin-right: 6px; font-weight: 800; }
-
+/* BOTÃO EXPORTAR PDF */
 .btn-export { background: transparent; border: 1px solid var(--border2); color: var(--text2); border-radius: 8px; padding: 7px 14px; font-size: 13px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
 .btn-export:hover { border-color: var(--gold); color: var(--gold); background: rgba(245,200,66,0.08); }
-
 @media print {
   .header, .card:not(#resultArea), .footer, #btnExportarPDF, .btn-export, .debug-wrapper { display: none !important; }
   body { background: #fff !important; color: #000 !important; }
   #resultArea { display: block !important; border: none !important; box-shadow: none !important; }
-  .result-card, .resumo-box, .riscos-box, .positivos-box, .composicao-card, .divida-card { break-inside: avoid; }
+  .result-card, .resumo-box, .riscos-box, .positivos-box, .comentario-box, .divida-card { break-inside: avoid; }
 }
 </style>
 </head>
@@ -228,14 +182,17 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
 
 <main class="main">
 
+  <!-- CARD: API KEY -->
   <div class="card">
     <div class="card-title">
       🔑 Configuração da API Gemini (Google AI)
       <span>Gratuita · Chave salva localmente no seu navegador</span>
     </div>
+
     <div class="info-box">
       💡 A chave fica salva <strong>só no seu navegador</strong> (localStorage). Nunca é enviada para nenhum servidor nosso. Cada analista usa a própria chave gratuita.
     </div>
+
     <div class="api-row">
       <div class="api-input-wrap">
         <input type="password" id="apiKeyInput" class="api-input" placeholder="Cole aqui sua chave: AIza...">
@@ -247,17 +204,21 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
     <div class="api-status" id="apiStatus"></div>
   </div>
 
+  <!-- CARD: UPLOAD -->
   <div class="card">
     <div class="card-title">
       📄 Importar relatório gerencial de FII (PDF)
-      <span>Análise inteligente com Gemini AI · Versão Completa</span>
+      <span>Análise inteligente com Gemini AI · Vacância · Inadimplência · LTV · Rendimentos</span>
     </div>
+
+    <!-- DRAG & DROP ZONE -->
     <div class="drop-zone" id="dropZone">
       <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="display:block;margin:0 auto 6px">
         <path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
       </svg>
       Arraste e solte o PDF aqui ou use o botão abaixo
     </div>
+
     <div class="upload-row">
       <label class="file-label" for="filePdf">
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
@@ -270,6 +231,7 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
       <button class="btn btn-ghost" id="btnLimpar">Limpar</button>
     </div>
     <div id="status" class="status"></div>
+
     <div class="debug-wrapper">
       <div class="debug-header">
         <button class="btn-debug" id="btnToggleDebug">
@@ -281,6 +243,7 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
     </div>
   </div>
 
+  <!-- CARD: RESULTADO -->
   <div id="resultArea" class="card" style="display:none">
     <div class="card-title">
       📊 Análise do Relatório Gerencial
@@ -296,702 +259,700 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
 </main>
 
 <footer class="footer">
-  Análise inteligente de FIIs com Gemini AI · Ferramenta de Triagem Profissional · v5 com Cards Compactos
+  Análise inteligente de FIIs com Gemini AI · Chave armazenada localmente · Compatível com múltiplas gestoras
 </footer>
 
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-// ==================== VARIÁVEIS GLOBAIS ====================
 let debugContent = [];
-let isProcessing = false;
-let currentOverlayShown = false;
 
-// ==================== FUNÇÕES DE DEBUG ====================
-function dbg(txt) { 
-    debugContent.push(new Date().toLocaleTimeString() + ' - ' + txt); 
-    const debugBox = document.getElementById('debugBox');
-    if (debugBox) debugBox.textContent = debugContent.join('\n');
+function dbg(txt) {
+  debugContent.push(txt);
+  document.getElementById('debugBox').textContent = debugContent.join('\n');
 }
-function clearDebug() { 
-    debugContent = []; 
-    const debugBox = document.getElementById('debugBox');
-    if (debugBox) debugBox.textContent = '';
+function clearDebug() {
+  debugContent = [];
+  document.getElementById('debugBox').textContent = '';
 }
-
-// ==================== FUNÇÕES DE UI ====================
-function setStatus(msg, tipo) { 
-    const el = document.getElementById('status'); 
-    if (!el) return;
-    el.innerHTML = msg; 
-    el.className = `status show status-${tipo}`; 
+function setStatus(msg, tipo) {
+  const el = document.getElementById('status');
+  el.innerHTML = msg;
+  el.className = `status show status-${tipo}`;
+  if (tipo === 'ok') setTimeout(() => el.classList.remove('show'), 6000);
+}
+function setOverlay(show, txt) {
+  document.getElementById('overlay').classList.toggle('show', show);
+  if (txt) document.getElementById('overlayText').textContent = txt;
 }
 
-function setOverlay(show, txt) { 
-    const overlay = document.getElementById('overlay');
-    const overlayText = document.getElementById('overlayText');
-    if (!overlay) return;
-    
-    if (show) {
-        overlay.classList.add('show');
-        currentOverlayShown = true;
-        if (txt && overlayText) overlayText.textContent = txt;
-    } else {
-        overlay.classList.remove('show');
-        currentOverlayShown = false;
-    }
+// ==== API KEY ====
+function getApiKey() {
+  return localStorage.getItem('gemini_api_key') || '';
 }
-
-// ==================== FUNÇÕES DE VALIDAÇÃO ====================
-function getApiKey() { return localStorage.getItem('gemini_api_key') || ''; }
-
 function updateApiStatusUI() {
-    const key = getApiKey();
-    const el = document.getElementById('apiStatus');
-    const input = document.getElementById('apiKeyInput');
-    if (!el || !input) return;
-    
-    if (key && key.length > 20) { 
-        el.textContent = '✅ Chave salva e pronta.'; 
-        el.className = 'api-status valid'; 
-        input.value = key; 
-    } else { 
-        el.textContent = 'Nenhuma chave configurada.'; 
-        el.className = 'api-status'; 
-    }
+  const key = getApiKey();
+  const el = document.getElementById('apiStatus');
+  if (key && key.startsWith('AIza') && key.length > 20) {
+    el.textContent = '✅ Chave salva e pronta para uso.';
+    el.className = 'api-status valid';
+    document.getElementById('apiKeyInput').value = key;
+  } else if (key) {
+    el.textContent = '⚠️ Chave salva, mas parece inválida. Verifique.';
+    el.className = 'api-status invalid';
+    document.getElementById('apiKeyInput').value = key;
+  } else {
+    el.textContent = 'Nenhuma chave salva. Gere uma gratuitamente no Google AI Studio.';
+    el.className = 'api-status';
+  }
 }
 
-// ==================== FUNÇÕES DE NORMALIZAÇÃO ====================
-function normalizarTexto(texto) { 
-    return texto.replace(/[\n\r\t]+/g, ' ').replace(/\s+/g, ' ').trim(); 
-}
-
-function extrairNumero(val) {
-    if (!val || val === 'null' || val === 'undefined') return null;
-    const n = parseFloat(String(val).replace(/[^\d,.-]/g, '').replace(',', '.'));
-    return isNaN(n) ? null : n;
-}
-
-// ==================== FUNÇÕES DE CRITÉRIOS ====================
-
-function colorVacancia(val) {
-    const n = extrairNumero(val);
-    if (n === null) return '';
-    return n <= 5 ? 'ok' : (n <= 20 ? 'neutro' : 'alerta');
-}
-
-function colorLTV(val, tipoFii) {
-    const n = extrairNumero(val);
-    if (n === null) return '';
-    
-    const isPapel = (tipoFii||'').toLowerCase().match(/cri|papel|receb|credito/i);
-    
-    if (isPapel) {
-        return n <= 50 ? 'ok' : (n <= 70 ? 'neutro' : 'alerta');
-    } else {
-        return n <= 10 ? 'ok' : (n <= 20 ? 'neutro' : 'alerta');
-    }
-}
-
-function colorInadimplencia(val) {
-    const n = extrairNumero(val);
-    if (n === null || n === 0) return 'ok';
-    return n <= 10 ? 'ok' : (n <= 20 ? 'neutro' : 'alerta');
-}
-
-function colorDividaPL(val) {
-    const n = extrairNumero(val);
-    if (n === null) return 'ok';
-    return n <= 10 ? 'ok' : (n <= 20 ? 'neutro' : 'alerta');
-}
-
-function colorCustoDivida(val) {
-    const n = extrairNumero(val);
-    if (n === null) return null;
-    if (typeof n === 'number') {
-        return n <= 2 ? 'ok' : (n <= 4 ? 'neutro' : 'alerta');
-    }
-    return null;
-}
-
-// ==================== FUNÇÃO DO SEMÁFORO ====================
-function getPercentByMetric(titulo, valor, cor) {
-    const num = extrairNumero(valor);
-    if (num === null) return '50%';
-    
-    if (titulo.includes('Vacancia')) {
-        const percent = Math.min(100, (num / 30) * 100);
-        return `${percent}%`;
-    }
-    if (titulo.includes('LTV')) {
-        const percent = Math.min(100, (num / 50) * 100);
-        return `${percent}%`;
-    }
-    if (titulo.includes('Inadimplência')) {
-        const percent = Math.min(100, (num / 20) * 100);
-        return `${percent}%`;
-    }
-    return '50%';
-}
-
-// ==================== NOVO CARD DE COMPOSIÇÃO (TAMANHO NORMAL) ====================
-function renderCardComposicao(d) {
-    const isPapel = (d.tipo_fii||'').toLowerCase().match(/cri|papel|receb|credito/i);
-    
-    if (isPapel) {
-        // Fundo de Papel
-        const numCRIs = extrairNumero(d.num_cris) || extrairNumero(d.num_ativos) || null;
-        if (!numCRIs) return '';
-        
-        return `
-            <div class="composicao-card">
-                <div class="composicao-titulo">
-                    📋 CRIs NO PORTFÓLIO
-                    <span class="composicao-tipo-badge">Papel</span>
-                </div>
-                <div class="composicao-valor">${numCRIs}</div>
-                <div class="composicao-desc">Certificados de Recebíveis Imobiliários</div>
-            </div>
-        `;
-    } else {
-        // Fundo de Tijolo
-        const numImoveis = extrairNumero(d.num_imoveis);
-        if (!numImoveis) return '';
-        
-        return `
-            <div class="composicao-card">
-                <div class="composicao-titulo">
-                    🏢 IMÓVEIS NO PORTFÓLIO
-                    <span class="composicao-tipo-badge">Tijolo</span>
-                </div>
-                <div class="composicao-valor">${numImoveis}</div>
-                <div class="composicao-desc">Ativos imobiliários físicos</div>
-            </div>
-        `;
-    }
-}
-
-// ==================== CARD DE DÍVIDA ====================
-function renderCardDividaMelhorado(d) {
-    const temDivida = d.ltv || d.divida_pl || d.custo_divida || d.prazo_medio_divida;
-    if (!temDivida) return '';
-    
-    const corLTV = colorLTV(d.ltv, d.tipo_fii) || 'ok';
-    const corDividaPL = colorDividaPL(d.divida_pl) || 'ok';
-    const corCusto = colorCustoDivida(d.custo_divida) || 'ok';
-    
-    const prazoMedio = extrairNumero(d.prazo_medio_divida);
-    const temPrazoLongo = prazoMedio && prazoMedio > 5;
-    
-    const severityOrder = { 'ok': 0, 'neutro': 1, 'alerta': 2 };
-    let maiorSeveridade = 'ok';
-    
-    [corLTV, corDividaPL, corCusto].forEach(cor => {
-        if (severityOrder[cor] > severityOrder[maiorSeveridade]) {
-            maiorSeveridade = cor;
-        }
-    });
-    
-    if (temPrazoLongo && maiorSeveridade === 'neutro') {
-        maiorSeveridade = 'ok';
-    } else if (temPrazoLongo && maiorSeveridade === 'alerta') {
-        maiorSeveridade = 'neutro';
-    }
-    
-    let classeCard = 'divida-card ok-divida';
-    let badge = '';
-    let mensagem = '';
-    
-    const isPapel = (d.tipo_fii||'').toLowerCase().match(/cri|papel|receb|credito/i);
-    const tipoAlavancagem = isPapel ? ' (Limites: LTV até 50% ok, 50-70% atenção, >70% alerta)' : ' (Limites: LTV até 10% ok, 10-20% atenção, >20% alerta)';
-    
-    switch(maiorSeveridade) {
-        case 'ok':
-            badge = `<span class="divida-ok-badge">✅ ALAVANCAGEM CONTROLADA</span>`;
-            mensagem = `Endividamento dentro dos limites saudáveis${tipoAlavancagem}`;
-            if (temPrazoLongo) mensagem = 'Dívida alongada e bem estruturada - ' + mensagem;
-            break;
-        case 'neutro':
-            classeCard = 'divida-card';
-            badge = `<span class="divida-ok-badge" style="background:var(--amber-bg); color:var(--amber); border-color:rgba(243,156,18,0.2)">⚠️ ALAVANCAGEM MODERADA</span>`;
-            mensagem = `Endividamento em nível moderado - requer monitoramento${tipoAlavancagem}`;
-            break;
-        case 'alerta':
-            classeCard = 'divida-card alerta-divida';
-            badge = `<span class="divida-alerta-badge">🔴 ALAVANCAGEM ELEVADA</span>`;
-            mensagem = `Endividamento acima do recomendado - requer análise cautelosa${tipoAlavancagem}`;
-            break;
-    }
-    
-    return `
-        <div class="${classeCard}">
-            <div class="result-label" style="display: flex; justify-content: space-between; align-items: center;">
-                <span>🏦 ENDIVIDAMENTO & ALAVANCAGEM</span>
-                ${badge}
-            </div>
-            <div class="divida-grid">
-                ${d.ltv ? `<div class="divida-item"><div class="divida-item-label">LTV</div><div class="divida-item-val ${corLTV}">${d.ltv}</div></div>` : ''}
-                ${d.divida_pl ? `<div class="divida-item"><div class="divida-item-label">Dívida / PL</div><div class="divida-item-val ${corDividaPL}">${d.divida_pl}</div></div>` : ''}
-                ${d.custo_divida ? `<div class="divida-item"><div class="divida-item-label">Custo da Dívida</div><div class="divida-item-val ${corCusto}">${d.custo_divida}</div></div>` : ''}
-                ${d.prazo_medio_divida ? `<div class="divida-item"><div class="divida-item-label">Prazo Médio</div><div class="divida-item-val">${d.prazo_medio_divida}</div></div>` : ''}
-            </div>
-            <div style="font-size: 11px; color: var(--text3); margin-top: 8px; text-align: center;">
-                ${mensagem}
-            </div>
-        </div>
-    `;
-}
-
-// ==================== NORMALIZAÇÃO DE DADOS IA ====================
-function normalizarDadosIA(dados) {
-    if (!dados || typeof dados !== 'object') {
-        console.error('Dados inválidos para normalização:', dados);
-        return {};
-    }
-    
-    const camposString = ['ticker', 'gestora', 'tipo_fii', 'periodo_referencia', 
-                          'vacancia_fisica', 'vacancia_financeira', 'inadimplencia', 'ltv',
-                          'distribuicao', 'resultado_distribuivel', 'origem_distribuicao',
-                          'vencimentos_divida', 'media_dividendos_12m', 'divida_pl', 
-                          'custo_divida', 'prazo_medio_divida', 'num_imoveis', 'num_cris'];
-    
-    camposString.forEach(campo => {
-        if (dados[campo] !== undefined && dados[campo] !== null && typeof dados[campo] !== 'string') {
-            dados[campo] = String(dados[campo]);
-        }
-    });
-    
-    if (Array.isArray(dados.principais_riscos)) {
-        dados.principais_riscos = dados.principais_riscos.join(' | ');
-    }
-    if (Array.isArray(dados.pontos_positivos)) {
-        dados.pontos_positivos = dados.pontos_positivos.join(' | ');
-    }
-    
-    return dados;
-}
-
-// ==================== CACHE ====================
-async function loadFromCache(hash) {
-    const cached = localStorage.getItem('cache_' + hash);
-    if (!cached) return null;
-    
-    try {
-        const data = JSON.parse(cached);
-        if (data && typeof data === 'object' && (data.ticker || data.gestora)) {
-            dbg('✅ Cache válido encontrado para: ' + (data.ticker || 'desconhecido'));
-            return data;
-        }
-        dbg('⚠️ Cache corrompido, removendo...');
-        localStorage.removeItem('cache_' + hash);
-        return null;
-    } catch(e) {
-        dbg('❌ Erro ao parsear cache: ' + e.message);
-        localStorage.removeItem('cache_' + hash);
-        return null;
-    }
-}
-
-async function saveToCache(hash, data) {
-    try {
-        localStorage.setItem('cache_' + hash, JSON.stringify(data));
-        dbg('💾 Dados salvos em cache');
-    } catch(e) {
-        dbg('⚠️ Não foi possível salvar cache: ' + e.message);
-    }
-}
-
-// ==================== RENDERIZAÇÃO PRINCIPAL ====================
-function renderCardSemaforo(tit, val, cor) {
-    if(!val || val === 'null' || val === 'undefined' || val === '') return '';
-    
-    const labels = {ok:'SAUDÁVEL', neutro:'ATENÇÃO', alerta:'CRÍTICO'};
-    const barWidth = getPercentByMetric(tit, val, cor);
-    
-    return `
-        <div class="result-card">
-            <div class="result-label">${tit}</div>
-            <div class="result-value small ${cor}">${val}</div>
-            <div class="semaforo-bar"><div class="semaforo-fill ${cor}" style="width:${barWidth}"></div></div>
-            <div class="semaforo-label ${cor}">${labels[cor] || ''}</div>
-        </div>
-    `;
-}
-
-function renderLista(tit, str, cls) {
-    if (!str) return '';
-    const itens = (str||'').split('|').map(i=>i.trim()).filter(Boolean);
-    if (itens.length === 0) return '';
-    
-    return `<div class="${cls}"><div class="result-label">${tit}</div><ul style="margin-top:8px;padding-left:18px;font-size:14px;color:var(--text2)">${itens.map(i=>`<li>${i}</li>`).join('')}</ul></div>`;
-}
-
-function renderResultados(d) {
-    const container = document.getElementById('resultadosConteudo');
-    const fundoIdentificado = document.getElementById('fundoIdentificado');
-    const resultArea = document.getElementById('resultArea');
-    
-    if (!container || !resultArea) return;
-    
-    if (fundoIdentificado) {
-        fundoIdentificado.innerHTML = `<span class="fundo-ticker">${d.ticker || 'N/I'}</span> ${d.gestora || ''}`;
-    }
-
-    let html = '';
-    
-    // Cards de semáforo
-    html += renderCardSemaforo('📊 Vacancia Física', d.vacancia_fisica, colorVacancia(d.vacancia_fisica));
-    html += renderCardSemaforo('💰 Vacancia Financeira', d.vacancia_financeira, colorVacancia(d.vacancia_financeira));
-    html += renderCardSemaforo('⚠️ Inadimplência', d.inadimplencia, colorInadimplencia(d.inadimplencia));
-    html += renderCardSemaforo('🏦 LTV', d.ltv, colorLTV(d.ltv, d.tipo_fii));
-    
-    // Card de Composição (tamanho normal)
-    html += renderCardComposicao(d);
-    
-    // Card de dívida (largura total)
-    html += renderCardDividaMelhorado(d);
-    
-    if (d.origem_distribuicao) {
-        const corDRE = d.origem_distribuicao.includes('Caixa') ? 'neutro' : 'ok';
-        html += `
-            <div class="result-card prof-card">
-                <div class="result-label"><span class="prof-badge">NEW</span>♻️ Sustentabilidade do Dividendo</div>
-                <div class="result-value small ${corDRE}">Origem: ${d.origem_distribuicao}</div>
-                <div style="font-size:10px; color:var(--text3); margin-top:4px">Avaliação de Lucro Contábil vs Financeiro</div>
-            </div>
-        `;
-    }
-
-    if (d.media_dividendos_12m) {
-        html += `
-            <div class="result-card prof-card">
-                <div class="result-label"><span class="prof-badge">NEW</span>📈 Média Dividendos (12m)</div>
-                <div class="result-value small">R$ ${d.media_dividendos_12m}</div>
-                <div style="font-size:10px; color:var(--text3); margin-top:4px">Média para análise de recorrência</div>
-            </div>
-        `;
-    }
-
-    if (d.vencimentos_divida) {
-        html += `
-            <div class="result-card prof-card" style="grid-column: span 2">
-                <div class="result-label"><span class="prof-badge">NEW</span>⏳ Cronograma de Vencimentos</div>
-                <div class="result-value small" style="font-size:13px">${d.vencimentos_divida}</div>
-            </div>
-        `;
-    }
-
-    const campos = [
-        {l:'Rendimento', v:d.distribuicao}, {l:'Res. Distribuível', v:d.resultado_distribuivel},
-        {l:'Saldo Caixa', v:d.saldo_caixa}, {l:'Inquilinos', v:d.num_inquilinos}
-    ];
-    campos.forEach(c => { if(c.v && c.v !== 'null' && c.v !== 'undefined') html += `<div class="result-card"><div class="result-label">${c.l}</div><div class="result-value small">${c.v}</div></div>`; });
-
-    if(d.resumo_analista) html += `<div class="resumo-box"><div class="result-label">🤖 ANÁLISE DO RELATÓRIO</div><div class="resumo-texto">${d.resumo_analista}</div></div>`;
-    if(d.pontos_positivos) html += renderLista('✅ PONTOS POSITIVOS', d.pontos_positivos, 'positivos-box');
-    if(d.principais_riscos) html += renderLista('⚠️ PRINCIPAIS RISCOS', d.principais_riscos, 'riscos-box');
-
-    container.innerHTML = html;
-    resultArea.style.display = 'block';
-}
-
-// ==================== EXTRAÇÃO DE TEXTO DO PDF ====================
-async function extrairTextoPDF(file) {
-    clearDebug();
-    dbg('📄 Iniciando extração de texto do PDF...');
-    
-    if (!file) {
-        throw new Error('Nenhum arquivo selecionado');
-    }
-    if (file.size === 0) {
-        throw new Error('Arquivo vazio ou corrompido');
-    }
-    if (file.type !== 'application/pdf') {
-        throw new Error('Arquivo não é um PDF válido');
-    }
-    
-    dbg(`📊 Arquivo: ${file.name}, Tamanho: ${(file.size/1024).toFixed(2)} KB`);
-    
-    try {
-        const ab = await file.arrayBuffer();
-        const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
-        
-        if (!pdf || pdf.numPages === 0) {
-            throw new Error('PDF não contém páginas');
-        }
-        
-        dbg(`📑 Páginas detectadas: ${pdf.numPages}`);
-        let textoCompleto = '';
-        
-        for (let p = 1; p <= pdf.numPages; p++) {
-            try {
-                const page = await pdf.getPage(p);
-                const tc = await page.getTextContent();
-                const pageText = tc.items.map(item => item.str).join(' ');
-                dbg(`📃 Página ${p}: ${pageText.substring(0, 100)}...`);
-                textoCompleto += pageText + ' ';
-            } catch (e) {
-                dbg(`⚠️ Erro extraindo página ${p}: ${e.message}`);
-            }
-        }
-        
-        if (textoCompleto.trim().length === 0) {
-            throw new Error('Nenhum texto extraído do PDF. Pode ser um PDF escaneado/imagem.');
-        }
-        
-        dbg(`✅ Extração finalizada. Total de caracteres: ${textoCompleto.length}`);
-        return normalizarTexto(textoCompleto);
-        
-    } catch (error) {
-        dbg(`❌ Erro fatal na extração: ${error.message}`);
-        throw new Error(`Não foi possível ler o PDF: ${error.message}`);
-    }
-}
-
-// ==================== CHAMADA À API GEMINI ====================
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-async function analisarComGemini(textoPDF, apiKey) {
-    const prompt = `Você é um analista especialista em Fundos de Investimento Imobiliário (FIIs) do Brasil.
-Analise o relatório gerencial e retorne um JSON puro (sem markdown) com esta estrutura:
-{
-  "ticker": "string", "gestora": "string", "tipo_fii": "string", "periodo_referencia": "string",
-  "vacancia_fisica": "string", "vacancia_financeira": "string", "inadimplencia": "string", "ltv": "string",
-  "divida_pl": "string", "custo_divida": "string", "prazo_medio_divida": "string",
-  "distribuicao": "string", "resultado_distribuivel": "string", "receita_total": "string",
-  "despesas_totais": "string", "saldo_caixa": "string", "num_imoveis": "string", "num_inquilinos": "string",
-  "abl_total": "string", "saida_inquilino": "string", "entrada_inquilino": "string",
-  "reajustes": "string", "parcelas_pagar": "string",
-  "principais_riscos": "3 riscos separados por |",
-  "pontos_positivos": "3 pontos separados por |",
-  "resumo_analista": "resumo crítico de 4-6 frases",
-  "comentario_gestor": "max 600 chars",
-  "origem_distribuicao": "DRE, Fluxo de Caixa ou Misto",
-  "vencimentos_divida": "resumo dos próximos vencimentos",
-  "media_dividendos_12m": "valor médio R$/cota nos últimos 12 meses",
-  "num_cris": "número de CRIs no portfólio"
-}
-RELATÓRIO: ${textoPDF.substring(0, 80000)}`;
-
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-    const payload = { contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.1 } };
-
-    const maxRetries = 4;
-    for (let attempt = 0; attempt <= maxRetries; attempt++) {
-        try {
-            dbg(`🤖 API Gemini: tentativa ${attempt+1}/${maxRetries+1} - Chave: ${apiKey.substring(0,8)}...`);
-            const resp = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            const rawText = await resp.text();
-            dbg(`📡 Resposta status ${resp.status}`);
-
-            if (!resp.ok) {
-                let parsed;
-                try { parsed = JSON.parse(rawText); } catch(e) { parsed = rawText; }
-
-                if (resp.status === 429 || resp.status === 503 || (resp.status >= 500 && resp.status < 600)) {
-                    const wait = Math.pow(2, attempt) * 500 + Math.floor(Math.random() * 300);
-                    dbg(`⏳ Erro temporário ${resp.status}. Retentando em ${wait}ms...`);
-                    await sleep(wait);
-                    continue;
-                }
-
-                throw new Error(`Gemini API erro ${resp.status}: ${JSON.stringify(parsed)}`);
-            }
-
-            let data;
-            try { data = JSON.parse(rawText); } catch (e) { 
-                throw new Error('Resposta da Gemini não é JSON válido: ' + rawText.substring(0,500));
-            }
-
-            if (!data?.candidates || !data.candidates[0]?.content?.parts?.[0]?.text) {
-                throw new Error('Resposta inesperada da Gemini');
-            }
-
-            let raw = data.candidates[0].content.parts[0].text.trim();
-            raw = raw.replace(/^```json\s*/i, '').replace(/```\s*$/i, '');
-            dbg(`📝 Resposta Gemini tratada (${raw.length} caracteres)`);
-
-            try {
-                const result = JSON.parse(raw);
-                dbg('✅ JSON parseado com sucesso');
-                return result;
-            } catch (e) {
-                throw new Error('Falha ao parsear JSON retornado: ' + e.message);
-            }
-
-        } catch (err) {
-            dbg(`❌ Erro na tentativa ${attempt+1}: ${err.message}`);
-            if (attempt === maxRetries) throw err;
-            await sleep(700 + Math.floor(Math.random() * 300));
-        }
-    }
-    throw new Error('Falha total: todas as tentativas de comunicação com a Gemini falharam.');
-}
-
-// ==================== HASH PARA CACHE ====================
-async function hashArquivo(f) { 
-    const ab = await f.arrayBuffer(); 
-    const h = await crypto.subtle.digest('SHA-256', ab); 
-    return Array.from(new Uint8Array(h)).map(b=>b.toString(16).padStart(2,'0')).join(''); 
-}
-
-// ==================== EVENTO PRINCIPAL ====================
-document.getElementById('btnImportar').addEventListener('click', async () => {
-    if (isProcessing) {
-        setStatus('⏳ Já estou processando um arquivo, aguarde...', 'warn');
-        return;
-    }
-    
-    const fileInput = document.getElementById('filePdf');
-    const file = fileInput.files[0];
-    const apiKey = getApiKey();
-    
-    if (!file) {
-        setStatus('❌ Selecione um arquivo PDF primeiro.', 'err');
-        return;
-    }
-    if (!apiKey || apiKey.length < 20) {
-        setStatus('❌ Configure uma chave da API Gemini válida.', 'err');
-        return;
-    }
-    
-    isProcessing = true;
-    
-    try {
-        setOverlay(true, '📄 Lendo PDF...');
-        clearDebug();
-        
-        const hash = await hashArquivo(file);
-        dbg(`🔐 Hash do arquivo: ${hash.substring(0,16)}...`);
-        
-        const cachedData = await loadFromCache(hash);
-        if (cachedData) {
-            setOverlay(false);
-            const usarCache = confirm('🔄 Arquivo já analisado anteriormente. Usar cache?');
-            if (usarCache) {
-                renderResultados(cachedData);
-                setStatus('✅ Dados carregados do cache!', 'ok');
-                isProcessing = false;
-                return;
-            }
-        }
-        
-        setOverlay(true, '🤖 Extraindo texto do PDF...');
-        const textoExtraido = await extrairTextoPDF(file);
-        
-        setOverlay(true, '🧠 Analisando com Gemini AI...');
-        const dadosBrutos = await analisarComGemini(textoExtraido, apiKey);
-        
-        const dadosNormalizados = normalizarDadosIA(dadosBrutos);
-        
-        await saveToCache(hash, dadosNormalizados);
-        
-        renderResultados(dadosNormalizados);
-        setStatus('✅ Análise concluída com sucesso!', 'ok');
-        
-    } catch (error) {
-        dbg(`❌ ERRO GERAL: ${error.message}`);
-        console.error('Erro detalhado:', error);
-        setStatus(`❌ ${error.message || 'Erro desconhecido'}`, 'err');
-    } finally {
-        setOverlay(false);
-        isProcessing = false;
-    }
-});
-
-// ==================== EVENTOS DE UI ====================
 document.getElementById('btnSalvarKey').addEventListener('click', () => {
-    const val = document.getElementById('apiKeyInput').value.trim();
-    if (val && val.length > 20) {
-        localStorage.setItem('gemini_api_key', val);
-        updateApiStatusUI();
-        setStatus('✅ Chave salva com sucesso!', 'ok');
-        setTimeout(() => document.getElementById('status').classList.remove('show'), 3000);
-    } else {
-        setStatus('❌ Chave inválida. Verifique se tem o formato correto (AIza...)', 'err');
-    }
+  const val = document.getElementById('apiKeyInput').value.trim();
+  if (!val) { alert('Cole sua chave antes de salvar.'); return; }
+  localStorage.setItem('gemini_api_key', val);
+  updateApiStatusUI();
 });
 
 document.getElementById('apiEye').addEventListener('click', () => {
-    const inp = document.getElementById('apiKeyInput');
-    if (inp.type === 'password') inp.type = 'text';
-    else inp.type = 'password';
+  const inp = document.getElementById('apiKeyInput');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
 });
-
-const dropZone = document.getElementById('dropZone');
-if (dropZone) {
-    dropZone.ondragover = e => { e.preventDefault(); dropZone.classList.add('drag-over'); };
-    dropZone.ondragleave = () => dropZone.classList.remove('drag-over');
-    dropZone.ondrop = e => { 
-        e.preventDefault(); 
-        dropZone.classList.remove('drag-over'); 
-        const f = e.dataTransfer.files[0];
-        if (f && f.type === 'application/pdf') {
-            document.getElementById('filePdf').files = e.dataTransfer.files;
-            document.getElementById('fileName').textContent = f.name;
-            setStatus('✅ PDF carregado! Clique em "Analisar com IA"', 'ok');
-        } else {
-            setStatus('❌ Por favor, envie apenas arquivos PDF', 'err');
-        }
-    };
-    dropZone.onclick = () => document.getElementById('filePdf').click();
-}
-
-document.getElementById('filePdf').addEventListener('change', (ev) => {
-    const f = ev.target.files[0];
-    if (f) {
-        if (f.type === 'application/pdf') {
-            document.getElementById('fileName').textContent = f.name;
-            setStatus('✅ PDF selecionado! Clique em "Analisar com IA"', 'ok');
-        } else {
-            setStatus('❌ Por favor, selecione um arquivo PDF', 'err');
-            document.getElementById('fileName').textContent = 'Selecionar arquivo PDF...';
-        }
-    }
-});
-
-document.getElementById('btnLimpar').onclick = () => { 
-    if (confirm('Deseja limpar todos os dados e recarregar a página?')) {
-        location.reload();
-    }
-};
-
-document.getElementById('themeToggle').onclick = () => { 
-    document.body.classList.toggle('light'); 
-    localStorage.setItem('theme', document.body.classList.contains('light') ? 'light' : 'dark'); 
-};
-if (localStorage.getItem('theme') === 'light') document.body.classList.add('light');
-
-function registerDebugToggle(){
-    const btn = document.getElementById('btnToggleDebug');
-    const dbgBox = document.getElementById('debugBox');
-    const arrow = document.getElementById('debugArrow');
-    
-    if (!btn || !dbgBox || !arrow) {
-        setTimeout(registerDebugToggle, 500);
-        return;
-    }
-    
-    btn.addEventListener('click', () => {
-        dbgBox.classList.toggle('show');
-        arrow.classList.toggle('rotated');
-    });
-}
-registerDebugToggle();
 
 updateApiStatusUI();
 
-function clock() { 
-    const hDate = document.getElementById('hDate');
-    if (hDate) hDate.textContent = new Date().toLocaleString();
+// ==== EXTRAÇÃO DE TEXTO DO PDF ====
+function normalizarTexto(texto) {
+  return texto.replace(/[\n\r\t]+/g, ' ').replace(/\s+/g, ' ').trim();
 }
-setInterval(clock, 1000); 
-clock();
+
+async function extrairTextoPDF(file) {
+  dbg("📄 Iniciando extração do PDF...");
+  const ab = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
+  dbg(`📑 Total de páginas: ${pdf.numPages}`);
+
+  let textoCompleto = '';
+  for (let p = 1; p <= pdf.numPages; p++) {
+    const page = await pdf.getPage(p);
+    const tc = await page.getTextContent();
+    const pageText = tc.items.map(item => item.str).join(' ');
+    textoCompleto += pageText + ' ';
+    dbg(`✅ Página ${p}: ${pageText.length} caracteres`);
+  }
+
+  const normalizado = normalizarTexto(textoCompleto);
+  dbg(`\n📊 Total extraído: ${normalizado.length} caracteres`);
+  dbg(`📝 Preview (primeiros 800 chars):\n${normalizado.substring(0, 800)}\n`);
+  return normalizado;
+}
+
+// ==== ANÁLISE COM GEMINI (com retry automático) ====
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+async function analisarComGemini(textoPDF, apiKey) {
+  dbg("🤖 Enviando para Gemini AI...");
+
+  const textoLimitado = textoPDF.substring(0, 80000);
+
+  const prompt = `Você é um analista especialista em Fundos de Investimento Imobiliário (FIIs) do Brasil.
+
+Analise o relatório gerencial abaixo e retorne um JSON com EXATAMENTE esta estrutura (sem markdown, só o JSON puro):
+
+{
+  "ticker": "código do fundo ex: ABCD11 ou null",
+  "gestora": "nome da gestora ou null",
+  "tipo_fii": "tipo: Lajes Corporativas, Logístico, Shopping, CRI, Híbrido, etc ou null",
+  "periodo_referencia": "mês/ano do relatório ou null",
+  "vacancia_fisica": "valor em % ou null",
+  "vacancia_financeira": "valor em % ou null",
+  "inadimplencia": "valor em R$ ou % ou null",
+  "ltv": "valor em % ou null",
+  "divida_pl": "valor em % de dívida sobre o patrimônio líquido (ex: 57%) ou null",
+  "custo_divida": "custo médio da dívida ex: IPCA+6,5% ou null",
+  "prazo_medio_divida": "prazo médio em anos ou null",
+  "distribuicao": "valor em R$/cota ou null",
+  "resultado_distribuivel": "valor em R$/cota ou null",
+  "receita_total": "valor ou null",
+  "despesas_totais": "valor ou null",
+  "saldo_caixa": "valor ou null",
+  "num_imoveis": "número de imóveis ou null",
+  "num_inquilinos": "número de inquilinos ou null",
+  "abl_total": "área bruta locável total ou null",
+  "saida_inquilino": "nome/descrição ou null",
+  "entrada_inquilino": "nome/descrição ou null",
+  "reajustes": "descrição dos reajustes ou null",
+  "parcelas_pagar": "valor ou null",
+  "principais_riscos": "lista dos 3 principais riscos identificados no relatório (incluindo riscos de alavancagem se houver), separados por | ou null",
+  "pontos_positivos": "lista dos 3 principais pontos positivos, separados por | ou null",
+  "resumo_analista": "resumo crítico de 4 a 6 frases do ponto de vista de um investidor cuidadoso, destacando o que mais importa saber sobre este fundo neste período (mencione o nível de alavancagem/dívida se for relevante)",
+  "comentario_gestor": "trecho do comentário da gestão se houver, máximo 600 caracteres, ou null"
+}
+
+IMPORTANTE:
+- Retorne APENAS o JSON, sem texto antes ou depois, sem blocos de código markdown.
+- Se um dado não estiver no relatório, use null.
+- No resumo_analista, seja direto e crítico: mencione se a vacância está alta, se a distribuição caiu, se há riscos relevantes de dívida, se o fundo está bem gerido.
+
+RELATÓRIO:
+${textoLimitado}`;
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
+  const body = {
+    contents: [{ parts: [{ text: prompt }] }],
+    generationConfig: {
+      temperature: 0.1,
+      maxOutputTokens: 8192
+    }
+  };
+
+  const MAX_TENTATIVAS = 4;
+  const ESPERAS = [10000, 20000, 40000];
+
+  for (let tentativa = 1; tentativa <= MAX_TENTATIVAS; tentativa++) {
+    if (tentativa > 1) {
+      const espera = ESPERAS[tentativa - 2];
+      dbg(`⏳ Tentativa ${tentativa}/${MAX_TENTATIVAS} — aguardando ${espera/1000}s antes de tentar novamente...`);
+      setOverlay(true, `Servidor ocupado. Tentativa ${tentativa}/${MAX_TENTATIVAS} em ${espera/1000}s...`);
+      await sleep(espera);
+      setOverlay(true, `Tentativa ${tentativa}/${MAX_TENTATIVAS} — enviando para Gemini AI...`);
+    }
+
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    if (!resp.ok) {
+      const errText = await resp.text();
+      dbg(`❌ Tentativa ${tentativa} — Erro ${resp.status}: ${errText.substring(0, 300)}`);
+
+      const retryCodes = [429, 503, 502, 500];
+      if (retryCodes.includes(resp.status) && tentativa < MAX_TENTATIVAS) {
+        continue;
+      }
+      throw new Error(`Erro na API Gemini (${resp.status}): verifique sua chave ou tente novamente.`);
+    }
+
+    const data = await resp.json();
+    dbg(`✅ Resposta recebida na tentativa ${tentativa}.`);
+
+    const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    dbg(`📦 Resposta bruta (primeiros 500 chars):\n${rawText.substring(0, 500)}`);
+
+    let jsonStr = rawText.trim()
+      .replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
+
+    // Tenta parsear normalmente
+    try {
+      const parsed = JSON.parse(jsonStr);
+      dbg("✅ JSON parseado com sucesso.");
+      return parsed;
+    } catch (e) {
+      dbg(`⚠️ JSON incompleto detectado. Tentando recuperar... (${e.message})`);
+    }
+
+    // Recuperação: fecha o JSON truncado automaticamente
+    try {
+      // Remove última linha incompleta (string cortada no meio)
+      let fixado = jsonStr;
+
+      // Remove trailing vírgula ou chave incompleta no final
+      fixado = fixado.replace(/,\s*$/, '').replace(/:\s*"[^"]*$/, ': null');
+
+      // Conta chaves abertas e fecha as que faltam
+      const abertas = (fixado.match(/\{/g) || []).length;
+      const fechadas = (fixado.match(/\}/g) || []).length;
+      for (let i = 0; i < abertas - fechadas; i++) fixado += '}';
+
+      const parsed = JSON.parse(fixado);
+      dbg("✅ JSON recuperado com sucesso (resposta estava truncada — aumente maxOutputTokens se isso persistir).");
+      return parsed;
+    } catch (e2) {
+      dbg(`❌ Falha ao recuperar JSON: ${e2.message}\nTexto recebido:\n${rawText.substring(0, 800)}`);
+      throw new Error('O modelo retornou um formato inesperado. Tente novamente.');
+    }
+  }
+
+  throw new Error('Todas as tentativas falharam. O servidor Gemini está instável. Tente em alguns minutos.');
+}
+
+// ==== RENDER ====
+function extrairNumero(val) {
+  if (!val) return null;
+  const n = parseFloat(String(val).replace(/[^\d,.-]/g, '').replace(',', '.'));
+  return isNaN(n) ? null : n;
+}
+
+function colorVacancia(val) {
+  if (!val) return '';
+  const num = extrairNumero(val);
+  if (num === null) return '';
+  // Verde (Seguro): até 5%
+  if (num <= 5) return 'ok';
+  // Amarelo (Atenção): >5% e <=20%
+  if (num <= 20) return 'neutro';
+  // Vermelho (Risco): >20%
+  return 'alerta';
+}
+
+// MODIFICADO: colorLTV agora aceita opcionalmente o tipo do fundo (tipoFii)
+// e aplica thresholds especiais para fundos CRI/papel/recebíveis:
+// - CRI-type: <=50% ok, <=70% neutro, >70% alerta
+// - outros: mantém comportamento anterior (<=10 ok, <=20 neutro, >20 alerta)
+function colorLTV(val, tipoFii) {
+  if (!val) return '';
+  const num = extrairNumero(val);
+  if (num === null) return '';
+
+  const t = (tipoFii || '').toString().toLowerCase();
+
+  // detecta tipos CRI/papel/recebíveis por palavras-chave (sinônimos)
+  const isCRIType = t.includes('cri') || t.includes('papel') || t.includes('receb');
+
+  if (isCRIType) {
+    // thresholds para fundos de CRI/papel/recebíveis
+    if (num <= 50) return 'ok';
+    if (num <= 70) return 'neutro';
+    return 'alerta';
+  }
+
+  // comportamento padrão para demais tipos de FII
+  if (num <= 10) return 'ok';
+  if (num <= 20) return 'neutro';
+  return 'alerta';
+}
+
+// ---------- ALTERAÇÃO SOLICITADA: Inadimplência com thresholds 10/20 ----------
+function colorInadimplencia(val) {
+  if (!val || val === '0%' || val === 'R\$ 0,00' || val === '0') return 'ok';
+  const num = extrairNumero(val);
+  if (num === null) return 'alerta';
+  if (num === 0) return 'ok';
+  if (num <= 10) return 'ok';        // Verde até 10%
+  if (num <= 20) return 'neutro';    // Amarelo 10-20%
+  return 'alerta';                   // Vermelho >20%
+}
+// -------------------------------------------------------------------------
+
+function colorEstruturaDivida(val) {
+  if (!val) return '';
+  const num = extrairNumero(val);
+  if (num === null) return '';
+  if (num <= 10) return 'ok';
+  if (num <= 20) return 'neutro';
+  return 'alerta';
+}
+
+function semaforoHTML(cor, pct) {
+  const labels = { ok: '✅ SAUDÁVEL', neutro: '⚠️ ATENÇÃO', alerta: '🔴 CRÍTICO' };
+  const largura = Math.min(Math.max(pct, 4), 100);
+  if (!cor) return '';
+  return `
+    <div class="semaforo-bar"><div class="semaforo-fill ${cor}" style="width:${largura}%"></div></div>
+    <div class="semaforo-label ${cor}">${labels[cor] || ''}</div>
+  `;
+}
+
+function cardComSemaforo(label, val, cor, pct) {
+  if (!val) return '';
+  return `
+    <div class="result-card">
+      <div class="result-label">${label}</div>
+      <div class="result-value small ${cor}">${val}</div>
+      ${semaforoHTML(cor, pct)}
+    </div>
+  `;
+}
+
+function renderResultados(d) {
+  const container = document.getElementById('resultadosConteudo');
+  const fundoLabel = document.getElementById('fundoIdentificado');
+
+  fundoLabel.innerHTML = `
+    ${d.ticker ? `<span class="fundo-ticker">${d.ticker}</span>` : ''}
+    <span style="font-size:12px">${d.gestora || ''}</span>
+    ${d.periodo_referencia ? `<span style="font-size:11px;color:var(--text3);margin-left:6px">${d.periodo_referencia}</span>` : ''}
+  `;
+
+  let html = '';
+
+  // --- Vacância Física com semáforo ---
+  const corVacFis = colorVacancia(d.vacancia_fisica);
+  const numVacFis = extrairNumero(d.vacancia_fisica) || 0;
+  html += cardComSemaforo('📊 Vacância Física', d.vacancia_fisica, corVacFis, numVacFis * 2);
+
+  // --- Vacância Financeira com semáforo ---
+  const corVacFin = colorVacancia(d.vacancia_financeira);
+  const numVacFin = extrairNumero(d.vacancia_financeira) || 0;
+  html += cardComSemaforo('💰 Vacância Financeira', d.vacancia_financeira, corVacFin, numVacFin * 2);
+
+  // --- Inadimplência com semáforo (ATUALIZADO) ---
+  const corInad = colorInadimplencia(d.inadimplencia);
+  const numInad = extrairNumero(d.inadimplencia) || 0;
+  html += cardComSemaforo('⚠️ Inadimplência', d.inadimplencia, corInad, numInad * 2);
+
+  // --- LTV com semáforo ---
+  // ALTERAÇÃO: passa d.tipo_fii para detectar fundos CRI/papel/recebíveis
+  const corLTV = colorLTV(d.ltv, d.tipo_fii);
+  const numLTV = extrairNumero(d.ltv) || 0;
+  html += cardComSemaforo('🏦 LTV (Loan to Value)', d.ltv, corLTV, numLTV);
+
+  // --- Demais indicadores sem semáforo ---
+  const indicadoresSimples = [
+    { label: '💰 Distribuição (R$/cota)', val: d.distribuicao },
+    { label: '📈 Resultado Distribuível', val: d.resultado_distribuivel },
+    { label: '📊 Receita Total', val: d.receita_total },
+    { label: '📉 Despesas Totais', val: d.despesas_totais },
+    { label: '💰 Saldo em Caixa', val: d.saldo_caixa },
+    { label: '🏢 Nº de Imóveis', val: d.num_imoveis },
+    { label: '👥 Nº de Inquilinos', val: d.num_inquilinos },
+    { label: '📐 ABL Total', val: d.abl_total },
+    { label: '🏷️ Tipo de FII', val: d.tipo_fii },
+    { label: '📋 Parcelas a Pagar', val: d.parcelas_pagar, cor: d.parcelas_pagar ? 'alerta' : '' },
+    { label: '🚪 Saída de Inquilino', val: d.saida_inquilino, cor: d.saida_inquilino ? 'alerta' : '' },
+    { label: '🏠 Entrada de Inquilino', val: d.entrada_inquilino, cor: d.entrada_inquilino ? 'ok' : '' },
+    { label: '📅 Reajustes', val: d.reajustes },
+  ];
+
+  indicadoresSimples.forEach(({ label, val, cor }) => {
+    if (!val) return;
+    html += `
+      <div class="result-card">
+        <div class="result-label">${label}</div>
+        <div class="result-value small ${cor || ''}">${val}</div>
+      </div>
+    `;
+  });
+
+  // --- CARD DÍVIDA / ALAVANCAGEM (uso dos thresholds 10/20 para avaliação) ---
+const temDivida = d.ltv || d.divida_pl || d.custo_divida || d.prazo_medio_divida;
+if (temDivida) {
+  // ALTERAÇÃO: passar d.tipo_fii ao avaliar LTV da estrutura
+  const corLTVestr = colorLTV(d.ltv, d.tipo_fii);
+  const corDividaPL = colorEstruturaDivida(d.divida_pl); // função já existente ou implemente similar a colorLTV
+  // determina gravidade final: alerta > neutro > ok
+  const severityOrder = { 'ok': 0, 'neutro': 1, 'alerta': 2 };
+  const maior = [corLTVestr || 'ok', corDividaPL || 'ok'].reduce((acc, cur) => {
+    return severityOrder[cur] > severityOrder[acc] ? cur : acc;
+  }, 'ok');
+
+  let classeCard = 'ok-divida';
+  let badge = `<span class="divida-ok-badge">✅ ALAVANCAGEM CONTROLADA</span>`;
+  if (maior === 'neutro') {
+    classeCard = '';
+    badge = `<span class="divida-ok-badge" style="background:var(--amber-bg); color:var(--amber); border-color:rgba(243,156,18,0.2)">⚠️ REQUER ATENÇÃO</span>`;
+  } else if (maior === 'alerta') {
+    classeCard = 'alerta-divida';
+    badge = `<span class="divida-alerta-badge">⚠️ ALAVANCAGEM ELEVADA</span>`;
+  }
+
+  html += `
+    <div class="divida-card ${classeCard}">
+      <div class="result-label" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+        🏦 ESTRUTURA DE DÍVIDA / ALAVANCAGEM ${badge}
+      </div>
+      <div class="divida-grid">
+        ${d.ltv ? `<div class="divida-item"><div class="divida-item-label">LTV</div><div class="divida-item-val ${corLTVestr}">${d.ltv}</div></div>` : ''}
+        ${d.divida_pl ? `<div class="divida-item"><div class="divida-item-label">Dívida / PL</div><div class="divida-item-val ${corDividaPL}">${d.divida_pl}</div></div>` : ''}
+        ${d.custo_divida ? `<div class="divida-item"><div class="divida-item-label">Custo da Dívida</div><div class="divida-item-val">${d.custo_divida}</div></div>` : ''}
+        ${d.prazo_medio_divida ? `<div class="divida-item"><div class="divida-item-label">Prazo Médio</div><div class="divida-item-val">${d.prazo_medio_divida}</div></div>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+  // --- Resumo analista ---
+  if (d.resumo_analista) {
+    html += `
+      <div class="resumo-box">
+        <div class="result-label">🤖 ANÁLISE DO RELATÓRIO (Gemini AI)</div>
+        <div class="resumo-texto">${d.resumo_analista}</div>
+      </div>
+    `;
+  }
+
+  // --- Pontos positivos ---
+  if (d.pontos_positivos) {
+    const itens = d.pontos_positivos.split('|').map(s => s.trim()).filter(Boolean);
+    html += `
+      <div class="positivos-box">
+        <div class="result-label">✅ PONTOS POSITIVOS</div>
+        <ul style="margin-top:8px;padding-left:18px;font-size:14px;color:var(--text2);line-height:1.8">
+          ${itens.map(i => `<li>${i}</li>`).join('')}
+        </ul>
+      </div>
+    `;
+  }
+
+  // --- Riscos ---
+  if (d.principais_riscos) {
+    const itens = d.principais_riscos.split('|').map(s => s.trim()).filter(Boolean);
+    html += `
+      <div class="riscos-box">
+        <div class="result-label">⚠️ PRINCIPAIS RISCOS</div>
+        <ul style="margin-top:8px;padding-left:18px;font-size:14px;color:var(--text2);line-height:1.8">
+          ${itens.map(i => `<li>${i}</li>`).join('')}
+        </ul>
+      </div>
+    `;
+  }
+
+  // --- Comentário do gestor ---
+  if (d.comentario_gestor) {
+    html += `
+      <div class="comentario-box">
+        <div class="result-label">💬 COMENTÁRIO DO GESTOR</div>
+        <div class="comentario-texto">${d.comentario_gestor.replace(/\n/g, ' ')}</div>
+      </div>
+    `;
+  }
+
+  container.innerHTML = html;
+  document.getElementById('resultArea').style.display = 'block';
+}
+
+/* --- CACHE DE ANÁLISES (localStorage) ---
+   Integração sem alterar demais funcionalidades.
+   Identifica arquivo por hash SHA-256 do conteúdo, pergunta ao usuário
+   se quer usar o cache antes de consumir tokens. */
+const CACHE_PREFIX = 'leitor_fii_cache_';
+const CACHE_INDEX_KEY = 'leitor_fii_cache_index';
+const CACHE_MAX_ENTRIES = 50; // ajustável
+
+// Calcula SHA-256 do arquivo (hex)
+async function hashArquivoSHA256(file) {
+  const ab = await file.arrayBuffer();
+  const hashBuf = await crypto.subtle.digest('SHA-256', ab);
+  const hashArr = Array.from(new Uint8Array(hashBuf));
+  return hashArr.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function getCachedAnalysis(hash) {
+  try {
+    const raw = localStorage.getItem(CACHE_PREFIX + hash);
+    if (!raw) return null;
+    return JSON.parse(raw); // { data, ts, name }
+  } catch (e) {
+    console.warn('Erro ao ler cache:', e);
+    return null;
+  }
+}
+
+function saveCachedAnalysis(hash, data, fileName) {
+  try {
+    const obj = { data, ts: Date.now(), name: fileName || '' };
+    localStorage.setItem(CACHE_PREFIX + hash, JSON.stringify(obj));
+    let index = JSON.parse(localStorage.getItem(CACHE_INDEX_KEY) || '[]');
+    index = index.filter(k => k !== hash);
+    index.unshift(hash);
+    while (index.length > CACHE_MAX_ENTRIES) {
+      const removed = index.pop();
+      try { localStorage.removeItem(CACHE_PREFIX + removed); } catch (_) {}
+    }
+    localStorage.setItem(CACHE_INDEX_KEY, JSON.stringify(index));
+  } catch (e) {
+    console.warn('Erro ao salvar cache:', e);
+  }
+}
+
+function listCacheMeta() {
+  try {
+    const index = JSON.parse(localStorage.getItem(CACHE_INDEX_KEY) || '[]');
+    return index.map(h => {
+      const raw = localStorage.getItem(CACHE_PREFIX + h);
+      if (!raw) return { hash: h, ts: null, name: null };
+      const parsed = JSON.parse(raw);
+      return { hash: h, ts: parsed.ts, name: parsed.name };
+    });
+  } catch (e) {
+    return [];
+  }
+}
+
+function clearAllCache() {
+  try {
+    const index = JSON.parse(localStorage.getItem(CACHE_INDEX_KEY) || '[]');
+    index.forEach(h => localStorage.removeItem(CACHE_PREFIX + h));
+    localStorage.removeItem(CACHE_INDEX_KEY);
+  } catch (e) {
+    console.warn('Erro ao limpar cache:', e);
+  }
+}
+
+function showCacheIndexInConsole() {
+  const meta = listCacheMeta();
+  if (!meta.length) {
+    console.info('Cache vazio.');
+    return;
+  }
+  console.info('Cache de análises (mais recentes primeiro):');
+  meta.forEach(m => {
+    const dt = m.ts ? new Date(m.ts).toLocaleString() : '—';
+    console.info(`- ${m.hash} | ${m.name || 'sem-nome'} | salvo em: ${dt}`);
+  });
+}
+
+/* ====== DRAG & DROP & Evento para carregar arquivo (mantidos) ====== */
+function carregarArquivo(file) {
+  if (!file || file.type !== 'application/pdf') {
+    setStatus('⚠️ Apenas arquivos PDF são aceitos.', 'err');
+    return;
+  }
+  const dt = new DataTransfer();
+  dt.items.add(file);
+  document.getElementById('filePdf').files = dt.files;
+  document.getElementById('fileName').textContent = file.name;
+  setStatus(`📄 Arquivo carregado: ${file.name}`, 'ok');
+}
+
+const dropZone = document.getElementById('dropZone');
+dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  carregarArquivo(file);
+});
+dropZone.addEventListener('click', () => document.getElementById('filePdf').click());
+
+/* ====== EVENTOS (pequenas coisas mantidas) ====== */
+document.getElementById('btnToggleDebug').addEventListener('click', () => {
+  document.getElementById('debugBox').classList.toggle('show');
+  document.getElementById('debugArrow').classList.toggle('rotated');
+});
+
+document.getElementById('filePdf').addEventListener('change', function () {
+  document.getElementById('fileName').textContent = this.files[0]?.name || 'Selecionar arquivo PDF...';
+});
+
+// ---------- SUBSTITUIÇÃO DO LISTENER btnImportar (integra cache) ----------
+const oldBtn = document.getElementById('btnImportar');
+if (oldBtn) {
+  // remove listeners antigos substituindo o nó (evita duplicidade)
+  oldBtn.replaceWith(oldBtn.cloneNode(true));
+}
+const btnImportarNovo = document.getElementById('btnImportar');
+
+btnImportarNovo.addEventListener('click', async () => {
+  const file = document.getElementById('filePdf').files[0];
+  if (!file) { setStatus('⚠️ Selecione um arquivo PDF primeiro.', 'err'); return; }
+
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    setStatus('🔑 Configure sua chave da API Gemini antes de continuar.', 'err');
+    document.getElementById('apiKeyInput').focus();
+    return;
+  }
+
+  clearDebug();
+  document.getElementById('debugBox').classList.remove('show');
+  document.getElementById('debugArrow').classList.remove('rotated');
+  document.getElementById('resultArea').style.display = 'none';
+  setOverlay(true, 'Calculando hash do arquivo...');
+
+  try {
+    // 1) Calcula hash do PDF (identificador único)
+    const fileHash = await hashArquivoSHA256(file);
+    dbg(`🔐 Hash do arquivo: ${fileHash}`);
+
+    // 2) Verifica cache
+    const cached = getCachedAnalysis(fileHash);
+    if (cached) {
+      // pergunta ao usuário se deseja usar o cache
+      const usarCache = confirm(`Análise anterior encontrada para este arquivo (salva em ${new Date(cached.ts).toLocaleString()}).\n\nDeseja usar o resultado em cache sem consumir tokens? (OK = usar cache / Cancel = reprocessar)`);
+      if (usarCache) {
+        dbg('♻️ Usando análise em cache.');
+        renderResultados(cached.data);
+        setStatus('✅ Resultado carregado do cache local.', 'ok');
+        setOverlay(false);
+        return;
+      } else {
+        dbg('🔁 Usuário optou por reprocessar (ignorar cache).');
+      }
+    }
+
+    setOverlay(true, 'Lendo o PDF...');
+    const textoPDF = await extrairTextoPDF(file);
+
+    if (textoPDF.length < 100) {
+      throw new Error('O PDF parece não ter texto selecionável (pode ser escaneado/imagem). Tente um PDF com texto nativo.');
+    }
+
+    setOverlay(true, 'Analisando com Gemini AI... (pode levar até 30s)');
+    const dados = await analisarComGemini(textoPDF, apiKey);
+
+    // 3) Salva no cache
+    try {
+      saveCachedAnalysis(fileHash, dados, file.name);
+      dbg('✅ Análise salva no cache local.');
+    } catch (e) {
+      dbg('⚠️ Falha ao salvar no cache: ' + e.message);
+    }
+
+    renderResultados(dados);
+    setStatus(`✅ Análise concluída! Fundo: ${dados.ticker || 'identificado'} · Gestora: ${dados.gestora || 'identificada'}`, 'ok');
+
+  } catch (e) {
+    setStatus('❌ ' + e.message, 'err');
+    dbg('ERRO: ' + e.message);
+    document.getElementById('debugBox').classList.add('show');
+    document.getElementById('debugArrow').classList.add('rotated');
+  } finally {
+    setOverlay(false);
+  }
+});
+// -------------------------------------------------------------------------
+
+document.getElementById('btnLimpar').addEventListener('click', () => {
+  document.getElementById('filePdf').value = '';
+  document.getElementById('fileName').textContent = 'Selecionar arquivo PDF...';
+  document.getElementById('resultArea').style.display = 'none';
+  document.getElementById('status').classList.remove('show');
+  clearDebug();
+  document.getElementById('debugBox').classList.remove('show');
+  document.getElementById('debugArrow').classList.remove('rotated');
+});
+
+document.getElementById('themeToggle').addEventListener('click', () => {
+  const body = document.body;
+  const btn = document.getElementById('themeToggle');
+  if (body.classList.contains('light')) {
+    body.classList.remove('light');
+    localStorage.setItem('theme', 'dark');
+    btn.textContent = '🌙';
+  } else {
+    document.body.classList.add('light');
+    localStorage.setItem('theme', 'light');
+    btn.textContent = '☀️';
+  }
+});
+
+// Relógio em tempo real
+function atualizarRelogio() {
+  const agora = new Date();
+  const diasSemana = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+  const meses = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  const dia = diasSemana[agora.getDay()];
+  const d = String(agora.getDate()).padStart(2,'0');
+  const m = meses[agora.getMonth()];
+  const a = agora.getFullYear();
+  const h = String(agora.getHours()).padStart(2,'0');
+  const min = String(agora.getMinutes()).padStart(2,'0');
+  const s = String(agora.getSeconds()).padStart(2,'0');
+  document.getElementById('hDate').textContent = `${dia}, ${d} ${m} ${a} · ${h}:${min}:${s}`;
+}
+atualizarRelogio();
+setInterval(atualizarRelogio, 1000);
+
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme === 'light') {
+  document.body.classList.add('light');
+  document.getElementById('themeToggle').textContent = '☀️';
+}
 </script>
 </body>
 </html>

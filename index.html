@@ -292,7 +292,7 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
 
     <!-- FIX #12: aviso visível quando o texto do PDF for cortado -->
     <div class="truncate-warning" id="truncateWarning">
-      ⚠️ O relatório é muito longo e foi cortado em 80.000 caracteres para processamento. Dados das últimas páginas podem não ter sido considerados.
+      ⚠️ O relatório é muito longo e foi cortado em 400.000 caracteres para processamento. Dados das últimas páginas podem não ter sido considerados.
     </div>
 
     <div class="upload-row">
@@ -482,7 +482,7 @@ updateApiStatusUI();
    EXTRAÇÃO DE TEXTO DO PDF
    FIX #12: avisa quando o texto é cortado
 ═══════════════════════════════════════════════════ */
-const TEXTO_MAX = 80000;
+const TEXTO_MAX = 400000;
 
 function normalizarTexto(texto) {
   return texto.replace(/[\n\r\t]+/g, ' ').replace(/\s+/g, ' ').trim();
@@ -510,7 +510,7 @@ async function extrairTextoPDF(file) {
   const cortando = normalizado.length > TEXTO_MAX;
   const tw = document.getElementById('truncateWarning');
   if (tw) tw.classList.toggle('show', cortando);
-  if (cortando) dbg(`⚠️ Texto cortado em ${TEXTO_MAX} chars (original: ${normalizado.length})`);
+  if (cortando) dbg(`⚠️ Texto cortado em ${TEXTO_MAX} chars (original: ${normalizado.length}). Considere um relatório menor se a análise ficar incompleta.`);
 
   dbg(`📝 Preview (primeiros 800 chars):\n${normalizado.substring(0, 800)}\n`);
   return normalizado;

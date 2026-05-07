@@ -362,37 +362,39 @@ Analise o relatório gerencial abaixo e retorne um JSON com EXATAMENTE esta estr
 {
   "ticker": "código do fundo ex: ABCD11 ou null",
   "gestora": "nome da gestora ou null",
-  "tipo_fii": "tipo: Lajes Corporativas, Logístico, Shopping, CRI, Híbrido, etc ou null",
+  "tipo_fii": "tipo: Lajes Corporativas, Logístico, Shopping, CRI, Papel, Recebíveis, Híbrido, etc ou null",
   "periodo_referencia": "mês/ano do relatório ou null",
-  "vacancia_fisica": "valor em % ou null",
-  "vacancia_financeira": "valor em % ou null",
+  "vacancia_fisica": "IMPORTANTE: Para fundos de TIJOLO (Shopping, Logístico, Lajes), extraia este valor. Para fundos de PAPEL/CRI, ignore e deixe null. Valor em % ou null",
+  "vacancia_financeira": "IMPORTANTE: Para fundos de TIJOLO, extraia este valor. Para fundos de PAPEL/CRI, ignore e deixe null. Valor em % ou null",
   "inadimplencia": "valor em R$ ou % ou null",
-  "ltv": "REGRAS PARA LTV CONFORME TIPO DO FUNDO: (A) Se o fundo for de CRI, Papel ou Recebíveis (tipo_fii contém 'cri', 'papel', 'receb', 'recebível', 'fundo de recebíveis', 'FII recebíveis'), CALCULE A MÉDIA PONDERADA dos LTVs individuais listados na tabela de portfólio. Use como peso o '% PL' ou 'Valor' de cada ativo. Exemplo de cálculo: se tiver CRI A com LTV 100% e peso 10%, CRI B com LTV 200% e peso 5%, a média ponderada = (100*10 + 200*5) / 15 = 133,3%. Retorne no formato '133,3%'. (B) Se o fundo for de Tijolo (Shopping, Logístico, Lajes, Corporativo, Galpão, Hotel, Sala Comercial, etc.), procure o LTV CONSOLIDADO do fundo no resumo financeiro, geralmente escrito como 'LTV', 'Loan to Value' ou 'Dívida Líquida / Ativos'. Retorne esse valor único no formato 'XX,X%'. (C) Se não encontrar nenhum LTV, retorne null.",
+  "ltv": "REGRAS PARA LTV CONFORME TIPO DO FUNDO: (A) Se o fundo for de CRI, Papel, Recebíveis ou Fundo de Recebíveis (tipo_fii contém 'cri', 'papel', 'receb', 'recebível', 'fundo de recebíveis'), CALCULE a MÉDIA PONDERADA. NÃO use média simples. Use a fórmula: soma(LTV_i * percentual_PL_i) / soma(percentual_PL_i). Exemplo: CRI A: LTV 100%, %PL 10%; CRI B: LTV 200%, %PL 5%; resultado = (100*10 + 200*5)/15 = 133,3%. Retorne no formato '133,3%'. (B) Se o fundo for de Tijolo (Shopping, Logístico, Lajes, Corporativo, Galpão, Hotel), procure o LTV CONSOLIDADO no resumo financeiro como 'LTV', 'Loan to Value' ou 'Dívida Líquida / Ativos'. (C) Se não encontrar nenhum LTV, retorne null.",
   "divida_pl": "valor em % de dívida sobre o patrimônio líquido (ex: 57%) ou null",
   "custo_divida": "custo médio da dívida ex: IPCA+6,5% ou null",
-  "prazo_medio_divida": "prazo médio em anos ou null",
-  "distribuicao": "valor em R$/cota ou null",
-  "resultado_distribuivel": "valor em R$/cota ou null",
+  "prazo_medio_divida": "prazo médio da dívida em anos ou null",
+  "prazo_medio_cri": "prazo médio dos CRIs na carteira em anos (média ponderada por %PL). Ex: 4,2 anos. Se não encontrar, null.",
+  "distribuicao": "valor distribuído aos cotistas no período em R$/cota ou null",
+  "resultado_distribuivel": "resultado operacional gerado pelo fundo no período em R$/cota (antes de reservas) ou null",
   "receita_total": "valor ou null",
   "despesas_totais": "valor ou null",
   "saldo_caixa": "valor ou null",
-  "num_imoveis": "número de imóveis ou null",
-  "num_inquilinos": "número de inquilinos ou null",
-  "abl_total": "área bruta locável total ou null",
-  "saida_inquilino": "nome/descrição ou null",
-  "entrada_inquilino": "nome/descrição ou null",
-  "reajustes": "descrição dos reajustes ou null",
-  "parcelas_pagar": "valor ou null",
-  "principais_riscos": "lista dos 3 principais riscos identificados no relatório (incluindo riscos de alavancagem se houver), separados por | ou null",
+  "num_imoveis": "número de imóveis (apenas para fundos de tijolo) ou null",
+  "num_inquilinos": "número de inquilinos (apenas para fundos de tijolo) ou null",
+  "abl_total": "área bruta locável total (apenas para fundos de tijolo) ou null",
+  "saida_inquilino": "nome/descrição de saída relevante de inquilino ou null",
+  "entrada_inquilino": "nome/descrição de entrada relevante de inquilino ou null",
+  "reajustes": "descrição dos reajustes de aluguel ou null",
+  "parcelas_pagar": "valor de parcelas a pagar (obras, amortizações) ou null",
+  "principais_riscos": "lista dos 3 principais riscos identificados no relatório (incluindo riscos de alavancagem, vacância, concentração), separados por | ou null",
   "pontos_positivos": "lista dos 3 principais pontos positivos, separados por | ou null",
-  "resumo_analista": "resumo crítico de 4 a 6 frases do ponto de vista de um investidor cuidadoso, destacando o que mais importa saber sobre este fundo neste período (mencione o nível de alavancagem/dívida se for relevante)",
+  "resumo_analista": "resumo crítico de 4 a 6 frases do ponto de vista de um investidor cuidadoso, destacando o que mais importa saber sobre este fundo neste período (mencione o nível de alavancagem/dívida, vacância se for tijolo, e compare distribuição vs resultado distribuível)",
   "comentario_gestor": "trecho do comentário da gestão se houver, máximo 600 caracteres, ou null"
 }
 
 IMPORTANTE:
 - Retorne APENAS o JSON, sem texto antes ou depois, sem blocos de código markdown.
 - Se um dado não estiver no relatório, use null.
-- No resumo_analista, seja direto e crítico: mencione se a vacância está alta, se a distribuição caiu, se há riscos relevantes de dívida, se o fundo está bem gerido.
+- No resumo_analista, seja direto e crítico: mencione se a vacância está alta (tijolo), se a distribuição caiu, se há riscos relevantes de dívida, se o fundo está bem gerido.
+- Para fundos de papel, ignore campos como vacância, num_imoveis, num_inquilinos, abl_total.
 
 RELATÓRIO:
 ${textoLimitado}`;

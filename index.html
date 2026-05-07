@@ -500,7 +500,7 @@ function colorVacancia(val) {
 
 // MODIFICADO: colorLTV agora aceita opcionalmente o tipo do fundo (tipoFii)
 // e aplica thresholds especiais para fundos CRI/papel/recebíveis:
-// - CRI-type: <=50% ok, <=70% neutro, >70% alerta
+// - CRI-type: <=60% ok, <=70% neutro, >70% alerta
 // - outros: mantém comportamento anterior (<=10 ok, <=20 neutro, >20 alerta)
 function colorLTV(val, tipoFii) {
   if (!val) return '';

@@ -655,6 +655,35 @@ function extrairNumero(val) {
   return isNaN(n) ? null : n;
 }
 
+
+/**
+ * Formata valores financeiros retornados pela IA.
+ * Números puros grandes (ex: "23298275") são exibidos como R$ 23.298.275
+ * Valores já formatados, com % ou letras são mantidos como estão.
+ */
+function formatarValorFinanceiro(val) {
+  if (!val || val === 'null') return val;
+  const str = String(val).trim();
+  // Já tem símbolo, %, letras → mantém
+  if (/[R$%a-zA-ZÀ-ÿ\/+]/.test(str)) return str;
+  // Remove separadores de milhar (ponto) e troca vírgula decimal por ponto
+  const semPontuacao = str.replace(/\./g, '').replace(',', '.');
+  const num = parseFloat(semPontuacao);
+  if (isNaN(num)) return str;
+  // Valor pequeno com vírgula (ex: "0,170" = R$/cota) → mantém
+  if (Math.abs(num) < 1000 && str.includes(',')) return str;
+  // Número >= 1000 sem formatação → formata como BRL
+  if (Math.abs(num) >= 1000) {
+    const temDecimal = !Number.isInteger(num);
+    return num.toLocaleString('pt-BR', {
+      style: 'currency', currency: 'BRL',
+      minimumFractionDigits: temDecimal ? 2 : 0,
+      maximumFractionDigits: temDecimal ? 2 : 0
+    });
+  }
+  return str;
+}
+
 function colorVacancia(val) {
   const num = extrairNumero(val);
   if (num === null) return '';
@@ -779,9 +808,9 @@ function renderResultados(d) {
     const indicadoresSimples = [
       { label: '💰 Distribuição (R$/cota)',   val: d.distribuicao },
       { label: '📈 Resultado Distribuível',   val: d.resultado_distribuivel },
-      { label: '📊 Receita Total',            val: d.receita_total },
-      { label: '📉 Despesas Totais',          val: d.despesas_totais },
-      { label: '💰 Saldo em Caixa',           val: d.saldo_caixa },
+      { label: '📊 Receita Total',            val: formatarValorFinanceiro(d.receita_total) },
+      { label: '📉 Despesas Totais',          val: formatarValorFinanceiro(d.despesas_totais) },
+      { label: '💰 Saldo em Caixa',           val: formatarValorFinanceiro(d.saldo_caixa) },
       { label: '🏢 Nº de Imóveis',            val: d.num_imoveis },
       { label: '👥 Nº de Inquilinos',         val: d.num_inquilinos },
       { label: '📐 ABL Total',                val: d.abl_total },

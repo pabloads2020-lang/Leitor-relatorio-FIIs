@@ -367,7 +367,7 @@ Analise o relatório gerencial abaixo e retorne um JSON com EXATAMENTE esta estr
   "vacancia_fisica": "valor em % ou null",
   "vacancia_financeira": "valor em % ou null",
   "inadimplencia": "valor em R$ ou % ou null",
-  "ltv": "CALCULE A MÉDIA (simples ou ponderada) dos LTVs individuais listados na tabela de portfólio. Ex: se encontrar LTVs como 103,2%, 134,1%, 186,2%, 100,1%, a média é ~130,9%. Retorne no formato '130,9%'. Se não encontrar nenhum LTV, null.",
+  "ltv": "REGRAS PARA LTV CONFORME TIPO DO FUNDO: (A) Se o fundo for de CRI, Papel ou Recebíveis (tipo_fii contém 'cri', 'papel', 'receb', 'recebível', 'fundo de recebíveis', 'FII recebíveis'), CALCULE A MÉDIA PONDERADA dos LTVs individuais listados na tabela de portfólio. Use como peso o '% PL' ou 'Valor' de cada ativo. Exemplo de cálculo: se tiver CRI A com LTV 100% e peso 10%, CRI B com LTV 200% e peso 5%, a média ponderada = (100*10 + 200*5) / 15 = 133,3%. Retorne no formato '133,3%'. (B) Se o fundo for de Tijolo (Shopping, Logístico, Lajes, Corporativo, Galpão, Hotel, Sala Comercial, etc.), procure o LTV CONSOLIDADO do fundo no resumo financeiro, geralmente escrito como 'LTV', 'Loan to Value' ou 'Dívida Líquida / Ativos'. Retorne esse valor único no formato 'XX,X%'. (C) Se não encontrar nenhum LTV, retorne null.",
   "divida_pl": "valor em % de dívida sobre o patrimônio líquido (ex: 57%) ou null",
   "custo_divida": "custo médio da dívida ex: IPCA+6,5% ou null",
   "prazo_medio_divida": "prazo médio em anos ou null",

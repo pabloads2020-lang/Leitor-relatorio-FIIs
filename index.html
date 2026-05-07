@@ -378,6 +378,7 @@ Analise o relatório gerencial abaixo e retorne um JSON com EXATAMENTE esta estr
   "despesas_totais": "valor ou null",
   "saldo_caixa": "valor ou null",
   "num_imoveis": "número de imóveis (apenas para fundos de tijolo) ou null",
+  "num_cris": "número de CRIs na carteira (ex: 27). Para fundos de papel, extraia este valor da tabela de portfólio. Para fundos de tijolo, deixe null.",
   "num_inquilinos": "número de inquilinos (apenas para fundos de tijolo) ou null",
   "abl_total": "área bruta locável total (apenas para fundos de tijolo) ou null",
   "saida_inquilino": "nome/descrição de saída relevante de inquilino ou null",
@@ -570,16 +571,19 @@ function cardComSemaforo(label, val, cor, pct) {
 }
 
 function renderResultados(d) {
-  const container = document.getElementById('resultadosConteudo');
-  const fundoLabel = document.getElementById('fundoIdentificado');
+  try {
+    const container = document.getElementById('resultadosConteudo');
+    const fundoLabel = document.getElementById('fundoIdentificado');
 
-  fundoLabel.innerHTML = `
-    ${d.ticker ? `<span class="fundo-ticker">${d.ticker}</span>` : ''}
-    <span style="font-size:12px">${d.gestora || ''}</span>
-    ${d.periodo_referencia ? `<span style="font-size:11px;color:var(--text3);margin-left:6px">${d.periodo_referencia}</span>` : ''}
-  `;
+    fundoLabel.innerHTML = `
+      ${d.ticker ? `<span class="fundo-ticker">${d.ticker}</span>` : ''}
+      <span style="font-size:12px">${d.gestora || ''}</span>
+      ${d.periodo_referencia ? `<span style="font-size:11px;color:var(--text3);margin-left:6px">${d.periodo_referencia}</span>` : ''}
+    `;
 
-  let html = '';
+    let html = '';
+    
+    // ... todo o resto do código ...
 
   // --- Vacância Física com semáforo ---
   const corVacFis = colorVacancia(d.vacancia_fisica);
@@ -601,6 +605,22 @@ function renderResultados(d) {
   const corLTV = colorLTV(d.ltv, d.tipo_fii);
   const numLTV = extrairNumero(d.ltv) || 0;
   html += cardComSemaforo('🏦 LTV (Loan to Value)', d.ltv, corLTV, numLTV);
+
+// --- NOVO CARD: Quantidade de CRIs (apenas para fundos de papel) ---
+const isPapel = (d.tipo_fii || '').toString().toLowerCase().includes('cri') || 
+                (d.tipo_fii || '').toString().toLowerCase().includes('papel') || 
+                (d.tipo_fii || '').toString().toLowerCase().includes('receb') ||
+                (d.tipo_fii || '').toString().toLowerCase().includes('recebíveis') ||
+                (d.tipo_fii || '').toString().toLowerCase().includes('fundo de recebíveis');
+
+if (isPapel && d.num_cris && d.num_cris !== 'null') {
+  html += `
+    <div class="result-card">
+      <div class="result-label">📦 QUANTIDADE DE CRIs NA CARTEIRA</div>
+      <div class="result-value small">${d.num_cris}</div>
+    </div>
+  `;
+}
 
   // --- Demais indicadores sem semáforo ---
   const indicadoresSimples = [
@@ -712,9 +732,17 @@ if (temDivida) {
     `;
   }
 
-  container.innerHTML = html;
+    container.innerHTML = html;
   document.getElementById('resultArea').style.display = 'block';
+  
+  } catch (err) {
+    console.error("❌ Erro ao renderizar:", err);
+    dbg("ERRO AO RENDERIZAR: " + err.message);
+    setStatus("Erro ao mostrar resultados: " + err.message, 'err');
+  }
 }
+
+/* --- CACHE DE ANÁLISES (localStorage) --- */
 
 /* --- CACHE DE ANÁLISES (localStorage) ---
    Integração sem alterar demais funcionalidades.

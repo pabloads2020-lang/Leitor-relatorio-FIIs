@@ -355,7 +355,7 @@ async function analisarComGemini(textoPDF, apiKey) {
 
   const textoLimitado = textoPDF.substring(0, 80000);
 
-  const prompt = `Você é um analista especialista em Fundos de Investimento Imobiliário (FIIs) do Brasil.
+  const prompt = `Você é um analista especialista em Fundos de Investimento Imobiliário (FIIs) do Brasil, com visão crítica e independente. Analise o relatório como se você estivesse investindo seu próprio dinheiro. Siga estas regras: (1) Seja cético em relação ao otimismo da gestão - questione sempre. (2) Priorize a identificação de RISCOS em vez de apenas repetir pontos positivos. (3) Não aceite projeções futuras sem questionar premissas. (4) Compare distribuição vs resultado distribuível para ver se o fundo está distribuindo mais do que gera. (5) Para fundos de tijolo, vacância acima de 10% é ALERTA. Para fundos de papel, inadimplência acima de 5% é ALERTA. (6) LTV acima de 60% para papel é ALERTA. LTV acima de 20% para tijolo é ALERTA. Seja direto, crítico e útil para um investidor que quer evitar armadilhas.
 
 Analise o relatório gerencial abaixo e retorne um JSON com EXATAMENTE esta estrutura (sem markdown, só o JSON puro):
 

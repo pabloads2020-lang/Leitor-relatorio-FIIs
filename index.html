@@ -526,25 +526,7 @@ async function analisarComGemini(textoPDF, apiKey) {
 
   const textoLimitado = textoPDF.substring(0, TEXTO_MAX);
 
-  const prompt = `Você é um analista especialista em Fundos de Investimento Imobiliário (FIIs) do Brasil, com visão crítica e independente. Analise o relatório como se você estivesse investindo seu próprio capital. Siga estas regras:
-
-(1) POSTURA CÉTICA: Seja cético em relação ao otimismo da gestão — questione sempre. Ignore o "marketing" do relatório e foque no que pode dar errado. Não aceite projeções futuras sem questionar premissas, especialmente em cenários de juros altos.
-
-(2) PRIORIDADE DE RISCOS: Priorize a identificação de RISCOS em vez de repetir pontos positivos. Identifique riscos de concentração, liquidez, alavancagem e operacionais.
-
-(3) ANÁLISE DE ALAVANCAGEM (MÉTODO DO RESÍDUO): Se disponível, extraia Ativo Total e Patrimônio Líquido (PL). Calcule o Passivo implícito (Ativo - PL). Para fundos de tijolo/agro, diferencie dívida financeira (CRI, Debêntures) de dívida operacional (parcelamento de ativos, obrigações por aquisição de imóveis) — são riscos distintos.
-
-(4) ESQUELETO DO DIVIDENDO: Compare o Resultado Gerencial (geração de caixa) vs. Valor Distribuído. Se a distribuição for maior que o resultado, identifique se houve uso de reservas ou ganhos não recorrentes (venda de ativos, ganho de capital). Distribuição sustentada apenas por não recorrentes é sinal de alerta.
-
-(5) ALERTAS CRÍTICOS:
-- Vacância > 10% (Tijolo) = ALERTA VERMELHO
-- Inadimplência > 5% (Papel) = ALERTA VERMELHO
-- LTV médio > 60% (Papel) = ALERTA DE CRÉDITO
-- Distribuição > Resultado Distribuível por mais de 1 mês = ALERTA DE SUSTENTABILIDADE
-
-(6) COMPARAÇÃO HISTÓRICA: Se o relatório trouxer série histórica, compare os indicadores atuais com a média recente para identificar deterioração ou melhora de tendência.
-
-Seja direto, crítico e útil para um investidor que quer evitar armadilhas.
+  const prompt = `Você é um analista especialista em Fundos de Investimento Imobiliário (FIIs) do Brasil, com visão crítica e independente. Analise o relatório como se você estivesse investindo seu próprio dinheiro. Siga estas regras: (1) Seja cético em relação ao otimismo da gestão - questione sempre. (2) Priorize a identificação de RISCOS em vez de apenas repetir pontos positivos. (3) Não aceite projeções futuras sem questionar premissas. (4) Compare distribuição vs resultado distribuível para ver se o fundo está distribuindo mais do que gera. (5) Para fundos de tijolo, vacância acima de 10% é ALERTA. Para fundos de papel, inadimplência acima de 5% é ALERTA. (6) LTV acima de 60% para papel é ALERTA. LTV acima de 20% para tijolo é ALERTA. Seja direto, crítico e útil para um investidor que quer evitar armadilhas.
 
 Analise o relatório gerencial abaixo e retorne um JSON com EXATAMENTE esta estrutura (sem markdown, só o JSON puro):
 

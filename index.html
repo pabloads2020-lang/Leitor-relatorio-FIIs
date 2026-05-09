@@ -43,7 +43,6 @@
 
 /* ══════════════════════════════════════════
    TEMA CLARO
-   FIX #2: #ffff → #ffffff em todos os lugares
 ══════════════════════════════════════════ */
 body.light {
   --bg: #f5f7fa;
@@ -141,7 +140,6 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
 .drop-zone.drag-over svg { opacity: 1; }
 
 /* ── Cache modal ─────────────────────────── */
-/* FIX #6: substitui confirm() nativo por modal próprio */
 .modal-overlay { display: none; position: fixed; inset: 0; background: var(--overlay-bg); z-index: 300; align-items: center; justify-content: center; }
 .modal-overlay.show { display: flex; }
 .modal-box { background: var(--card-bg); border: 1px solid var(--border2); border-radius: 14px; padding: 1.75rem; max-width: 420px; width: 90%; }
@@ -215,8 +213,17 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
 /* ── Footer ──────────────────────────────── */
 .footer { text-align: center; font-size: 12px; color: var(--text3); padding: 2rem; border-top: 1px solid var(--footer-border); margin-top: 1rem; }
 
+/* ── Buscador Fundos.NET ─────────────────── */
+.buscador-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
+.buscador-titulo { font-size: 12px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border); }
+.buscador-input { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.buscador-input input { flex: 1; padding: 0.7rem; border-radius: 8px; border: 1px solid var(--border); background: var(--bg2); color: var(--text); outline: none; }
+.buscador-input input:focus { border-color: var(--gold); }
+.buscador-input button { padding: 0.7rem 1.5rem; background: var(--gold); color: #000; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+.buscador-resultado { margin-top: 1rem; }
+
 @media print {
-  .header, .card:not(#resultArea), .footer, #btnExportarPDF, .btn-export, .debug-wrapper { display: none !important; }
+  .header, .card:not(#resultArea), .footer, #btnExportarPDF, .btn-export, .debug-wrapper, .buscador-card { display: none !important; }
   body { background: #fff !important; color: #000 !important; }
   #resultArea { display: block !important; border: none !important; box-shadow: none !important; }
   .result-card, .resumo-box, .riscos-box, .positivos-box, .comentario-box, .divida-card { break-inside: avoid; }
@@ -231,7 +238,7 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
   <div class="spin-text" id="overlayText">Processando PDF...</div>
 </div>
 
-<!-- FIX #6: Modal próprio substituindo confirm() nativo -->
+<!-- Modal próprio substituindo confirm() nativo -->
 <div class="modal-overlay" id="cacheModal">
   <div class="modal-box">
     <div class="modal-title">♻️ Análise em cache encontrada</div>
@@ -290,7 +297,6 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
       Arraste e solte o PDF aqui ou use o botão abaixo
     </div>
 
-    <!-- FIX #12: aviso visível quando o texto do PDF for cortado -->
     <div class="truncate-warning" id="truncateWarning">
       ⚠️ O relatório é muito longo e foi cortado em 400.000 caracteres para processamento. Dados das últimas páginas podem não ter sido considerados.
     </div>
@@ -317,6 +323,16 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
       </div>
       <div id="debugBox" class="debug-box"></div>
     </div>
+  </div>
+
+  <!-- NOVO: BUSCADOR FUNDOS.NET -->
+  <div class="buscador-card">
+    <div class="buscador-titulo">📡 Buscar relatório direto no Fundos.NET</div>
+    <div class="buscador-input">
+      <input type="text" id="tickerInput" placeholder="Digite o ticker (ex: CRAA11, HGBS11, BTCI11)">
+      <button id="btnBuscarFundo">Buscar último relatório</button>
+    </div>
+    <div id="resultadoBuscaFundo" class="buscador-resultado"></div>
   </div>
 
   <!-- Card: Resultado -->
@@ -346,8 +362,6 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs
 
 /* ═══════════════════════════════════════════════════
    ESTADO CENTRALIZADO
-   FIX #7: elimina clone de nó / listeners duplicados
-   controlando estado de processamento aqui
 ═══════════════════════════════════════════════════ */
 const App = {
   processando: false,
@@ -369,7 +383,6 @@ function clearDebug() {
 
 /* ═══════════════════════════════════════════════════
    STATUS
-   FIX #8: erros ficam 15s, sucessos 5s (não ficam presos)
 ═══════════════════════════════════════════════════ */
 function setStatus(msg, tipo, durationMs) {
   const el = document.getElementById('status');
@@ -399,7 +412,6 @@ function startRotatingMessages(messages, ms = 4000) {
 
 /* ═══════════════════════════════════════════════════
    ESCAPE HTML
-   FIX #3: função centralizada para todo conteúdo externo
 ═══════════════════════════════════════════════════ */
 function escapeHtml(str) {
   if (str === null || str === undefined) return '';
@@ -413,7 +425,6 @@ function escapeHtml(str) {
 
 /* ═══════════════════════════════════════════════════
    DETECÇÃO DE TIPO DE FUNDO (centralizada)
-   FIX #5: lógica única, usada em todos os lugares
 ═══════════════════════════════════════════════════ */
 function detectarTipoFundo(tipoFii) {
   const t = String(tipoFii || '').toLowerCase();
@@ -431,7 +442,6 @@ function detectarTipoFundo(tipoFii) {
 
 /* ═══════════════════════════════════════════════════
    API KEY
-   FIX #15: validação rigorosa antes de processar
 ═══════════════════════════════════════════════════ */
 function getApiKey() { return localStorage.getItem('gemini_api_key') || ''; }
 
@@ -480,7 +490,6 @@ updateApiStatusUI();
 
 /* ═══════════════════════════════════════════════════
    EXTRAÇÃO DE TEXTO DO PDF
-   FIX #12: avisa quando o texto é cortado
 ═══════════════════════════════════════════════════ */
 const TEXTO_MAX = 400000;
 
@@ -506,11 +515,10 @@ async function extrairTextoPDF(file) {
   const normalizado = normalizarTexto(textoCompleto);
   dbg(`\n📊 Total extraído: ${normalizado.length} caracteres`);
 
-  // Avisa visualmente se vai cortar
   const cortando = normalizado.length > TEXTO_MAX;
   const tw = document.getElementById('truncateWarning');
   if (tw) tw.classList.toggle('show', cortando);
-  if (cortando) dbg(`⚠️ Texto cortado em ${TEXTO_MAX} chars (original: ${normalizado.length}). Considere um relatório menor se a análise ficar incompleta.`);
+  if (cortando) dbg(`⚠️ Texto cortado em ${TEXTO_MAX} chars (original: ${normalizado.length}).`);
 
   dbg(`📝 Preview (primeiros 800 chars):\n${normalizado.substring(0, 800)}\n`);
   return normalizado;
@@ -632,11 +640,9 @@ ${textoLimitado}`;
     dbg(`✅ Resposta recebida na tentativa ${tentativa}.`);
     dbg(`📦 Resposta bruta (primeiros 500 chars):\n${rawText.substring(0, 500)}`);
 
-    // Remove blocos de markdown
     let jsonStr = rawText.trim()
       .replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
 
-    // Tenta parse direto
     try {
       const parsed = JSON.parse(jsonStr);
       dbg('✅ JSON parseado com sucesso.');
@@ -645,7 +651,6 @@ ${textoLimitado}`;
       dbg(`⚠️ JSON incompleto detectado. Tentando recuperar... (${e.message})`);
     }
 
-    // Recuperação de JSON truncado
     try {
       let fixado = jsonStr;
       fixado = fixado.replace(/,\s*$/, '').replace(/:\s*"[^"]*$/, ': null');
@@ -673,24 +678,14 @@ function extrairNumero(val) {
   return isNaN(n) ? null : n;
 }
 
-
-/**
- * Formata valores financeiros retornados pela IA.
- * Números puros grandes (ex: "23298275") são exibidos como R$ 23.298.275
- * Valores já formatados, com % ou letras são mantidos como estão.
- */
 function formatarValorFinanceiro(val) {
   if (!val || val === 'null') return val;
   const str = String(val).trim();
-  // Já tem símbolo, %, letras → mantém
   if (/[R$%a-zA-ZÀ-ÿ\/+]/.test(str)) return str;
-  // Remove separadores de milhar (ponto) e troca vírgula decimal por ponto
   const semPontuacao = str.replace(/\./g, '').replace(',', '.');
   const num = parseFloat(semPontuacao);
   if (isNaN(num)) return str;
-  // Valor pequeno com vírgula (ex: "0,170" = R$/cota) → mantém
   if (Math.abs(num) < 1000 && str.includes(',')) return str;
-  // Número >= 1000 sem formatação → formata como BRL
   if (Math.abs(num) >= 1000) {
     const temDecimal = !Number.isInteger(num);
     return num.toLocaleString('pt-BR', {
@@ -710,7 +705,6 @@ function colorVacancia(val) {
   return 'alerta';
 }
 
-/* FIX #5: usa detectarTipoFundo centralizado */
 function colorLTV(val, tipoFii) {
   const num = extrairNumero(val);
   if (num === null) return '';
@@ -725,7 +719,6 @@ function colorLTV(val, tipoFii) {
   return 'alerta';
 }
 
-/* FIX #14: inadimplência agora sempre espera %, conforme prompt atualizado */
 function colorInadimplencia(val) {
   if (!val || val === '0%' || val === '0') return 'ok';
   const num = extrairNumero(val);
@@ -765,16 +758,12 @@ function cardComSemaforo(label, val, cor, pct) {
 
 /* ═══════════════════════════════════════════════════
    RENDER RESULTADOS
-   FIX #1: estrutura try/catch corrigida — tudo dentro do mesmo bloco
-   FIX #3: todo conteúdo externo escapado via escapeHtml()
-   FIX #4: prazo_medio_cri agora renderizado
 ═══════════════════════════════════════════════════ */
 function renderResultados(d) {
   try {
     const container  = document.getElementById('resultadosConteudo');
     const fundoLabel = document.getElementById('fundoIdentificado');
 
-    // Cabeçalho
     fundoLabel.innerHTML =
       (d.ticker ? `<span class="fundo-ticker">${escapeHtml(d.ticker)}</span>` : '') +
       (d.gestora ? `<span style="font-size:12px">${escapeHtml(d.gestora)}</span>` : '') +
@@ -782,10 +771,8 @@ function renderResultados(d) {
 
     let html = '';
 
-    // FIX #5: usa detecção centralizada
     const { isPapel } = detectarTipoFundo(d.tipo_fii);
 
-    // ── Vacância ──────────────────────────────
     const corVacFis = colorVacancia(d.vacancia_fisica);
     const numVacFis = extrairNumero(d.vacancia_fisica) || 0;
     html += cardComSemaforo('📊 Vacância Física',     d.vacancia_fisica,     corVacFis, numVacFis * 2);
@@ -794,17 +781,14 @@ function renderResultados(d) {
     const numVacFin = extrairNumero(d.vacancia_financeira) || 0;
     html += cardComSemaforo('💰 Vacância Financeira', d.vacancia_financeira, corVacFin, numVacFin * 2);
 
-    // ── Inadimplência ──────────────────────────
     const corInad = colorInadimplencia(d.inadimplencia);
     const numInad = extrairNumero(d.inadimplencia) || 0;
     html += cardComSemaforo('⚠️ Inadimplência', d.inadimplencia, corInad, numInad * 2);
 
-    // ── LTV ────────────────────────────────────
     const corLTV = colorLTV(d.ltv, d.tipo_fii);
     const numLTV = extrairNumero(d.ltv) || 0;
     html += cardComSemaforo('🏦 LTV (Loan to Value)', d.ltv, corLTV, numLTV);
 
-    // ── Qtd CRIs (só para papel) ───────────────
     if (isPapel && d.num_cris && d.num_cris !== 'null') {
       html += `
         <div class="result-card">
@@ -813,7 +797,6 @@ function renderResultados(d) {
         </div>`;
     }
 
-    // FIX #4: prazo_medio_cri agora aparece no painel (só para papel)
     if (isPapel && d.prazo_medio_cri && d.prazo_medio_cri !== 'null') {
       html += `
         <div class="result-card">
@@ -822,7 +805,6 @@ function renderResultados(d) {
         </div>`;
     }
 
-    // ── Indicadores simples ────────────────────
     const indicadoresSimples = [
       { label: '💰 Distribuição (R$/cota)',   val: d.distribuicao },
       { label: '📈 Resultado Distribuível',   val: d.resultado_distribuivel },
@@ -848,7 +830,6 @@ function renderResultados(d) {
         </div>`;
     });
 
-    // ── Estrutura de Dívida ────────────────────
     const temDivida = d.ltv || d.divida_pl || d.custo_divida || d.prazo_medio_divida;
     if (temDivida) {
       const corLTVestr    = colorLTV(d.ltv, d.tipo_fii);
@@ -881,7 +862,6 @@ function renderResultados(d) {
         </div>`;
     }
 
-    // ── Resumo analista ────────────────────────
     if (d.resumo_analista) {
       html += `
         <div class="resumo-box">
@@ -890,7 +870,6 @@ function renderResultados(d) {
         </div>`;
     }
 
-    // ── Pontos positivos ───────────────────────
     if (d.pontos_positivos) {
       const itens = d.pontos_positivos.split('|').map(s => s.trim()).filter(Boolean);
       html += `
@@ -902,7 +881,6 @@ function renderResultados(d) {
         </div>`;
     }
 
-    // ── Riscos ─────────────────────────────────
     if (d.principais_riscos) {
       const itens = d.principais_riscos.split('|').map(s => s.trim()).filter(Boolean);
       html += `
@@ -914,7 +892,6 @@ function renderResultados(d) {
         </div>`;
     }
 
-    // ── Comentário do gestor ───────────────────
     if (d.comentario_gestor && d.comentario_gestor !== 'null') {
       html += `
         <div class="comentario-box">
@@ -923,7 +900,6 @@ function renderResultados(d) {
         </div>`;
     }
 
-    // Injeta tudo de uma vez
     container.innerHTML = html;
     document.getElementById('resultArea').style.display = 'block';
     document.getElementById('resultArea').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -937,12 +913,11 @@ function renderResultados(d) {
 
 /* ═══════════════════════════════════════════════════
    CACHE (localStorage com SHA-256)
-   FIX #13: verifica tamanho antes de salvar
 ═══════════════════════════════════════════════════ */
 const CACHE_PREFIX    = 'leitor_fii_cache_';
 const CACHE_INDEX_KEY = 'leitor_fii_cache_index';
 const CACHE_MAX_ENTRIES   = 50;
-const CACHE_MAX_ENTRY_KB  = 200; // limite por entrada em KB
+const CACHE_MAX_ENTRY_KB  = 200;
 
 async function hashArquivoSHA256(file) {
   const ab      = await file.arrayBuffer();
@@ -961,14 +936,11 @@ function saveCachedAnalysis(hash, data, fileName) {
   try {
     const obj    = { data, ts: Date.now(), name: fileName || '' };
     const serial = JSON.stringify(obj);
-
-    // FIX #13: não salva se a entrada for muito grande
     const sizeKB = new Blob([serial]).size / 1024;
     if (sizeKB > CACHE_MAX_ENTRY_KB) {
       dbg(`⚠️ Entrada de cache muito grande (${sizeKB.toFixed(0)}KB > ${CACHE_MAX_ENTRY_KB}KB). Cache não salvo.`);
       return;
     }
-
     localStorage.setItem(CACHE_PREFIX + hash, serial);
     let index = JSON.parse(localStorage.getItem(CACHE_INDEX_KEY) || '[]');
     index = index.filter(k => k !== hash);
@@ -983,10 +955,6 @@ function saveCachedAnalysis(hash, data, fileName) {
   }
 }
 
-/* ═══════════════════════════════════════════════════
-   MODAL DE CACHE
-   FIX #6: substitui confirm() nativo por modal próprio
-═══════════════════════════════════════════════════ */
 function mostrarModalCache(cachedTs) {
   return new Promise((resolve) => {
     const modal = document.getElementById('cacheModal');
@@ -1023,7 +991,7 @@ function carregarArquivo(file) {
     const dt = new DataTransfer();
     dt.items.add(file);
     document.getElementById('filePdf').files = dt.files;
-  } catch (_) { /* Safari fallback — file já foi selecionado via input */ }
+  } catch (_) { }
   document.getElementById('fileName').textContent = file.name;
   setStatus(`📄 Arquivo carregado: ${file.name}`, 'ok');
 }
@@ -1053,19 +1021,15 @@ document.getElementById('btnToggleDebug').addEventListener('click', () => {
 
 /* ═══════════════════════════════════════════════════
    BOTÃO ANALISAR
-   FIX #7: sem clone de nó — App.processando evita duplicação
-   FIX #11: mensagens rotativas durante retry
-   FIX #15: valida chave antes de processar
 ═══════════════════════════════════════════════════ */
 document.getElementById('btnImportar').addEventListener('click', async () => {
-  if (App.processando) return; // guard contra duplo-clique
+  if (App.processando) return;
 
   const file   = document.getElementById('filePdf').files[0];
   const apiKey = getApiKey();
 
   if (!file)   { setStatus('⚠️ Selecione um arquivo PDF primeiro.', 'err'); return; }
 
-  // FIX #15: validação rigorosa da chave no momento do uso
   if (!validarApiKey(apiKey)) {
     setStatus('🔑 Configure e salve uma chave API válida antes de continuar (deve começar com "AIza").', 'err');
     document.getElementById('apiKeyInput').focus();
@@ -1087,7 +1051,6 @@ document.getElementById('btnImportar').addEventListener('click', async () => {
     const fileHash = await hashArquivoSHA256(file);
     dbg(`🔐 Hash do arquivo: ${fileHash}`);
 
-    // Verifica cache
     const cached = getCachedAnalysis(fileHash);
     if (cached) {
       setOverlay(false);
@@ -1123,7 +1086,6 @@ document.getElementById('btnImportar').addEventListener('click', async () => {
 
     clearInterval(overlayInterval);
 
-    // Salva cache
     saveCachedAnalysis(fileHash, dados, file.name);
 
     renderResultados(dados);
@@ -1158,7 +1120,6 @@ document.getElementById('btnLimpar').addEventListener('click', () => {
 
 /* ═══════════════════════════════════════════════════
    TEMA
-   FIX #10: função isolada, sem dois sistemas paralelos
 ═══════════════════════════════════════════════════ */
 function applyTheme(theme) {
   document.body.classList.toggle('light', theme === 'light');
@@ -1175,7 +1136,6 @@ applyTheme(localStorage.getItem('theme') || 'dark');
 
 /* ═══════════════════════════════════════════════════
    RELÓGIO
-   FIX #9: ID do interval guardado para controle
 ═══════════════════════════════════════════════════ */
 function atualizarRelogio() {
   const agora    = new Date();
@@ -1192,6 +1152,59 @@ function atualizarRelogio() {
 }
 atualizarRelogio();
 App.clockInterval = setInterval(atualizarRelogio, 1000);
+
+/* ═══════════════════════════════════════════════════
+   BUSCADOR FUNDOS.NET
+═══════════════════════════════════════════════════ */
+const WORKER_URL = "https://ancient-moon-3aa3.pabloads2020.workers.dev";
+
+document.getElementById('btnBuscarFundo').addEventListener('click', async () => {
+  const ticker = document.getElementById('tickerInput').value.trim().toUpperCase();
+  if (!ticker) return;
+  
+  const resultadoDiv = document.getElementById('resultadoBuscaFundo');
+  resultadoDiv.innerHTML = '<div style="padding: 1rem; text-align: center;">⏳ Buscando...</div>';
+  
+  try {
+    const response = await fetch(`${WORKER_URL}/buscar?ticker=${ticker}`);
+    const data = await response.json();
+    
+    if (data.erro) {
+      resultadoDiv.innerHTML = `<div style="padding: 1rem; color: var(--red);">❌ ${data.erro}</div>`;
+    } else if (!data.relatorios || data.relatorios.length === 0) {
+      resultadoDiv.innerHTML = `<div style="padding: 1rem;"><strong>📊 ${data.fundo}</strong><br><span style="color: var(--amber);">⚠️ Nenhum relatório gerencial encontrado</span></div>`;
+    } else {
+      const relatorio = data.relatorios[0];
+      resultadoDiv.innerHTML = `
+        <div style="padding: 1rem; background: var(--bg3); border-radius: 8px;">
+          <div><strong>📊 ${data.fundo}</strong></div>
+          <div style="margin-top: 0.5rem;">📅 Último relatório: ${relatorio.data}</div>
+          <button id="btnAnalisarFundo" style="margin-top: 1rem; padding: 0.5rem 1rem; background: var(--green); color: #000; border: none; border-radius: 6px; cursor: pointer;">✅ Analisar com IA</button>
+        </div>
+      `;
+      
+      document.getElementById('btnAnalisarFundo').addEventListener('click', async () => {
+        resultadoDiv.innerHTML = '<div style="padding: 1rem; text-align: center;">⏳ Baixando PDF...</div>';
+        
+        const pdfResponse = await fetch(`${WORKER_URL}/baixar?id=${relatorio.id}`);
+        const blob = await pdfResponse.blob();
+        const file = new File([blob], `${ticker}_${relatorio.data}.pdf`, { type: 'application/pdf' });
+        
+        const fileInput = document.getElementById('filePdf');
+        if (fileInput) {
+          const dataTransfer = new DataTransfer();
+          dataTransfer.items.add(file);
+          fileInput.files = dataTransfer.files;
+          document.getElementById('fileName').textContent = file.name;
+          fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+          resultadoDiv.innerHTML = '<div style="padding: 1rem; color: var(--green);">✅ PDF carregado! Clique em "Analisar com IA" para processar.</div>';
+        }
+      });
+    }
+  } catch (error) {
+    resultadoDiv.innerHTML = `<div style="padding: 1rem; color: var(--red);">❌ Erro: ${error.message}</div>`;
+  }
+});
 </script>
 </body>
 </html>

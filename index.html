@@ -319,6 +319,19 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
     </div>
   </div>
 
+  <!-- NOVO CARD: BUSCAR DOCUMENTOS NO FUNDOS.NET (VIA WORKER) -->
+  <div class="card">
+    <div class="card-title">
+      📄 Buscar documentos no Fundos.NET
+      <span>Digite o CNPJ do fundo (ex: 11.728.688/0001-47)</span>
+    </div>
+    <div class="api-row">
+      <input type="text" id="cnpjBusca" class="api-input" placeholder="CNPJ (ex: 48.903.610/0001-21)" style="flex:2">
+      <button id="btnBuscarDocs" class="btn btn-gold">🔍 Buscar documentos</button>
+    </div>
+    <div id="listaDocumentos" style="margin-top: 1rem; max-height: 300px; overflow-y: auto;"></div>
+  </div>
+
   <!-- Card: Resultado -->
   <div id="resultArea" class="card" style="display:none">
     <div class="card-title">
@@ -1192,6 +1205,66 @@ function atualizarRelogio() {
 }
 atualizarRelogio();
 App.clockInterval = setInterval(atualizarRelogio, 1000);
+
+// ==================== INTEGRAÇÃO COM WORKER (FUNDOS.NET) ====================
+const WORKER_BASE = "https://ancient-moon-3aa3.pabloads2020.workers.dev";
+
+document.getElementById('btnBuscarDocs').addEventListener('click', async () => {
+  const cnpj = document.getElementById('cnpjBusca').value.trim();
+  if (!cnpj) return;
+  const listaDiv = document.getElementById('listaDocumentos');
+  listaDiv.innerHTML = '<div style="padding:1rem; text-align:center;">⏳ Buscando...</div>';
+  try {
+    const url = `${WORKER_BASE}/buscar?cnpj=${encodeURIComponent(cnpj)}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    if (data.erro) throw new Error(data.erro);
+    if (!data.documentos || data.documentos.length === 0) {
+      listaDiv.innerHTML = '<div style="padding:1rem;">Nenhum documento encontrado.</div>';
+      return;
+    }
+    // Ordena por data de entrega (mais recente primeiro)
+    const docs = data.documentos.sort((a,b) => (b.dataEntrega || '').localeCompare(a.dataEntrega || ''));
+    let html = '<div style="border-top:1px solid var(--border);"><div class="result-label" style="margin-bottom:0.5rem;">Escolha um documento para baixar e analisar:</div>';
+    for (const doc of docs) {
+      html += `
+        <div style="padding:0.5rem; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+          <div><strong>${escapeHtml(doc.tipo || 'Sem tipo')}</strong><br>
+          <small>Entrega: ${doc.dataEntrega || '-'} | Ref: ${doc.dataReferencia || '-'}</small></div>
+          <button class="btn-baixar-doc btn btn-ghost" data-id="${doc.id}" data-nome="${escapeHtml(doc.tipo)}">📥 Baixar</button>
+        </div>
+      `;
+    }
+    html += '</div>';
+    listaDiv.innerHTML = html;
+    // Anexa eventos aos botões de download
+    document.querySelectorAll('.btn-baixar-doc').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const id = btn.getAttribute('data-id');
+        const nome = btn.getAttribute('data-nome');
+        listaDiv.innerHTML = `<div style="padding:1rem;">⏳ Baixando ${nome}...</div>`;
+        try {
+          const pdfResponse = await fetch(`${WORKER_BASE}/baixar?id=${id}`);
+          const blob = await pdfResponse.blob();
+          const file = new File([blob], `documento_${id}.pdf`, { type: 'application/pdf' });
+          // Carrega no leitor existente (simula upload)
+          const dataTransfer = new DataTransfer();
+          dataTransfer.items.add(file);
+          const fileInput = document.getElementById('filePdf');
+          fileInput.files = dataTransfer.files;
+          document.getElementById('fileName').textContent = file.name;
+          fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+          listaDiv.innerHTML = `<div style="padding:1rem; color:var(--green);">✅ PDF carregado! Clique em "Analisar com IA".</div>`;
+        } catch (err) {
+          listaDiv.innerHTML = `<div style="padding:1rem; color:var(--red);">❌ Erro: ${err.message}</div>`;
+        }
+      });
+    });
+  } catch (err) {
+    listaDiv.innerHTML = `<div style="padding:1rem; color:var(--red);">❌ Erro: ${err.message}</div>`;
+  }
+});
+
 </script>
 </body>
 </html>

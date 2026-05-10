@@ -313,18 +313,18 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
     </div>
   </div>
 
-  <!-- CARD: BUSCAR DOCUMENTOS NO FUNDOS.NET (VIA WORKER) -->
+  <!-- CARD: BUSCAR RELATÓRIO POR TICKER (integrado com Worker) -->
   <div class="card">
     <div class="card-title">
-      📄 Buscar documentos no Fundos.NET
-      <span>Digite o ticker (ex: HGLG11) ou o CNPJ</span>
+      📄 Buscar relatório gerencial por ticker
+      <span>Digite o ticker (ex: AFHI11, HGLG11)</span>
     </div>
     <div class="api-row">
-      <input type="text" id="cnpjBusca" class="api-input" placeholder="Ex: HGLG11 ou 11.728.688/0001-47" style="flex:2">
-      <button id="btnBuscarDocs" class="btn btn-gold">🔍 Buscar documentos</button>
+      <input type="text" id="tickerInput" class="api-input" placeholder="Ex: AFHI11, HGLG11, RECR11" style="flex:2">
+      <button id="btnBuscarTicker" class="btn btn-gold">🔍 Buscar</button>
       <button id="btnLimparBusca" class="btn btn-ghost">🧹 Limpar</button>
     </div>
-    <div id="listaDocumentos" style="margin-top: 1rem; max-height: 300px; overflow-y: auto;"></div>
+    <div id="resultadoBusca" style="margin-top: 1rem; max-height: 300px; overflow-y: auto;"></div>
   </div>
 
   <!-- Card: Resultado -->
@@ -583,10 +583,10 @@ applyTheme(localStorage.getItem('theme') || 'dark');
 function atualizarRelogio() { const agora = new Date(); const diasSem = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado']; const meses = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez']; const d = String(agora.getDate()).padStart(2,'0'); const m = meses[agora.getMonth()]; const a = agora.getFullYear(); const h = String(agora.getHours()).padStart(2,'0'); const min = String(agora.getMinutes()).padStart(2,'0'); const s = String(agora.getSeconds()).padStart(2,'0'); document.getElementById('hDate').textContent = `${diasSem[agora.getDay()]}, ${d} ${m} ${a} · ${h}:${min}:${s}`; }
 atualizarRelogio(); App.clockInterval = setInterval(atualizarRelogio, 1000);
 
-// ==================== INTEGRAÇÃO COM WORKER (FUNDOS.NET) ====================
+// ==================== INTEGRAÇÃO COM WORKER (FUNDOS.NET) VIA TICKER ====================
 const WORKER_BASE = "https://ancient-moon-3aa3.pabloads2020.workers.dev";
 
-// Mapeamento ticker -> CNPJ
+// Mapeamento ticker -> CNPJ (29 fundos)
 const tickerToCNPJ = {
   "AFHI11": "36.642.293/0001-58", "ALZR11": "28.737.771/0001-85", "BCIA11": "20.216.935/0001-17",
   "BRCO11": "20.748.515/0001-81", "BTCI11": "09.552.812/0001-14", "BTLG11": "11.839.593/0001-09",
@@ -600,72 +600,70 @@ const tickerToCNPJ = {
   "XPLG11": "26.502.794/0001-85", "XPML11": "28.757.546/0001-00"
 };
 
-document.getElementById('btnBuscarDocs').addEventListener('click', async () => {
-  let input = document.getElementById('cnpjBusca').value.trim().toUpperCase();
+document.getElementById('btnBuscarTicker').addEventListener('click', async () => {
+  let input = document.getElementById('tickerInput').value.trim().toUpperCase();
   if (!input) return;
-  let cnpj = tickerToCNPJ[input] || input; // se ticker conhecido, usa CNPJ; senão, assume que é CNPJ
-  const listaDiv = document.getElementById('listaDocumentos');
-  listaDiv.innerHTML = '<div style="padding:1rem; text-align:center;">⏳ Buscando documentos...</div>';
+  let cnpj = tickerToCNPJ[input];
+  if (!cnpj) {
+    document.getElementById('resultadoBusca').innerHTML = '<div style="padding:1rem; color:var(--red);">❌ Ticker não encontrado. Tente outro.</div>';
+    return;
+  }
+  const div = document.getElementById('resultadoBusca');
+  div.innerHTML = '<div style="padding:1rem; text-align:center;">⏳ Buscando relatórios...</div>';
   try {
     const url = `${WORKER_BASE}/buscar?cnpj=${encodeURIComponent(cnpj)}`;
     const response = await fetch(url);
     const data = await response.json();
     if (data.erro) throw new Error(data.erro);
     if (!data.documentos || data.documentos.length === 0) {
-      listaDiv.innerHTML = '<div style="padding:1rem;">Nenhum documento encontrado.</div>';
+      div.innerHTML = '<div style="padding:1rem;">Nenhum documento encontrado.</div>';
       return;
     }
-    // Filtra apenas "Relatório Gerencial"
-    let docs = data.documentos.filter(doc => doc.tipo === "Relatório Gerencial");
+    let docs = data.documentos.filter(d => d.tipo === "Relatório Gerencial");
     if (docs.length === 0) {
-      listaDiv.innerHTML = '<div style="padding:1rem;">Nenhum Relatório Gerencial encontrado.</div>';
+      div.innerHTML = '<div style="padding:1rem;">Nenhum Relatório Gerencial encontrado.</div>';
       return;
     }
-    // Ordena por data de entrega (mais recente primeiro)
-    docs.sort((a, b) => (b.dataEntrega || '').localeCompare(a.dataEntrega || ''));
-    let html = '<div style="border-top:1px solid var(--border);"><div class="result-label" style="margin-bottom:0.5rem;">Relatórios Gerenciais encontrados (escolha um):</div>';
-    for (const doc of docs) {
+    docs.sort((a,b) => (b.dataEntrega || '').localeCompare(a.dataEntrega || ''));
+    let html = '<div class="result-label" style="margin-bottom:0.5rem;">📄 Relatórios Gerenciais encontrados (mais recentes primeiro):</div>';
+    for (const doc of docs.slice(0,5)) {
       html += `
         <div style="padding:0.5rem; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
-          <div><strong>${escapeHtml(doc.tipo)}</strong><br>
-          <small>Entrega: ${doc.dataEntrega || '-'} | Ref: ${doc.dataReferencia || '-'}</small></div>
-          <button class="btn-baixar-doc btn btn-ghost" data-id="${doc.id}" data-nome="${escapeHtml(doc.tipo)}">📥 Baixar</button>
+          <div><strong>${escapeHtml(doc.tipo)}</strong><br><small>Entrega: ${doc.dataEntrega || '-'}</small></div>
+          <button class="btn-baixar-ticker btn btn-ghost" data-id="${doc.id}" data-nome="${escapeHtml(doc.tipo)}">📥 Baixar e Analisar</button>
         </div>
       `;
     }
-    html += '</div>';
-    listaDiv.innerHTML = html;
-    // Atach events for download buttons
-    document.querySelectorAll('.btn-baixar-doc').forEach(btn => {
-      btn.addEventListener('click', async (e) => {
+    div.innerHTML = html;
+    document.querySelectorAll('.btn-baixar-ticker').forEach(btn => {
+      btn.addEventListener('click', async () => {
         const id = btn.getAttribute('data-id');
         const nome = btn.getAttribute('data-nome');
-        listaDiv.innerHTML = `<div style="padding:1rem;">⏳ Baixando ${nome}...</div>`;
+        div.innerHTML = `<div style="padding:1rem;">⏳ Baixando ${nome}...</div>`;
         try {
-          const pdfResponse = await fetch(`${WORKER_BASE}/baixar?id=${id}`);
-          const blob = await pdfResponse.blob();
-          const file = new File([blob], `documento_${id}.pdf`, { type: 'application/pdf' });
+          const pdfRes = await fetch(`${WORKER_BASE}/baixar?id=${id}`);
+          const blob = await pdfRes.blob();
+          const file = new File([blob], `relatorio_${id}.pdf`, { type: 'application/pdf' });
           const dataTransfer = new DataTransfer();
           dataTransfer.items.add(file);
           const fileInput = document.getElementById('filePdf');
           fileInput.files = dataTransfer.files;
           document.getElementById('fileName').textContent = file.name;
           fileInput.dispatchEvent(new Event('change', { bubbles: true }));
-          listaDiv.innerHTML = `<div style="padding:1rem; color:var(--green);">✅ PDF carregado! Clique em "Analisar com IA".</div>`;
-        } catch (err) {
-          listaDiv.innerHTML = `<div style="padding:1rem; color:var(--red);">❌ Erro: ${err.message}</div>`;
+          div.innerHTML = `<div style="padding:1rem; color:var(--green);">✅ PDF carregado! Clique em "Analisar com IA".</div>`;
+        } catch(err) {
+          div.innerHTML = `<div style="padding:1rem; color:var(--red);">❌ Erro: ${err.message}</div>`;
         }
       });
     });
   } catch (err) {
-    listaDiv.innerHTML = `<div style="padding:1rem; color:var(--red);">❌ Erro: ${err.message}</div>`;
+    div.innerHTML = `<div style="padding:1rem; color:var(--red);">❌ Erro: ${err.message}</div>`;
   }
 });
 
-// Botão Limpar para a área de busca
 document.getElementById('btnLimparBusca').addEventListener('click', () => {
-  document.getElementById('cnpjBusca').value = '';
-  document.getElementById('listaDocumentos').innerHTML = '';
+  document.getElementById('tickerInput').value = '';
+  document.getElementById('resultadoBusca').innerHTML = '';
 });
 
 </script>

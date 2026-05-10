@@ -7,64 +7,35 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
-/* ===== ESTILOS (mantidos iguais ao original, apenas coube tudo) ===== */
-:root {
-  --bg: #0e1117;
-  --bg2: #161b25;
-  --bg3: #1c2333;
-  --border: rgba(255,255,255,0.07);
-  --border2: rgba(255,255,255,0.13);
-  --gold: #f5c842;
-  --gold2: #e0a800;
-  --text: #e8eaf0;
-  --text2: #8b93a7;
-  --text3: #555e72;
-  --green: #2ecc71;
-  --green-bg: rgba(46,204,113,0.12);
-  --red: #e74c3c;
-  --red-bg: rgba(231,76,60,0.12);
-  --amber: #f39c12;
-  --amber-bg: rgba(243,156,18,0.12);
-  --blue: #3498db;
-  --blue-bg: rgba(52,152,219,0.12);
-  --header-bg: #161b25;
-  --header-border: rgba(255,255,255,0.07);
-  --card-bg: #161b25;
-  --card-border: rgba(255,255,255,0.07);
-  --input-bg: #1c2333;
-  --input-border: rgba(255,255,255,0.13);
-  --debug-bg: #1c2333;
-  --overlay-bg: rgba(14,17,23,.92);
-  --footer-border: rgba(255,255,255,0.07);
-  --result-item-bg: #1c2333;
-}
+/* ===== ESTILOS (compactados, mas completos) ===== */
+:root { --bg: #0e1117; --bg2: #161b25; --bg3: #1c2333; --border: rgba(255,255,255,0.07); --border2: rgba(255,255,255,0.13); --gold: #f5c842; --gold2: #e0a800; --text: #e8eaf0; --text2: #8b93a7; --text3: #555e72; --green: #2ecc71; --green-bg: rgba(46,204,113,0.12); --red: #e74c3c; --red-bg: rgba(231,76,60,0.12); --amber: #f39c12; --amber-bg: rgba(243,156,18,0.12); --blue: #3498db; --blue-bg: rgba(52,152,219,0.12); --header-bg: #161b25; --header-border: rgba(255,255,255,0.07); --card-bg: #161b25; --card-border: rgba(255,255,255,0.07); --input-bg: #1c2333; --input-border: rgba(255,255,255,0.13); --debug-bg: #1c2333; --overlay-bg: rgba(14,17,23,.92); --footer-border: rgba(255,255,255,0.07); --result-item-bg: #1c2333; }
 body.light { --bg: #f5f7fa; --bg2: #ffffff; --bg3: #f0f2f5; --border: rgba(0,0,0,0.08); --border2: rgba(0,0,0,0.12); --gold: #d4a017; --gold2: #b8860b; --text: #1a1a2e; --text2: #4a5568; --text3: #718096; --green: #27ae60; --green-bg: rgba(39,174,96,0.1); --red: #e74c3c; --red-bg: rgba(231,76,60,0.1); --amber: #e67e22; --amber-bg: rgba(230,126,34,0.1); --header-bg: #ffffff; --header-border: rgba(0,0,0,0.08); --card-bg: #ffffff; --card-border: rgba(0,0,0,0.08); --input-bg: #ffffff; --input-border: #e2e8f0; --debug-bg: #f7fafc; --overlay-bg: rgba(255,255,255,.95); --footer-border: rgba(0,0,0,0.08); --result-item-bg: #f7fafc; }
-* { box-sizing: border-box; margin: 0; padding: 0; transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease; }
+* { box-sizing: border-box; margin: 0; padding: 0; transition: background 0.2s, color 0.2s; }
 body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 .header { background: var(--header-bg); border-bottom: 1px solid var(--header-border); padding: 0 2rem; height: 60px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
 .header-logo { display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 600; }
 .dot { width: 28px; height: 28px; background: var(--gold); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #000; }
 .header-right { display: flex; align-items: center; gap: 1rem; }
 .header-date { font-size: 13px; color: var(--text3); }
-.theme-toggle { background: var(--bg3); border: 1px solid var(--border2); border-radius: 30px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; transition: border-color 0.2s, transform 0.15s; }
+.theme-toggle { background: var(--bg3); border: 1px solid var(--border2); border-radius: 30px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; }
 .main { max-width: 1200px; margin: 0 auto; padding: 2rem; }
 .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
-.card-title { font-size: 12px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; }
+.card-title { font-size: 12px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; flex-wrap: wrap; }
 .api-row { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
 .api-input-wrap { position: relative; flex: 1; min-width: 220px; }
 .api-input { width: 100%; background: var(--input-bg); border: 1.5px solid var(--input-border); border-radius: 8px; padding: 9px 40px 9px 14px; font-size: 14px; color: var(--text); font-family: monospace; outline: none; }
 .api-input:focus { border-color: var(--gold); }
-.api-eye { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--text3); background: none; border: none; }
-.btn-key { display: inline-flex; align-items: center; gap: 6px; padding: 9px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; border: 1px solid var(--border2); background: transparent; color: var(--text2); text-decoration: none; transition: all 0.2s; }
-.btn-key:hover { border-color: var(--gold); color: var(--gold); background: rgba(245,200,66,0.08); }
+.api-eye { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; background: none; border: none; color: var(--text3); }
+.btn-key { display: inline-flex; align-items: center; gap: 6px; padding: 9px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; border: 1px solid var(--border2); background: transparent; color: var(--text2); text-decoration: none; }
+.btn-key:hover { border-color: var(--gold); color: var(--gold); }
 .api-status { font-size: 12px; color: var(--text3); margin-top: 4px; }
 .api-status.valid { color: var(--green); }
 .api-status.invalid { color: var(--red); }
 .upload-row { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
-.file-label { display: flex; align-items: center; gap: 8px; background: var(--bg3); border: 1.5px dashed var(--border2); border-radius: 8px; padding: 9px 14px; cursor: pointer; font-size: 14px; color: var(--text2); flex: 1; min-width: 180px; }
+.file-label { display: flex; align-items: center; gap: 8px; background: var(--bg3); border: 1.5px dashed var(--border2); border-radius: 8px; padding: 9px 14px; cursor: pointer; font-size: 14px; color: var(--text2); flex: 1; }
 .file-label:hover { border-color: var(--gold); color: var(--gold); }
 #filePdf { display: none; }
-.btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; white-space: nowrap; transition: all 0.2s; }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; }
 .btn:disabled { opacity: 0.45; cursor: not-allowed; }
 .btn-gold { background: var(--gold); color: #000; }
 .btn-gold:hover:not(:disabled) { background: var(--gold2); transform: translateY(-1px); }
@@ -72,13 +43,13 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
 .btn-ghost:hover:not(:disabled) { border-color: var(--red); color: var(--red); background: var(--red-bg); }
 .status { display: none; align-items: center; gap: 8px; padding: 9px 13px; border-radius: 8px; font-size: 14px; margin-top: 0.75rem; }
 .status.show { display: flex; }
-.status-ok { background: var(--green-bg); color: var(--green); border: 1px solid rgba(46,204,113,0.25); }
-.status-err { background: var(--red-bg); color: var(--red); border: 1px solid rgba(231,76,60,0.25); }
+.status-ok { background: var(--green-bg); color: var(--green); }
+.status-err { background: var(--red-bg); color: var(--red); }
 .info-box { background: var(--blue-bg); border: 1px solid rgba(52,152,219,0.2); border-radius: 8px; padding: 10px 14px; font-size: 13px; color: var(--blue); margin-bottom: 0.75rem; }
-.truncate-warning { background: var(--amber-bg); border: 1px solid rgba(243,156,18,0.25); border-radius: 8px; padding: 8px 12px; font-size: 12px; color: var(--amber); margin-top: 0.5rem; display: none; }
+.truncate-warning { background: var(--amber-bg); border-radius: 8px; padding: 8px 12px; font-size: 12px; color: var(--amber); margin-top: 0.5rem; display: none; }
 .truncate-warning.show { display: block; }
-.drop-zone { border: 2px dashed var(--border2); border-radius: 10px; padding: 1.5rem 1rem; text-align: center; color: var(--text3); font-size: 13px; margin-bottom: 0.75rem; transition: all 0.2s; cursor: pointer; }
-.drop-zone.drag-over { border-color: var(--gold); background: rgba(245,200,66,0.06); color: var(--gold); }
+.drop-zone { border: 2px dashed var(--border2); border-radius: 10px; padding: 1.5rem; text-align: center; color: var(--text3); margin-bottom: 0.75rem; cursor: pointer; }
+.drop-zone.drag-over { border-color: var(--gold); background: rgba(245,200,66,0.06); }
 .modal-overlay { display: none; position: fixed; inset: 0; background: var(--overlay-bg); z-index: 300; align-items: center; justify-content: center; }
 .modal-overlay.show { display: flex; }
 .modal-box { background: var(--card-bg); border: 1px solid var(--border2); border-radius: 14px; padding: 1.75rem; max-width: 420px; width: 90%; }
@@ -98,7 +69,7 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
 .debug-box { display: none; background: var(--debug-bg); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem; font-size: 12px; max-height: 300px; overflow-y: auto; white-space: pre-wrap; font-family: monospace; }
 .debug-box.show { display: block; }
 .semaforo-bar { height: 5px; border-radius: 3px; margin-top: 8px; background: var(--border); overflow: hidden; }
-.semaforo-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+.semaforo-fill { height: 100%; border-radius: 3px; transition: width 0.6s; }
 .semaforo-fill.ok { background: var(--green); }
 .semaforo-fill.neutro { background: var(--amber); }
 .semaforo-fill.alerta { background: var(--red); }
@@ -107,227 +78,219 @@ body { font-family: 'DM Sans', 'Atkinson Hyperlegible', sans-serif; background: 
 .spin { width: 40px; height: 40px; border: 3px solid var(--border2); border-top-color: var(--gold); border-radius: 50%; animation: rot 0.8s linear infinite; }
 @keyframes rot { to { transform: rotate(360deg); } }
 .footer { text-align: center; font-size: 12px; color: var(--text3); padding: 2rem; border-top: 1px solid var(--footer-border); margin-top: 1rem; }
-@media print { .header, .card:not(#resultArea), .footer, #btnExportarPDF, .btn-export, .debug-wrapper { display: none !important; } }
+@media print { .header, .card:not(#resultArea), .footer, .debug-wrapper { display: none !important; } }
 </style>
 </head>
 <body>
-<div class="overlay" id="overlay"><div class="spin"></div><div class="spin-text" id="overlayText">Processando PDF...</div></div>
-<div class="modal-overlay" id="cacheModal"><div class="modal-box"><div class="modal-title">♻️ Análise em cache encontrada</div><div class="modal-body" id="cacheModalBody"></div><div class="modal-footer"><button class="btn btn-ghost" id="cacheModalReprocess">🔁 Reprocessar</button><button class="btn btn-gold" id="cacheModalUse">✅ Usar cache</button></div></div></div>
+<div class="overlay" id="overlay"><div class="spin"></div><div class="spin-text" id="overlayText">Processando...</div></div>
+<div class="modal-overlay" id="cacheModal"><div class="modal-box"><div class="modal-title">♻️ Análise em cache</div><div class="modal-body" id="cacheModalBody"></div><div class="modal-footer"><button class="btn btn-ghost" id="cacheModalReprocess">🔁 Reprocessar</button><button class="btn btn-gold" id="cacheModalUse">✅ Usar cache</button></div></div></div>
 <header class="header"><div class="header-logo"><div class="dot">FII</div>Leitor de Relatórios Gerenciais</div><div class="header-right"><div class="header-date" id="hDate"></div><button class="theme-toggle" id="themeToggle">🌙</button></div></header>
 <main class="main">
-  <div class="card"><div class="card-title">🔑 Configuração da API Gemini (Google AI)<span>Gratuita · Chave salva localmente</span></div><div class="info-box">💡 A chave fica salva só no seu navegador (localStorage). Nunca é enviada para nenhum servidor.</div>
-    <div class="api-row"><div class="api-input-wrap"><input type="password" id="apiKeyInput" class="api-input" placeholder="Cole sua chave: AIza..." autocomplete="off"><button class="api-eye" id="apiEye">👁️</button></div><button class="btn btn-gold" id="btnSalvarKey">💾 Salvar chave</button><a href="https://aistudio.google.com/app/apikey" target="_blank" class="btn-key">🔑 Gerar chave gratuita ↗</a></div>
+  <div class="card"><div class="card-title">🔑 API Gemini</div><div class="info-box">💡 Sua chave fica salva apenas no navegador.</div>
+    <div class="api-row"><div class="api-input-wrap"><input type="password" id="apiKeyInput" class="api-input" placeholder="AIza..."><button class="api-eye" id="apiEye">👁️</button></div><button class="btn btn-gold" id="btnSalvarKey">💾 Salvar</button><a href="https://aistudio.google.com/app/apikey" target="_blank" class="btn-key">🔑 Gerar chave gratuita</a></div>
     <div class="api-status" id="apiStatus"></div>
   </div>
-  <div class="card"><div class="card-title">📄 Importar relatório gerencial de FII (PDF)<span>Análise inteligente com Gemini AI</span></div>
-    <div class="drop-zone" id="dropZone"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>Arraste e solte o PDF aqui ou use o botão abaixo</div>
-    <div class="truncate-warning" id="truncateWarning">⚠️ O relatório é muito longo e foi cortado em 400.000 caracteres.</div>
-    <div class="upload-row"><label class="file-label" for="filePdf"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg><span id="fileName">Selecionar arquivo PDF...</span></label><input type="file" id="filePdf" accept=".pdf"><button class="btn btn-gold" id="btnImportar">🤖 Analisar com IA</button><button class="btn btn-ghost" id="btnLimpar">Limpar</button></div>
+  <div class="card"><div class="card-title">📄 Importar PDF</div>
+    <div class="drop-zone" id="dropZone">📂 Arraste o PDF ou clique aqui</div>
+    <div class="truncate-warning" id="truncateWarning">⚠️ Texto muito longo, cortado para análise.</div>
+    <div class="upload-row"><label class="file-label" for="filePdf">📁 <span id="fileName">Selecionar arquivo...</span></label><input type="file" id="filePdf" accept=".pdf"><button class="btn btn-gold" id="btnImportar">🤖 Analisar com IA</button><button class="btn btn-ghost" id="btnLimpar">Limpar</button></div>
     <div id="status" class="status"></div>
-    <div class="debug-wrapper"><div class="debug-header"><button class="btn-debug" id="btnToggleDebug"><span class="arrow" id="debugArrow">▶</span>📋 Detalhes da leitura</button></div><div id="debugBox" class="debug-box"></div></div>
+    <div class="debug-wrapper"><div class="debug-header"><button class="btn-debug" id="btnToggleDebug">📋 Detalhes da leitura</button></div><div id="debugBox" class="debug-box"></div></div>
   </div>
-  <div class="card"><div class="card-title">📄 Buscar documentos no Fundos.NET<span>Digite o ticker (ex: HGLG11) ou CNPJ</span></div>
-    <div class="api-row"><input type="text" id="cnpjBusca" class="api-input" placeholder="Ex: HGLG11 ou 11.728.688/0001-47" style="flex:2"><button id="btnBuscarDocs" class="btn btn-gold">🔍 Buscar documentos</button><button id="btnLimparBusca" class="btn btn-ghost">🧹 Limpar</button></div>
-    <div id="listaDocumentos" style="margin-top: 1rem; max-height: 300px; overflow-y: auto;"></div>
+  <div class="card"><div class="card-title">📄 Buscar no Fundos.NET</div>
+    <div class="api-row"><input type="text" id="cnpjBusca" class="api-input" placeholder="Ex: HGLG11 ou CNPJ"><button id="btnBuscarDocs" class="btn btn-gold">🔍 Buscar</button><button id="btnLimparBusca" class="btn btn-ghost">Limpar</button></div>
+    <div id="listaDocumentos" style="margin-top:1rem; max-height:300px; overflow-y:auto;"></div>
   </div>
-  <div id="resultArea" class="card" style="display:none"><div class="card-title">📊 Análise do Relatório Gerencial<div style="display:flex;gap:8px;"><span id="fundoIdentificado" style="color:var(--gold)"></span><span class="ai-badge">✨ Gemini AI</span><button class="btn-export" id="btnExportarPDF" onclick="window.print()">🖨️ Exportar / Imprimir</button></div></div><div id="resultadosConteudo" class="resultados-grid"></div></div>
+  <div id="resultArea" class="card" style="display:none"><div class="card-title">📊 Análise do Relatório<div style="display:flex;gap:8px;"><span id="fundoIdentificado"></span><span class="ai-badge">✨ Gemini AI</span><button class="btn-ghost" onclick="window.print()">🖨️ Exportar</button></div></div><div id="resultadosConteudo" class="resultados-grid"></div></div>
 </main>
-<footer class="footer">Criado por Pablo B. Freire · Análise inteligente de FIIs com Gemini AI · Chave armazenada localmente</footer>
+<footer class="footer">Análise de FIIs com Gemini · Chave local · Fundos.NET via Worker</footer>
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 const App = { processando: false };
 let debugContent = [];
 function dbg(txt) { debugContent.push(txt); document.getElementById('debugBox').textContent = debugContent.join('\n'); }
-function setStatus(msg, tipo, durationMs) { const el = document.getElementById('status'); el.innerHTML = msg.replace(/</g,'&lt;'); el.className = `status show status-${tipo}`; clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), durationMs || (tipo==='err'?15000:5000)); }
+function setStatus(msg, tipo, durationMs) { const el = document.getElementById('status'); el.innerHTML = msg; el.className = `status show status-${tipo}`; clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), durationMs || (tipo==='err'?15000:5000)); }
 function setOverlay(show, txt) { document.getElementById('overlay').classList.toggle('show', show); if(txt) document.getElementById('overlayText').textContent = txt; }
 function escapeHtml(str) { return String(str ?? '').replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
-function detectarTipoFundo(tipoFii) { const t = String(tipoFii || '').toLowerCase(); return { isPapel: t.includes('cri')||t.includes('papel')||t.includes('receb'), isTijolo: !t.includes('cri') && (t.includes('logístico')||t.includes('shopping')||t.includes('tijolo')) }; }
+function detectarTipoFundo(tipoFii) { const t = String(tipoFii || '').toLowerCase(); return { isPapel: t.includes('cri')||t.includes('papel'), isTijolo: !t.includes('cri') && (t.includes('logístico')||t.includes('shopping')) }; }
 function getApiKey() { return localStorage.getItem('gemini_api_key') || ''; }
 function validarApiKey(key) { return key && key.startsWith('AIza') && key.length > 30; }
-function updateApiStatusUI() { const key = getApiKey(); const el = document.getElementById('apiStatus'); if(validarApiKey(key)) { el.textContent = '✅ Chave salva e pronta.'; el.className = 'api-status valid'; document.getElementById('apiKeyInput').value = key; } else if(key) { el.textContent = '⚠️ Chave inválida.'; el.className = 'api-status invalid'; document.getElementById('apiKeyInput').value = key; } else { el.textContent = 'Nenhuma chave salva. Gere uma gratuitamente.'; el.className = 'api-status'; } }
-document.getElementById('btnSalvarKey').addEventListener('click', () => { const val = document.getElementById('apiKeyInput').value.trim(); if(!val) { setStatus('Cole sua chave primeiro.', 'err'); return; } if(!validarApiKey(val)) { setStatus('Chave inválida. Deve começar com "AIza".', 'err'); return; } localStorage.setItem('gemini_api_key', val); updateApiStatusUI(); setStatus('✅ Chave salva!', 'ok'); });
+function updateApiStatusUI() { const key = getApiKey(); const el = document.getElementById('apiStatus'); if(validarApiKey(key)) { el.textContent = '✅ Chave OK'; el.className = 'api-status valid'; document.getElementById('apiKeyInput').value = key; } else if(key) { el.textContent = '⚠️ Chave inválida'; el.className = 'api-status invalid'; document.getElementById('apiKeyInput').value = key; } else { el.textContent = 'Nenhuma chave salva.'; el.className = 'api-status'; } }
+document.getElementById('btnSalvarKey').addEventListener('click', () => { const val = document.getElementById('apiKeyInput').value.trim(); if(!val) { setStatus('Cole a chave', 'err'); return; } if(!validarApiKey(val)) { setStatus('Chave inválida (deve iniciar com AIza)', 'err'); return; } localStorage.setItem('gemini_api_key', val); updateApiStatusUI(); setStatus('✅ Chave salva', 'ok'); });
 document.getElementById('apiEye').addEventListener('click', () => { const inp = document.getElementById('apiKeyInput'); inp.type = inp.type === 'password' ? 'text' : 'password'; });
 updateApiStatusUI();
 
 const TEXTO_MAX = 400000;
 async function extrairTextoPDF(file) {
-  dbg('📄 Iniciando extração PDF...');
+  dbg('📄 Extraindo PDF...');
   const ab = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
-  dbg(`📑 Total de páginas: ${pdf.numPages}`);
-  let textoCompleto = '';
+  dbg(`📑 Páginas: ${pdf.numPages}`);
+  let texto = '';
   for(let p=1; p<=pdf.numPages; p++) {
     const page = await pdf.getPage(p);
-    const tc = await page.getTextContent();
-    textoCompleto += tc.items.map(i=>i.str).join(' ') + ' ';
-    dbg(`✅ Página ${p}: ${textoCompleto.length} caracteres`);
+    const content = await page.getTextContent();
+    texto += content.items.map(i=>i.str).join(' ') + ' ';
+    dbg(`✅ Página ${p} ok`);
   }
-  const normalizado = textoCompleto.replace(/[\n\r\t]+/g, ' ').replace(/\s+/g, ' ').trim();
-  dbg(`📊 Total extraído: ${normalizado.length} caracteres`);
+  const normalizado = texto.replace(/[\n\r\t]+/g, ' ').replace(/\s+/g, ' ').trim();
   const cortando = normalizado.length > TEXTO_MAX;
   document.getElementById('truncateWarning').classList.toggle('show', cortando);
-  if(cortando) dbg(`⚠️ Texto cortado em ${TEXTO_MAX} chars.`);
+  if(cortando) dbg(`⚠️ Cortado para ${TEXTO_MAX} chars`);
   return normalizado.substring(0, TEXTO_MAX);
 }
 
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 async function analisarComGemini(textoPDF, apiKey) {
-  dbg('🤖 Enviando para Gemini AI...');
-  const prompt = `Você é um analista especialista em Fundos de Investimento Imobiliário (FIIs) do Brasil. Extraia do relatório gerencial fornecido as seguintes informações. Retorne APENAS um JSON válido, sem texto adicional, seguindo exatamente este formato:
+  dbg('🤖 Enviando para Gemini...');
+  const prompt = `Você é analista de FIIs. Extraia do relatório gerencial as informações no formato JSON abaixo. Retorne APENAS o JSON, sem texto extra.
 {
-  "ticker": "string (código do fundo, ex: HGLG11)",
-  "gestora": "string (nome da gestora)",
-  "periodo_referencia": "string (mês/ano do relatório)",
-  "vacancia_fisica": "string (percentual ou texto, ex: 4,5%)",
-  "vacancia_financeira": "string (percentual)",
-  "inadimplencia": "string (percentual ou texto)",
-  "ltv": "string (Loan to Value em percentual)",
-  "distribuicao": "string (rendimento por cota, ex: R$ 0,95)",
-  "resultado_distribuivel": "string (valor total, ex: R$ 12,3 mi)",
+  "ticker": "string",
+  "gestora": "string",
+  "periodo_referencia": "string",
+  "vacancia_fisica": "string",
+  "vacancia_financeira": "string",
+  "inadimplencia": "string",
+  "ltv": "string",
+  "distribuicao": "string",
+  "resultado_distribuivel": "string",
   "receita_total": "string",
   "despesas_totais": "string",
   "saldo_caixa": "string",
-  "num_imoveis": "string (número de imóveis)",
+  "num_imoveis": "string",
   "num_inquilinos": "string",
-  "abl_total": "string (Área Bruta Locável, ex: 45.000 m²)",
-  "tipo_fii": "string (ex: Tijolo / Papel / Híbrido)",
-  "parcelas_pagar": "string (se houver parcelas relevantes a pagar)",
-  "saida_inquilino": "string (se houve saída de inquilino importante)",
-  "entrada_inquilino": "string (se houve entrada de inquilino importante)",
-  "reajustes": "string (informações sobre reajustes de aluguel)",
-  "num_cris": "string (se for FII de papel, quantidade de CRIs)",
-  "prazo_medio_cri": "string (prazo médio dos CRIs)",
-  "divida_pl": "string (Dívida Bruta / Patrimônio Líquido)",
-  "custo_divida": "string (custo médio da dívida, ex: CDI+1,2%)",
-  "prazo_medio_divida": "string (prazo médio da dívida em anos/meses)",
-  "resumo_analista": "string (resumo da análise, destacando pontos principais)",
-  "pontos_positivos": "string (liste os pontos positivos separados por | )",
-  "principais_riscos": "string (liste os riscos separados por | )",
-  "comentario_gestor": "string (trecho relevante do comentário do gestor)"
+  "abl_total": "string",
+  "tipo_fii": "string",
+  "parcelas_pagar": "string",
+  "saida_inquilino": "string",
+  "entrada_inquilino": "string",
+  "reajustes": "string",
+  "num_cris": "string",
+  "prazo_medio_cri": "string",
+  "divida_pl": "string",
+  "custo_divida": "string",
+  "prazo_medio_divida": "string",
+  "resumo_analista": "string",
+  "pontos_positivos": "string",
+  "principais_riscos": "string",
+  "comentario_gestor": "string"
 }
-Caso algum dado não seja encontrado, use null. Seja preciso, extraia números e percentuais quando visíveis.
+Use null se não encontrar. Seja preciso com números.
 RELATÓRIO:\n${textoPDF}`;
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
   const payload = { contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.1, maxOutputTokens: 8192 } };
-  for(let tentativa=1; tentativa<=3; tentativa++) {
-    if(tentativa>1) await sleep(5000);
+  for(let t=1; t<=3; t++) {
+    if(t>1) await new Promise(r=>setTimeout(r, 5000));
     const resp = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-    if(!resp.ok) { const err = await resp.text(); dbg(`Erro API (${resp.status}): ${err.substring(0,200)}`); if(tentativa===3) throw new Error(`Falha na Gemini: ${resp.status}`); continue; }
+    if(!resp.ok) { const err = await resp.text(); dbg(`Erro API (${resp.status}): ${err.substring(0,200)}`); if(t===3) throw new Error(`Falha na Gemini: ${resp.status}`); continue; }
     const data = await resp.json();
     const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
     let jsonStr = raw.replace(/```json\s*/i,'').replace(/```\s*/i,'').trim();
     try { return JSON.parse(jsonStr); } catch(e) {
-      try { const m = jsonStr.match(/\{[\s\S]*\}/); if(m) return JSON.parse(m[0]); } catch(e2) {}
-      dbg('Falha ao parsear JSON, tentativa '+tentativa);
-      if(tentativa===3) throw new Error('Resposta da IA não está em JSON válido.');
+      const match = jsonStr.match(/\{[\s\S]*\}/);
+      if(match) try { return JSON.parse(match[0]); } catch(e2) {}
+      if(t===3) throw new Error('Resposta não é JSON válido');
     }
   }
-  throw new Error('Tentativas esgotadas.');
+  throw new Error('Tentativas esgotadas');
 }
 
 function extrairNumero(val) { if(!val) return null; const n=parseFloat(String(val).replace(/[^\d,.-]/g,'').replace(',','.')); return isNaN(n)?null:n; }
-function colorVacancia(val) { const n=extrairNumero(val); if(n===null) return ''; if(n<=5) return 'ok'; if(n<=20) return 'neutro'; return 'alerta'; }
-function colorLTV(val, tipoFii) { const n=extrairNumero(val); if(n===null) return ''; const {isPapel}=detectarTipoFundo(tipoFii); if(isPapel) return n<=60?'ok':n<=70?'neutro':'alerta'; return n<=10?'ok':n<=20?'neutro':'alerta'; }
+function colorVacancia(val) { const n=extrairNumero(val); if(n===null) return ''; return n<=5?'ok':n<=20?'neutro':'alerta'; }
+function colorLTV(val, tipo) { const n=extrairNumero(val); if(n===null) return ''; const {isPapel}=detectarTipoFundo(tipo); if(isPapel) return n<=60?'ok':n<=70?'neutro':'alerta'; return n<=10?'ok':n<=20?'neutro':'alerta'; }
 function colorInadimplencia(val) { const n=extrairNumero(val); if(n===null||n===0) return 'ok'; return n<=10?'ok':n<=20?'neutro':'alerta'; }
-function semaforoHTML(cor,pct) { const labels={ok:'✅ SAUDÁVEL',neutro:'⚠️ ATENÇÃO',alerta:'🔴 CRÍTICO'}; if(!cor) return ''; return `<div class="semaforo-bar"><div class="semaforo-fill ${cor}" style="width:${Math.min(Math.max(pct,4),100)}%"></div></div><div class="semaforo-label ${cor}">${labels[cor]}</div>`; }
+function semaforoHTML(cor,pct) { if(!cor) return ''; const labels={ok:'✅ SAUDÁVEL',neutro:'⚠️ ATENÇÃO',alerta:'🔴 CRÍTICO'}; return `<div class="semaforo-bar"><div class="semaforo-fill ${cor}" style="width:${Math.min(Math.max(pct,4),100)}%"></div></div><div class="semaforo-label ${cor}">${labels[cor]}</div>`; }
 function renderResultados(d) {
-  document.getElementById('fundoIdentificado').innerHTML = (d.ticker?`<span class="fundo-ticker">${escapeHtml(d.ticker)}</span>`:'')+(d.gestora?`<span style="font-size:12px">${escapeHtml(d.gestora)}</span>`:'');
+  document.getElementById('fundoIdentificado').innerHTML = (d.ticker?`<span class="fundo-ticker">${escapeHtml(d.ticker)}</span>`:'')+(d.gestora?`<span> ${escapeHtml(d.gestora)}</span>`:'');
   let html = '';
-  const corVac = colorVacancia(d.vacancia_fisica); const numVac = extrairNumero(d.vacancia_fisica)||0;
-  html += `<div class="result-card"><div class="result-label">📊 Vacância Física</div><div class="result-value small ${corVac}">${escapeHtml(d.vacancia_fisica||'-')}</div>${semaforoHTML(corVac, numVac*2)}</div>`;
-  const corVacFin = colorVacancia(d.vacancia_financeira); const numVacFin = extrairNumero(d.vacancia_financeira)||0;
-  html += `<div class="result-card"><div class="result-label">💰 Vacância Financeira</div><div class="result-value small ${corVacFin}">${escapeHtml(d.vacancia_financeira||'-')}</div>${semaforoHTML(corVacFin, numVacFin*2)}</div>`;
-  const corInad = colorInadimplencia(d.inadimplencia); const numInad = extrairNumero(d.inadimplencia)||0;
-  html += `<div class="result-card"><div class="result-label">⚠️ Inadimplência</div><div class="result-value small ${corInad}">${escapeHtml(d.inadimplencia||'-')}</div>${semaforoHTML(corInad, numInad*2)}</div>`;
-  const corLTV = colorLTV(d.ltv, d.tipo_fii); const numLTV = extrairNumero(d.ltv)||0;
-  html += `<div class="result-card"><div class="result-label">🏦 LTV (Loan to Value)</div><div class="result-value small ${corLTV}">${escapeHtml(d.ltv||'-')}</div>${semaforoHTML(corLTV, numLTV)}</div>`;
-  if(d.num_cris && d.num_cris!=='null') html += `<div class="result-card"><div class="result-label">📦 Quantidade de CRIs</div><div class="result-value small">${escapeHtml(d.num_cris)}</div></div>`;
-  if(d.prazo_medio_cri) html += `<div class="result-card"><div class="result-label">⏱️ Prazo Médio CRIs</div><div class="result-value small">${escapeHtml(d.prazo_medio_cri)}</div></div>`;
-  const simples = ['distribuicao','resultado_distribuivel','receita_total','despesas_totais','saldo_caixa','num_imoveis','num_inquilinos','abl_total','tipo_fii'];
-  simples.forEach(k => { if(d[k] && d[k]!=='null') html += `<div class="result-card"><div class="result-label">${k.replace(/_/g,' ').toUpperCase()}</div><div class="result-value small">${escapeHtml(d[k])}</div></div>`; });
+  const vac = colorVacancia(d.vacancia_fisica); const nVac = extrairNumero(d.vacancia_fisica)||0;
+  html += `<div class="result-card"><div class="result-label">📊 Vacância Física</div><div class="result-value small ${vac}">${escapeHtml(d.vacancia_fisica||'-')}</div>${semaforoHTML(vac, nVac*2)}</div>`;
+  const vacFin = colorVacancia(d.vacancia_financeira); const nVacFin = extrairNumero(d.vacancia_financeira)||0;
+  html += `<div class="result-card"><div class="result-label">💰 Vacância Financeira</div><div class="result-value small ${vacFin}">${escapeHtml(d.vacancia_financeira||'-')}</div>${semaforoHTML(vacFin, nVacFin*2)}</div>`;
+  const inad = colorInadimplencia(d.inadimplencia); const nInad = extrairNumero(d.inadimplencia)||0;
+  html += `<div class="result-card"><div class="result-label">⚠️ Inadimplência</div><div class="result-value small ${inad}">${escapeHtml(d.inadimplencia||'-')}</div>${semaforoHTML(inad, nInad*2)}</div>`;
+  const ltvCor = colorLTV(d.ltv, d.tipo_fii); const nLTV = extrairNumero(d.ltv)||0;
+  html += `<div class="result-card"><div class="result-label">🏦 LTV</div><div class="result-value small ${ltvCor}">${escapeHtml(d.ltv||'-')}</div>${semaforoHTML(ltvCor, nLTV)}</div>`;
+  ['distribuicao','resultado_distribuivel','receita_total','despesas_totais','saldo_caixa','num_imoveis','num_inquilinos','abl_total','tipo_fii','num_cris','prazo_medio_cri'].forEach(k => { if(d[k] && d[k]!=='null') html += `<div class="result-card"><div class="result-label">${k.replace(/_/g,' ').toUpperCase()}</div><div class="result-value small">${escapeHtml(d[k])}</div></div>`; });
   if(d.divida_pl || d.custo_divida || d.prazo_medio_divida) {
-    html += `<div class="divida-card"><div class="result-label">🏦 Estrutura de Dívida</div><div class="divida-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:0.5rem;">`;
-    if(d.divida_pl) html += `<div><div class="result-label">Dívida/PL</div><div>${escapeHtml(d.divida_pl)}</div></div>`;
-    if(d.custo_divida) html += `<div><div class="result-label">Custo da Dívida</div><div>${escapeHtml(d.custo_divida)}</div></div>`;
-    if(d.prazo_medio_divida) html += `<div><div class="result-label">Prazo Médio</div><div>${escapeHtml(d.prazo_medio_divida)}</div></div>`;
-    html += `</div></div>`;
+    html += `<div class="divida-card"><div class="result-label">🏦 Estrutura de Dívida</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:0.5rem;">${d.divida_pl?`<div><div class="result-label">Dívida/PL</div><div>${escapeHtml(d.divida_pl)}</div></div>`:''}${d.custo_divida?`<div><div class="result-label">Custo da Dívida</div><div>${escapeHtml(d.custo_divida)}</div></div>`:''}${d.prazo_medio_divida?`<div><div class="result-label">Prazo Médio</div><div>${escapeHtml(d.prazo_medio_divida)}</div></div>`:''}</div></div>`;
   }
-  if(d.resumo_analista) html += `<div class="resumo-box"><div class="result-label">🤖 Análise do Relatório</div><div class="resumo-texto" style="white-space:pre-wrap">${escapeHtml(d.resumo_analista)}</div></div>`;
+  if(d.resumo_analista) html += `<div class="resumo-box"><div class="result-label">🤖 Análise do Relatório</div><div>${escapeHtml(d.resumo_analista)}</div></div>`;
   if(d.pontos_positivos) html += `<div class="positivos-box"><div class="result-label">✅ Pontos Positivos</div><ul>${d.pontos_positivos.split('|').map(s=>`<li>${escapeHtml(s.trim())}</li>`).join('')}</ul></div>`;
-  if(d.principais_riscos) html += `<div class="riscos-box"><div class="result-label">⚠️ Principais Riscos</div><ul>${d.principais_riscos.split('|').map(s=>`<li>${escapeHtml(s.trim())}</li>`).join('')}</ul></div>`;
+  if(d.principais_riscos) html += `<div class="riscos-box"><div class="result-label">⚠️ Riscos</div><ul>${d.principais_riscos.split('|').map(s=>`<li>${escapeHtml(s.trim())}</li>`).join('')}</ul></div>`;
   if(d.comentario_gestor && d.comentario_gestor!=='null') html += `<div class="comentario-box"><div class="result-label">💬 Comentário do Gestor</div><div>${escapeHtml(d.comentario_gestor)}</div></div>`;
   document.getElementById('resultadosConteudo').innerHTML = html;
   document.getElementById('resultArea').style.display = 'block';
 }
 
-// CACHE
+// Cache
 const CACHE_PREFIX = 'leitor_fii_cache_';
-async function hashArquivoSHA256(file) { const ab = await file.arrayBuffer(); if(!crypto.subtle) return 'fallback_'+file.name+file.size; const hash = await crypto.subtle.digest('SHA-256', ab); return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join(''); }
+async function hashArquivoSHA256(file) { const ab = await file.arrayBuffer(); if(!crypto.subtle) return `fallback_${file.name}_${file.size}`; const hash = await crypto.subtle.digest('SHA-256', ab); return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join(''); }
 function getCachedAnalysis(hash) { try { const raw = localStorage.getItem(CACHE_PREFIX+hash); return raw?JSON.parse(raw):null; } catch(e){return null;} }
 function saveCachedAnalysis(hash, data) { try { localStorage.setItem(CACHE_PREFIX+hash, JSON.stringify({data, ts:Date.now()})); } catch(e){} }
-function mostrarModalCache(cachedTs) { return new Promise(resolve => { const modal = document.getElementById('cacheModal'); document.getElementById('cacheModalBody').innerHTML = `Análise anterior encontrada (${new Date(cachedTs).toLocaleString()}). Usar cache?`; modal.classList.add('show'); const use = () => { modal.classList.remove('show'); resolve(true); }; const reproc = () => { modal.classList.remove('show'); resolve(false); }; document.getElementById('cacheModalUse').onclick = use; document.getElementById('cacheModalReprocess').onclick = reproc; }); }
+function mostrarModalCache(cachedTs) { return new Promise(resolve => { const modal = document.getElementById('cacheModal'); document.getElementById('cacheModalBody').innerHTML = `Análise anterior (${new Date(cachedTs).toLocaleString()}). Usar cache?`; modal.classList.add('show'); const use = () => { modal.classList.remove('show'); resolve(true); }; const reproc = () => { modal.classList.remove('show'); resolve(false); }; document.getElementById('cacheModalUse').onclick = use; document.getElementById('cacheModalReprocess').onclick = reproc; }); }
 
 document.getElementById('btnImportar').addEventListener('click', async () => {
   if(App.processando) return;
   const file = document.getElementById('filePdf').files[0];
   const apiKey = getApiKey();
-  if(!file) { setStatus('Selecione um PDF.', 'err'); return; }
-  if(!validarApiKey(apiKey)) { setStatus('Configure sua chave API.', 'err'); return; }
-  App.processando = true; document.getElementById('btnImportar').disabled = true; clearDebug(); setOverlay(true, 'Preparando...');
+  if(!file) { setStatus('Selecione um PDF', 'err'); return; }
+  if(!validarApiKey(apiKey)) { setStatus('Configure sua chave API', 'err'); return; }
+  App.processando = true; document.getElementById('btnImportar').disabled = true; debugContent=[]; setOverlay(true, 'Preparando...');
   try {
     const fileHash = await hashArquivoSHA256(file);
     const cached = getCachedAnalysis(fileHash);
-    if(cached) { setOverlay(false); if(await mostrarModalCache(cached.ts)) { renderResultados(cached.data); setStatus('✅ Usado cache local.', 'ok'); return; } setOverlay(true, 'Reprocessando...'); }
-    const textoPDF = await extrairTextoPDF(file);
-    if(textoPDF.length < 100) throw new Error('PDF sem texto selecionável.');
+    if(cached) { setOverlay(false); if(await mostrarModalCache(cached.ts)) { renderResultados(cached.data); setStatus('✅ Cache usado', 'ok'); return; } setOverlay(true, 'Reprocessando...'); }
+    const texto = await extrairTextoPDF(file);
+    if(texto.length < 100) throw new Error('PDF sem texto');
     setOverlay(true, 'Analisando com Gemini...');
-    const dados = await analisarComGemini(textoPDF, apiKey);
+    const dados = await analisarComGemini(texto, apiKey);
     saveCachedAnalysis(fileHash, dados);
     renderResultados(dados);
-    setStatus(`✅ Análise concluída! Fundo: ${dados.ticker || 'identificado'}`, 'ok');
+    setStatus(`✅ Análise concluída: ${dados.ticker || 'FII'}`, 'ok');
   } catch(e) { setStatus('❌ '+e.message, 'err', 20000); dbg('ERRO: '+e.message); document.getElementById('debugBox').classList.add('show'); } finally { setOverlay(false); App.processando = false; document.getElementById('btnImportar').disabled = false; }
 });
 
-document.getElementById('btnLimpar').addEventListener('click', () => { document.getElementById('filePdf').value = ''; document.getElementById('fileName').textContent = 'Selecionar arquivo PDF...'; document.getElementById('resultArea').style.display = 'none'; document.getElementById('status').classList.remove('show'); clearDebug(); });
-document.getElementById('btnToggleDebug').addEventListener('click', () => { document.getElementById('debugBox').classList.toggle('show'); document.getElementById('debugArrow').classList.toggle('rotated'); });
+document.getElementById('btnLimpar').addEventListener('click', () => { document.getElementById('filePdf').value = ''; document.getElementById('fileName').textContent = 'Selecionar arquivo...'; document.getElementById('resultArea').style.display = 'none'; document.getElementById('status').classList.remove('show'); debugContent=[]; document.getElementById('debugBox').classList.remove('show'); });
+document.getElementById('btnToggleDebug').addEventListener('click', () => { document.getElementById('debugBox').classList.toggle('show'); });
 function applyTheme(theme) { document.body.classList.toggle('light', theme==='light'); document.getElementById('themeToggle').textContent = theme==='light' ? '☀️' : '🌙'; }
 document.getElementById('themeToggle').addEventListener('click', () => { const novoTema = document.body.classList.contains('light') ? 'dark' : 'light'; applyTheme(novoTema); localStorage.setItem('theme', novoTema); });
 applyTheme(localStorage.getItem('theme') || 'dark');
-function atualizarRelogio() { const agora = new Date(); document.getElementById('hDate').textContent = agora.toLocaleDateString('pt-BR') + ' ' + agora.toLocaleTimeString('pt-BR'); }
+function atualizarRelogio() { document.getElementById('hDate').textContent = new Date().toLocaleString('pt-BR'); }
 atualizarRelogio(); setInterval(atualizarRelogio, 1000);
 
-// INTEGRAÇÃO COM WORKER (FUNDOS.NET)
-const WORKER_BASE = "https://seu-worker.workers.dev"; // <-- SUBSTITUA PELA URL DO SEU WORKER
+// ==================== INTEGRAÇÃO COM WORKER ====================
+const WORKER_BASE = "https://ancient-moon-3aa3.pabloads2020.workers.dev"; // URL correta fornecida
+
 document.getElementById('btnBuscarDocs').addEventListener('click', async () => {
   let input = document.getElementById('cnpjBusca').value.trim();
   if(!input) return;
   const listaDiv = document.getElementById('listaDocumentos');
-  listaDiv.innerHTML = '<div style="padding:1rem;text-align:center;">⏳ Buscando...</div>';
+  listaDiv.innerHTML = '<div style="padding:1rem;">⏳ Buscando...</div>';
   try {
     let queryParam = "";
-    // Detecta se é ticker (letras + números, até 6 caracteres) ou CNPJ
-    if(/^[A-Z0-9]{4,6}$/.test(input.toUpperCase())) {
+    if(/^[A-Z0-9]{4,6}$/i.test(input)) {
       queryParam = `ticker=${encodeURIComponent(input.toUpperCase())}`;
     } else {
       queryParam = `cnpj=${encodeURIComponent(input)}`;
     }
     const resp = await fetch(`${WORKER_BASE}/buscar?${queryParam}`);
+    if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const data = await resp.json();
     if(data.erro) throw new Error(data.erro);
-    if(!data.documentos || data.documentos.length===0) { listaDiv.innerHTML = '<div style="padding:1rem;">Nenhum relatório gerencial encontrado.</div>'; return; }
+    if(!data.documentos || data.documentos.length===0) { listaDiv.innerHTML = '<div>Nenhum relatório gerencial encontrado.</div>'; return; }
     let docs = data.documentos.filter(d => d.tipo === "Relatório Gerencial");
-    if(docs.length===0) { listaDiv.innerHTML = '<div style="padding:1rem;">Nenhum Relatório Gerencial.</div>'; return; }
+    if(docs.length===0) { listaDiv.innerHTML = '<div>Nenhum Relatório Gerencial.</div>'; return; }
     docs.sort((a,b)=> (b.dataEntrega||'').localeCompare(a.dataEntrega||''));
-    let html = '<div class="result-label" style="margin-bottom:0.5rem;">Relatórios Gerenciais:</div>';
+    let html = '<div class="result-label">📄 Relatórios Gerenciais encontrados:</div>';
     for(const doc of docs) {
-      html += `<div style="padding:0.5rem; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+      html += `<div style="padding:0.5rem; border-bottom:1px solid var(--border); display:flex; justify-content:space-between;">
         <div><strong>${escapeHtml(doc.tipo)}</strong><br><small>Entrega: ${doc.dataEntrega||'-'} | Ref: ${doc.dataReferencia||'-'}</small></div>
-        <button class="btn-baixar-doc btn btn-ghost" data-id="${doc.id}" data-nome="${escapeHtml(doc.tipo)}">📥 Baixar</button></div>`;
+        <button class="btn-baixar-doc btn btn-ghost" data-id="${doc.id}">📥 Baixar</button></div>`;
     }
     listaDiv.innerHTML = html;
     document.querySelectorAll('.btn-baixar-doc').forEach(btn => btn.addEventListener('click', async (e) => {
       const id = btn.getAttribute('data-id');
-      listaDiv.innerHTML = '<div style="padding:1rem;">⏳ Baixando PDF...</div>';
+      listaDiv.innerHTML = '<div>⏳ Baixando PDF...</div>';
       try {
         const pdfResp = await fetch(`${WORKER_BASE}/baixar?id=${id}`);
         if(!pdfResp.ok) throw new Error('Erro ao baixar');
@@ -336,10 +299,13 @@ document.getElementById('btnBuscarDocs').addEventListener('click', async () => {
         const dt = new DataTransfer(); dt.items.add(file);
         document.getElementById('filePdf').files = dt.files;
         document.getElementById('fileName').textContent = file.name;
-        listaDiv.innerHTML = '<div style="padding:1rem; color:var(--green);">✅ PDF carregado! Clique em "Analisar com IA".</div>';
-      } catch(err) { listaDiv.innerHTML = `<div style="padding:1rem; color:var(--red);">❌ Erro: ${err.message}</div>`; }
+        listaDiv.innerHTML = '<div style="color:var(--green);">✅ PDF carregado! Clique em "Analisar com IA".</div>';
+      } catch(err) { listaDiv.innerHTML = `<div style="color:var(--red);">❌ Erro: ${err.message}</div>`; }
     }));
-  } catch(err) { listaDiv.innerHTML = `<div style="padding:1rem; color:var(--red);">❌ Erro: ${err.message}</div>`; }
+  } catch(err) {
+    listaDiv.innerHTML = `<div style="color:var(--red);">❌ Erro de rede: ${err.message}. Verifique a URL do Worker ou se o Worker está ativo.</div>`;
+    console.error(err);
+  }
 });
 document.getElementById('btnLimparBusca').addEventListener('click', () => { document.getElementById('cnpjBusca').value = ''; document.getElementById('listaDocumentos').innerHTML = ''; });
 </script>
